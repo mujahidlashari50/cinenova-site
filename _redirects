@@ -1,0 +1,7 @@
+# Cloudflare Pages rewrite rules for CineNova
+# Movie detail pages are rendered client-side by JS based on the URL slug,
+# so any /movie/{slug} request should serve the homepage (with a real 200,
+# not a 404) so the JS can read location.pathname and load the right movie.
+# NOTE: destination is "/" (not "/index.html") to avoid a known Wrangler
+# false-positive "infinite loop" validation bug on rules ending in index.html.
+/movie/* / 200
