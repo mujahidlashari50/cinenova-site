@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html>
-<html b:version='2' expr:dir='data:blog.languageDirection' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<html lang="en" dir="ltr">
 <head>
+  <meta charset="UTF-8">
+  <meta content='c2a4897f698a83db' name='yandex-verification'/>
   <meta content='4c48bb387f1f64bb013d2168a05ee539' name='6a97888e-site-verification'/>
   <meta content='Bqjs5rHU6' name='admaven-placement'/>
   <meta content='Watch free HD movies, web series &amp; latest releases on CineNova. No login, no subscription — Hollywood, Bollywood, Tollywood &amp; more. Updated daily!' id='cv-meta-desc' name='description'/>
@@ -17,31 +18,26 @@
 <meta content='Watch free HD movies, web series. No login, no subscription!' id='cv-tw-desc' name='twitter:description'/>
 <meta content='width=device-width, initial-scale=1.0, viewport-fit=cover' name='viewport'/>
 <meta content='#0a0a0a' name='theme-color'/>
-<title><data:blog.pageTitle/></title>
+<title>CineNova - Free HD Movies &amp; Web Series</title>
 <link href='https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png' rel='icon' type='image/png'/>
 <link href='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' rel='apple-touch-icon'/>
 
 <!-- SEO: Canonical Fix &#8212; movie pages aur homepage dono ke liye sahi canonical -->
-<b:if cond='data:blog.canonicalUrl == data:blog.homepageUrl'>
-  <link href='https://www.cinenova.site/' id='cv-canonical' rel='canonical'/>
-<b:else/>
-  <link expr:href='data:blog.canonicalUrl' id='cv-canonical' rel='canonical'/>
-</b:if>
+<link href='https://www.cinenova.site/' id='cv-canonical' rel='canonical'/>
 <meta content='index, follow' id='cv-robots' name='robots'/>
 <meta content='index, follow' id='cv-googlebot' name='googlebot'/>
 
-<b:include data='blog' name='all-head-content'/>
 <!-- SEO: Movie JSON-LD (JS se inject hoga) -->
-<script id='cv-jsonld-movie' type='application/ld+json'/>
-<script id='cv-jsonld-breadcrumb' type='application/ld+json'/>
+<script id='cv-jsonld-movie' type='application/ld+json'></script>
+<script id='cv-jsonld-breadcrumb' type='application/ld+json'></script>
 
 <!-- Google Analytics -->
-<script async='async' src='https://www.googletagmanager.com/gtag/js?id=G-N67Y5B8T2Z'/>
+<script async='async' src='https://www.googletagmanager.com/gtag/js?id=G-N67Y5B8T2Z'></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag(&#39;js&#39;, new Date());
-  gtag(&#39;config&#39;, &#39;G-N67Y5B8T2Z&#39;);
+  gtag('js', new Date());
+  gtag('config', 'G-N67Y5B8T2Z');
 </script>
 
 <!-- SITEMAP for Google -->
@@ -67,8 +63,6 @@
 
 <link crossorigin='' href='https://fonts.gstatic.com' rel='preconnect'/>
 <link href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='dns-prefetch'/>
-<link href='https://www.gstatic.com' rel='dns-prefetch'/>
-<link crossorigin='' href='https://www.gstatic.com' rel='preconnect'/>
 <link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
 <link href='https://api.themoviedb.org' rel='dns-prefetch'/>
 <link href='https://image.tmdb.org' rel='dns-prefetch'/>
@@ -83,12 +77,12 @@
 <link href='https://cdn.plyr.io' rel='dns-prefetch'/>
 
 <!-- Fonts async load &#8212; non-blocking with font-display:swap -->
-<link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap&amp;font-display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
+<link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' rel='stylesheet'/></noscript>
 
 <!-- Firebase loaded dynamically after page renders - non-blocking -->
 
-<b:skin><![CDATA[
+<style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 img{image-rendering:auto}
 :root{
@@ -162,7 +156,7 @@ body{text-rendering:optimizeSpeed}
   #cv-banner-intro::after{animation:none!important;background-image:none!important}
   /* Disable pulse rings on mobile */
   .cn-bi-ring{animation:none!important}
-  #cn-bi-play-btn::before,#cn-bi-play-btn::after{animation:none!important}
+  #cn-bi-glow{animation:none!important}
   /* Disable box-shadow pulse animations on mobile */
   .cv-tr-play{animation:none!important}
   .cv-trailers-live{animation:none!important}
@@ -197,8 +191,8 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-nav.scrolled{
   background:rgba(10,10,10,0.96);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   box-shadow:0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.6);
 }
 #cv-nav::after{display:none}
@@ -616,10 +610,6 @@ body{text-rendering:optimizeSpeed}
   0%{background-position:-200% 0}
   100%{background-position:200% 0}
 }
-@keyframes shimmerGpu{
-  0%{transform:translateX(-100%)}
-  100%{transform:translateX(100%)}
-}
 
 .cv-card{
   display:block;
@@ -632,20 +622,23 @@ body{text-rendering:optimizeSpeed}
   cursor:pointer;
   position:relative;
   border:1px solid rgba(255,255,255,0.04);
-  animation:cardFadeIn 0.25s ease both;
+  animation:cardFadeIn 0.35s ease both;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
     border-color 0.18s ease;
-  contain:layout paint;
 }
 
 /* Staggered fade-in — sirf first 8 cards pe (baaki ke liye heavy animation avoid) */
-.cv-card:nth-child(1){animation-delay:0.03s}
-.cv-card:nth-child(2){animation-delay:0.06s}
-.cv-card:nth-child(3){animation-delay:0.09s}
-.cv-card:nth-child(4){animation-delay:0.12s}
-.cv-card:nth-child(n+5){animation-delay:0s;animation-duration:0.18s}
+.cv-card:nth-child(1){animation-delay:0.05s}
+.cv-card:nth-child(2){animation-delay:0.1s}
+.cv-card:nth-child(3){animation-delay:0.15s}
+.cv-card:nth-child(4){animation-delay:0.2s}
+.cv-card:nth-child(5){animation-delay:0.25s}
+.cv-card:nth-child(6){animation-delay:0.3s}
+.cv-card:nth-child(7){animation-delay:0.35s}
+.cv-card:nth-child(8){animation-delay:0.4s}
+.cv-card:nth-child(n+9){animation-delay:0s;animation-duration:0.2s}
 
 /* Hover — GPU layer sirf hover pe */
 .cv-card:hover{
@@ -660,7 +653,7 @@ body{text-rendering:optimizeSpeed}
 .cv-card::before{display:none}
 
 /* Play button overlay on hover */
-.cv-card-img-wrap{position:relative;overflow:hidden;aspect-ratio:2/3;background:#1a1a1a;}
+.cv-card-img-wrap{position:relative;overflow:hidden;}
 .cv-card-img-wrap::after{
   content:'\25B6';
   position:absolute;top:50%;left:50%;
@@ -724,7 +717,7 @@ body{text-rendering:optimizeSpeed}
 }
 .cv-card:hover .cv-card-no-img{filter:brightness(1.3)}
 
-#cv-grid{contain:content;content-visibility:auto;contain-intrinsic-size:0 1200px;min-height:500px;}
+#cv-grid{contain:content;content-visibility:auto;min-height:500px;}
 .cv-card-img{image-rendering:auto;color-scheme:dark;}
 
 .cv-badge{
@@ -733,6 +726,17 @@ body{text-rendering:optimizeSpeed}
   font-size:0.65rem;font-weight:700;
   padding:2px 6px;border-radius:4px;
 ;box-shadow:0 2px 8px rgba(0,0,0,0.5);font-family:'Outfit',sans-serif;}
+.cv-ep-alert-badge{
+  position:absolute;bottom:6px;left:6px;z-index:2;
+  background:var(--red);color:#fff;
+  font-size:0.6rem;font-weight:800;letter-spacing:0.3px;
+  padding:3px 7px;border-radius:4px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);font-family:'Outfit',sans-serif;
+  animation:cvEpAlertPulse 1.6s ease-in-out infinite;
+}
+@keyframes cvEpAlertPulse{0%,100%{opacity:1}50%{opacity:0.55}}
+.cv-ep-item.cv-ep-item-new{border:1px solid rgba(229,9,20,0.5);background:rgba(229,9,20,0.06)}
+.cv-ep-new-tag{background:var(--red);color:#fff;font-size:0.6rem;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:7px;white-space:nowrap;animation:cvEpAlertPulse 1.6s ease-in-out infinite}
 .cv-cat-badge{
   position:absolute;top:6px;left:6px;
   font-size:0.55rem;font-weight:800;
@@ -748,7 +752,7 @@ body{text-rendering:optimizeSpeed}
 .cv-skel-img{width:100%;aspect-ratio:2/3;background:linear-gradient(90deg,#1f1f1f 25%,#2a2a2a 50%,#1f1f1f 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;contain:paint}
 .cv-skel-bar{height:12px;background:#2a2a2a;margin:8px 8px;border-radius:2px;animation:shimmer 1.5s infinite}
 .cv-skel-bar.short{width:60%}
-/* shimmer defined above */
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 /* EMPTY / ERROR */
 .cv-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--grey)}
@@ -766,7 +770,7 @@ body{text-rendering:optimizeSpeed}
   will-change:opacity;
 }
 #cv-modal.open{opacity:1;visibility:visible;pointer-events:all}
-#cv-modal-box{will-change:transform}#cv-modal.closing #cv-modal-box{animation:slidedown 0.22s cubic-bezier(0.4,0,1,1) forwards}
+#cv-modal.closing #cv-modal-box{animation:slidedown 0.22s cubic-bezier(0.4,0,1,1) forwards}
 #cv-modal-box{
   background:#141414;
   border-radius:20px 20px 0 0;
@@ -1462,7 +1466,7 @@ body{text-rendering:optimizeSpeed}
 }
 .cv-nc-close:hover{background:rgba(229,9,20,0.85);border-color:#e50914;color:#fff;}
 
-
+/* ── POSTER SECTION ── */
 #cv-nc-poster-section{
   position:relative;width:100%;
   height:210px;overflow:hidden;
@@ -1530,7 +1534,7 @@ body{text-rendering:optimizeSpeed}
   to{opacity:1;transform:scale(1) rotate(0);}
 }
 
-
+/* ── BOTTOM CONTENT ── */
 #cv-nc-bottom{
   position:relative;z-index:5;
   padding:10px 18px 20px;
@@ -1778,7 +1782,7 @@ body{text-rendering:optimizeSpeed}
   opacity:0;
 }
 
-
+/* ── CUSTOM BANNER SLIDER ANIMATIONS ── */
 @keyframes cvBannerKenBurns{
   0%{transform:scale(1.06) translate(0,0);}
   50%{transform:scale(1.1) translate(-0.5%,-0.3%);}
@@ -1843,7 +1847,7 @@ body{text-rendering:optimizeSpeed}
   overflow:hidden;
 }
 #cv-banner-intro.cv-intro-fadeout{
-  opacity:0;transition:opacity 0.9s ease;pointer-events:none;
+  opacity:0;transition:opacity 0.8s ease;pointer-events:none;
 }
 #cv-banner-intro.cv-intro-gone{display:none!important}
 
@@ -1859,7 +1863,7 @@ body{text-rendering:optimizeSpeed}
   80%{transform:translate(-1px,3px);}
 }
 
-
+/* ── RAYS ── */
 #cn-bi-rays{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
 .cn-bi-ray{
   position:absolute;top:50%;left:50%;width:1px;height:120%;
@@ -1868,7 +1872,7 @@ body{text-rendering:optimizeSpeed}
   opacity:0;
 }
 
-
+/* ── PULSE RINGS ── */
 #cn-bi-circles{position:absolute;display:flex;align-items:center;justify-content:center;opacity:0;}
 .cn-bi-ring{
   position:absolute;border-radius:50%;border:1.5px solid rgba(229,9,20,0.25);
@@ -1879,99 +1883,46 @@ body{text-rendering:optimizeSpeed}
 .cn-bi-ring:nth-child(3){width:min(190px,36%);height:min(190px,36%);animation-delay:0.7s;border-color:rgba(229,9,20,0.55);}
 @keyframes cnBiRingPulse{0%,100%{transform:scale(1);opacity:0.6;}50%{transform:scale(1.05);opacity:1;}}
 
-
+/* ── LOGO WRAP (uses same logo as header) ── */
 #cn-bi-logo-wrap{
-  position:absolute;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  opacity:0;transform:scale(0.85);
+  position:relative;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  opacity:0;transform:scale(0.8);
+  transition:opacity 0.6s ease,transform 0.7s cubic-bezier(0.23,1,0.32,1);
+  will-change:opacity,transform;
 }
-#cn-bi-logo-row{display:flex;align-items:center;gap:clamp(8px,2vw,20px);}
-
-
-#cn-bi-play-btn{
-  position:relative;
-  width:clamp(55px,8vw,95px);height:clamp(55px,8vw,95px);
-  flex-shrink:0;opacity:0;transform:scale(0) rotate(-180deg);
+#cn-bi-glow{
+  position:absolute;width:clamp(180px,42vw,360px);height:clamp(180px,42vw,360px);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(229,9,20,0.35) 0%,transparent 70%);
+  filter:blur(18px);pointer-events:none;z-index:-1;
+  animation:cnBiGlowPulse 2s ease-in-out infinite;
 }
-#cn-bi-play-btn::before{
-  content:'';position:absolute;inset:-9px;border-radius:50%;
-  border:2px solid rgba(229,9,20,0.35);
-  animation:cnBiPRing 2s ease-in-out infinite;
-}
-#cn-bi-play-btn::after{
-  content:'';position:absolute;inset:-18px;border-radius:50%;
-  border:1px solid rgba(229,9,20,0.15);
-  animation:cnBiPRing 2s ease-in-out infinite 0.5s;
-}
-@keyframes cnBiPRing{0%,100%{transform:scale(1);opacity:0.7;}50%{transform:scale(1.07);opacity:1;}}
-#cn-bi-play-circle{
-  width:100%;height:100%;border-radius:50%;
-  background:radial-gradient(circle at 33% 33%,#ff4040,#e50914 55%,#9b0000);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 35px rgba(229,9,20,0.75),0 0 70px rgba(229,9,20,0.35),
-    inset 0 4px 14px rgba(255,255,255,0.28),inset 0 -4px 10px rgba(0,0,0,0.35);
-  position:relative;z-index:2;
-}
-#cn-bi-play-circle::before{
-  content:'';position:absolute;top:11px;left:16px;
-  width:30%;height:18%;background:rgba(255,255,255,0.32);
-  border-radius:50%;filter:blur(5px);transform:rotate(-18deg);
-}
-#cn-bi-play-triangle{
-  width:0;height:0;
-  border-top:clamp(11px,1.8vw,18px) solid transparent;
-  border-bottom:clamp(11px,1.8vw,18px) solid transparent;
-  border-left:clamp(18px,3vw,30px) solid #fff;
-  margin-left:clamp(4px,0.8vw,8px);
-  filter:drop-shadow(0 2px 5px rgba(0,0,0,0.4));
-}
-
-
-#cn-bi-text-side{display:flex;flex-direction:column;align-items:flex-start;}
-#cn-bi-logo-main{display:flex;align-items:baseline;line-height:1;overflow:visible;}
-#cn-bi-cine{
-  font-family:'Arial Black',Impact,Arial,sans-serif;
-  font-size:clamp(28px,5.5vw,60px);font-weight:900;letter-spacing:5px;
-  color:transparent;-webkit-text-stroke:2px #e50914;
-  clip-path:inset(0 100% 0 0);white-space:nowrap;display:inline-block;
-}
-#cn-bi-dot{
-  font-family:'Arial Black',Impact,Arial,sans-serif;
-  font-size:clamp(24px,4.8vw,52px);font-weight:900;color:#e50914;
-  margin:0 3px;opacity:0;transform:scale(0);display:inline-block;
-  text-shadow:0 0 20px rgba(229,9,20,0.8);
-}
-#cn-bi-nova{
-  font-family:'Arial Black',Impact,Arial,sans-serif;
-  font-size:clamp(28px,5.5vw,60px);font-weight:900;color:#e50914;
-  letter-spacing:3px;clip-path:inset(0 0 0 100%);
-  white-space:nowrap;display:inline-block;
-  text-shadow:0 0 25px rgba(229,9,20,0.65),0 0 55px rgba(229,9,20,0.3);
-}
-#cn-bi-line{
-  height:2px;width:0;margin-top:4px;border-radius:1px;
-  background:linear-gradient(90deg,rgba(229,9,20,0.25),#e50914 45%,rgba(229,9,20,0.25));
-  box-shadow:0 0 10px rgba(229,9,20,0.5);
-  transition:width 0.9s cubic-bezier(0.23,1,0.32,1);
+@keyframes cnBiGlowPulse{0%,100%{opacity:0.55;transform:scale(1);}50%{opacity:1;transform:scale(1.08);}}
+#cn-bi-logo-svg{
+  height:clamp(48px,9vw,100px);width:auto;display:block;
+  filter:drop-shadow(0 4px 20px rgba(229,9,20,0.5));
+  transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),filter 0.3s ease;
+  will-change:transform,filter;
 }
 #cn-bi-tagline{
-  margin-top:6px;font-size:clamp(7px,1vw,11px);font-weight:600;
+  font-size:clamp(7px,1vw,11px);font-weight:600;
   letter-spacing:6px;color:#5a5a5a;text-transform:uppercase;
   opacity:0;transform:translateY(6px);
   font-family:'Segoe UI',Arial,sans-serif;white-space:nowrap;
-  transition:opacity 0.7s ease,transform 0.7s ease;
+  transition:opacity 0.5s ease,transform 0.5s ease;
 }
 
-
+/* ── SCANLINES ── */
 #cn-bi-scanlines{
   position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;
   background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);
 }
 
-
+/* ── SPARKS ── */
 .cn-bi-spark{position:absolute;border-radius:50%;pointer-events:none;z-index:30;opacity:0;}
 
-
+/* ── PROGRESS ── */
 #cn-bi-progress{
   position:absolute;bottom:clamp(10px,2.5%,28px);left:50%;transform:translateX(-50%);
   width:clamp(100px,30%,160px);z-index:50;opacity:0;
@@ -1983,7 +1934,7 @@ body{text-rendering:optimizeSpeed}
   border-radius:2px;box-shadow:0 0 8px rgba(229,9,20,0.8);
 }
 
-
+/* ── TAP TO PLAY ── */
 #cn-bi-tap{
   position:absolute;inset:0;z-index:500;
   display:none;align-items:center;justify-content:center;
@@ -2013,7 +1964,7 @@ body{text-rendering:optimizeSpeed}
   text-transform:uppercase;font-weight:700;
 }
 
-
+/* ── SKIP ── */
 #cn-bi-skip{
   position:absolute;bottom:clamp(12px,2.5%,28px);right:clamp(10px,2%,20px);z-index:100;
   background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
@@ -2041,17 +1992,31 @@ body{text-rendering:optimizeSpeed}
   opacity:1;
 }
 
+#cv-nav-motd-btn{position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;font-size:1rem;cursor:pointer;flex-shrink:0}
+#cv-nav-motd-btn::after{content:'';position:absolute;inset:-2px;border-radius:8px;box-shadow:0 0 0 0 rgba(250,204,21,0.55);animation:cvNavMotdPulse 1.8s ease-out infinite}
+@keyframes cvNavMotdPulse{0%{box-shadow:0 0 0 0 rgba(250,204,21,0.55)}70%{box-shadow:0 0 0 6px rgba(250,204,21,0)}100%{box-shadow:0 0 0 0 rgba(250,204,21,0)}}
+@keyframes cvMotdFlash{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
 /* ══ MOVIE OF THE DAY ══ */
-#cv-motd-wrap{margin:0 0 2px}
-#cv-motd-card{position:relative;width:100%;min-height:150px;overflow:hidden;background:#141414;cursor:pointer;display:flex;align-items:flex-end}
+#cv-motd-outer{margin:0 0 2px}
+#cv-motd-label{display:flex;align-items:center;gap:8px;padding:14px 16px 10px 16px}
+#cv-motd-label-text{font-size:1.1rem;font-weight:800;color:#e5e5e5}
+#cv-motd-live-dot{width:8px;height:8px;border-radius:50%;background:#facc15;animation:cvMotdPulseDot 1.6s ease-in-out infinite}
+@keyframes cvMotdPulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(250,204,21,0.7)}50%{opacity:0.35;box-shadow:0 0 0 6px rgba(250,204,21,0)}}
+#cv-motd-wrap{margin:0 0 2px;padding:0 16px}
+@media(max-width:600px){#cv-motd-wrap{padding:0}#cv-motd-card{border-radius:0}}
+#cv-motd-card{position:relative;width:100%;min-height:150px;overflow:hidden;background:#141414;cursor:pointer;display:flex;align-items:flex-end;border-radius:12px;animation:cvMotdGlow 2.8s ease-in-out infinite}
+@keyframes cvMotdGlow{0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,0),0 6px 20px rgba(0,0,0,0.4)}50%{box-shadow:0 0 26px 3px rgba(250,204,21,0.4),0 6px 20px rgba(0,0,0,0.4)}}
 #cv-motd-bg{position:absolute;inset:0;background-size:cover;background-position:center 20%;width:100%;height:100%;transform:scale(1.03)}
 #cv-motd-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(10,10,10,0.92) 0%,rgba(10,10,10,0.62) 45%,rgba(10,10,10,0.25) 100%),linear-gradient(to top,rgba(10,10,10,0.9) 0%,transparent 60%)}
 #cv-motd-content{position:relative;z-index:2;display:flex;align-items:center;gap:16px;width:100%;padding:18px 16px}
 #cv-motd-poster{width:58px;height:84px;border-radius:8px;object-fit:cover;flex-shrink:0;box-shadow:0 6px 20px rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.1)}
-#cv-motd-badge{display:inline-flex;align-items:center;gap:5px;background:#facc15;color:#1a1a00;font-size:0.62rem;font-weight:800;padding:4px 10px;border-radius:10px;letter-spacing:0.3px;margin-bottom:8px}
+#cv-motd-badge{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:5px;background:#facc15;color:#1a1a00;font-size:0.62rem;font-weight:800;padding:4px 10px;border-radius:10px;letter-spacing:0.3px;margin-bottom:8px}
+#cv-motd-badge::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,0.7) 50%,transparent 100%);background-size:200% 100%;background-repeat:no-repeat;animation:cvMotdShine 2.6s ease-in-out infinite}
+@keyframes cvMotdShine{0%{background-position:-150% 0}60%,100%{background-position:250% 0}}
 #cv-motd-title{font-size:1.05rem;font-weight:800;color:#fff;line-height:1.25;text-shadow:0 2px 8px rgba(0,0,0,0.6);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 #cv-motd-meta{font-size:0.76rem;color:#ccc;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#cv-motd-btn{flex-shrink:0;background:var(--red);color:#fff;font-size:0.8rem;font-weight:700;padding:11px 18px;border-radius:8px;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:0 4px 14px rgba(229,9,20,0.35)}
+#cv-motd-btn{flex-shrink:0;background:var(--red);color:#fff;font-size:0.8rem;font-weight:700;padding:11px 18px;border-radius:8px;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:0 4px 14px rgba(229,9,20,0.35);animation:cvMotdBtnPulse 1.8s ease-in-out infinite}
+@keyframes cvMotdBtnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 @media(min-width:500px){#cv-motd-card{min-height:180px}#cv-motd-poster{width:74px;height:106px}#cv-motd-title{font-size:1.3rem}#cv-motd-meta{font-size:0.85rem}}
 @media(min-width:900px){#cv-motd-card{min-height:220px}#cv-motd-content{padding:24px 32px}#cv-motd-poster{width:90px;height:128px}#cv-motd-title{font-size:1.6rem}}
 
@@ -2296,7 +2261,7 @@ body{text-rendering:optimizeSpeed}
 .cv-status-ongoing{color:#22c55e}
 .cv-status-completed{color:#60a5fa}
 
-
+/* ── INFINITE SCROLL LOADER ── */
 #cv-load-sentinel{height:1px}
 #cv-loading-more{display:none;grid-column:1/-1;text-align:center;padding:20px;color:var(--grey);font-size:0.8rem}
 #cv-loading-more.show{display:block}
@@ -2311,7 +2276,7 @@ body{text-rendering:optimizeSpeed}
    Mobile First → Tablet → Desktop
 ══════════════════════════════════════════ */
 
-
+/* ── MOBILE SMALL (max 360px) — chota screen, 2 col tight ── */
 @media(max-width:360px){
   :root{--nav-h:54px}
 
@@ -2343,7 +2308,7 @@ body{text-rendering:optimizeSpeed}
   .cvf-ticket{padding:12px;flex-direction:column;gap:8px;text-align:center}
 }
 
-
+/* ── MOBILE (max 480px) — standard mobile ── */
 @media(max-width:480px){
   :root{--nav-h:56px}
 
@@ -2434,7 +2399,7 @@ body{text-rendering:optimizeSpeed}
   #cv-search-overlay{padding:10px 12px}
 }
 
-
+/* ── TABLET (481px — 768px) ── */
 @media(min-width:481px) and (max-width:768px){
   :root{--nav-h:58px}
 
@@ -2468,7 +2433,7 @@ body{text-rendering:optimizeSpeed}
   .cvf-ticket{padding:14px 20px}
 }
 
-
+/* ── DESKTOP (769px — 1024px) ── */
 @media(min-width:769px){
   :root{--nav-h:60px}
 
@@ -2548,7 +2513,7 @@ body{text-rendering:optimizeSpeed}
   
 }
 
-
+/* ── LARGE DESKTOP (1025px+) ── */
 @media(min-width:1025px){
   #cv-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;padding:24px}
   .cv-card-title{font-size:0.88rem}
@@ -2658,7 +2623,7 @@ body{text-rendering:optimizeSpeed}
 #cv-mobile-search-dropdown.open{display:block}
 #cv-search-overlay{position:relative}
 
-
+/* ── TOUCH DEVICE — remove hover effects ── */
 @media(hover:none) and (pointer:coarse){
   .cv-card:hover{transform:none;box-shadow:none;border-color:#1e1e1e}
   .cv-card:active{transform:scale(0.97);box-shadow:0 4px 16px rgba(229,9,20,0.25);border-color:var(--red)}
@@ -2672,7 +2637,7 @@ body{text-rendering:optimizeSpeed}
   .cv-ep-item:active{background:rgba(229,9,20,0.08);border-color:rgba(229,9,20,0.3)}
 }
 
-
+/* ── LANDSCAPE MOBILE ── */
 @media(max-width:768px) and (orientation:landscape){
   :root{--nav-h:50px}
   #cv-featured-card{height:200px}
@@ -2689,25 +2654,25 @@ body{text-rendering:optimizeSpeed}
    Advanced visual effects & micro-interactions
 ══════════════════════════════════════════ */
 
-
+/* ── GLOW EFFECTS ── */
 .cv-pill.active{
   text-shadow:0 0 20px rgba(229,9,20,0.5);
 }
 
-
+/* ── NAV SCROLL EFFECT ── */
 #cv-nav.scrolled{
   background:#141414;
   box-shadow:none;
 }
 
-
+/* ── NETFLIX CARD EFFECTS ── */
 .cv-card{
   transition:transform 0.2s ease,
              box-shadow 0.2s ease;
   contain:layout style;
 }
 
-
+/* ── FEATURED SECTION GRADIENT — NETFLIX ── */
 #cv-featured-overlay{
   background:linear-gradient(
     to right,
@@ -2724,14 +2689,14 @@ body{text-rendering:optimizeSpeed}
   );
 }
 
-
+/* ── TRENDING BADGE GLOW ── */
 .cv-trending-badge{
   box-shadow:0 0 14px rgba(229,9,20,0.5);
   font-family:'Outfit',sans-serif;
   letter-spacing:1px;
 }
 
-
+/* ── PREMIUM INPUT STYLES ── */
 .cv-req-inp,.cv-comment-inp,.cv-comment-name-inp{
   background:rgba(255,255,255,0.04) !important;
   border:1px solid var(--border) !important;
@@ -2746,7 +2711,7 @@ body{text-rendering:optimizeSpeed}
   box-shadow:0 0 0 3px rgba(229,9,20,0.1) !important;
 }
 
-
+/* ── NETFLIX BUTTONS ── */
 .cv-req-btn,.cv-comment-btn{
   background:#e50914 !important;
   box-shadow:none !important;
@@ -2761,7 +2726,7 @@ body{text-rendering:optimizeSpeed}
   box-shadow:none !important;
 }
 
-
+/* ── SERIES BADGES ── */
 .cv-series-badge{
   background:rgba(255,255,255,0.05) !important;
   border:1px solid var(--border2) !important;
@@ -2770,13 +2735,13 @@ body{text-rendering:optimizeSpeed}
 
 
 
-
+/* ── LIGHTBOX ── */
 #cv-lightbox{
   background:rgba(0,0,0,0.97) !important;
   backdrop-filter:blur(10px) !important;
 }
 
-
+/* ── PLAYER POPUP ── */
 #cv-player-popup{
   background:#000 !important;
   border:none !important;
@@ -2787,20 +2752,20 @@ body{text-rendering:optimizeSpeed}
   border-bottom:1px solid #2a2a2a !important;
 }
 
-
+/* ── MOBILE SEARCH OVERLAY ── */
 #cv-search-overlay{
   background:rgba(4,4,6,0.99) !important;
   backdrop-filter:blur(10px) !important;
   border-bottom:1px solid var(--border) !important;
 }
 
-
+/* ── SCROLL INDICATOR ── */
 #cv-loading-more::before{
   border-color:var(--border2) !important;
   border-top-color:var(--red) !important;
 }
 
-
+/* ── SUGGESTION ITEMS ── */
 .cv-sug-item:hover,.cv-sug-item.focused{
   background:rgba(229,9,20,0.08) !important;
 }
@@ -2811,7 +2776,7 @@ body{text-rendering:optimizeSpeed}
   text-shadow:0 0 12px rgba(229,9,20,0.4);
 }
 
-
+/* ── MOBILE IMPROVEMENTS ── */
 @media(max-width:480px){
   .cv-pill{
     padding:7px 14px;
@@ -2822,14 +2787,14 @@ body{text-rendering:optimizeSpeed}
   }
 }
 
-
+/* ── NAV SCROLL SCRIPT HOOK ── */
 @keyframes navReveal{
   from{opacity:0;transform:translateY(-10px)}
   to{opacity:1;transform:translateY(0)}
 }
 #cv-nav{animation:navReveal 0.4s ease both}
 
-
+/* ── FEATURED PLAY BUTTON — NETFLIX ── */
 #cv-featured-play{
   background:#fff !important;
   font-family:inherit !important;
@@ -2844,7 +2809,7 @@ body{text-rendering:optimizeSpeed}
   box-shadow:none !important;
 }
 
-
+/* ── MODAL TITLE ── */
 #cv-modal-title{
   font-family:inherit !important;
   font-weight:700 !important;
@@ -2852,20 +2817,20 @@ body{text-rendering:optimizeSpeed}
   color:#e5e5e5 !important;
 }
 
-
+/* ── CV CARD TITLE FONT ── */
 .cv-card-title{
   font-family:inherit;
   font-weight:700;
   letter-spacing:0;
 }
 
-
+/* ── META FONT ── */
 .cv-card-meta,.cv-tr-year,.cv-tr-meta{
   font-family:inherit;
   color:#b3b3b3;
 }
 
-
+/* ── FOOTER DESCRIPTION ── */
 .cvf-desc{
   font-family:inherit !important;
   color:#b3b3b3 !important;
@@ -2980,7 +2945,7 @@ body{text-rendering:optimizeSpeed}
   /* Body bottom padding — bottom nav ke liye space */
   body{ padding-bottom: var(--bottom-nav-h) !important; padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px)) !important; }
 
-  
+  /* ── NAV — slim app style ── */
   #cv-nav{
     background: #0a0a0a !important;
     border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -2991,8 +2956,14 @@ body{text-rendering:optimizeSpeed}
     background: rgba(255,255,255,0.07) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
   }
+  #cv-nav-motd-btn{
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+  #cv-nav-motd-btn::after{ border-radius: 50% !important; }
 
-  
+  /* ── CATEGORY PILLS — rounded Netflix style ── */
   .cv-pill{
     border-radius: 20px !important;
     font-size: 0.8rem !important;
@@ -3007,12 +2978,12 @@ body{text-rendering:optimizeSpeed}
     color: #fff !important;
   }
 
-  
+  /* ── GRID — bottom nav ke liye padding ── */
   #cv-grid{
     padding-bottom: calc(var(--bottom-nav-h) + 12px) !important;
   }
 
-  
+  /* ── PAGINATION — pill style ── */
   .cv-page-btn{
     border-radius: 50px !important;
   }
@@ -3036,7 +3007,7 @@ body{text-rendering:optimizeSpeed}
     flex-shrink: 0;
   }
 
-  
+  /* ── BOTTOM NAV BAR ── */
   #cv-bottom-nav{
     display: flex !important;
     position: fixed;
@@ -3091,616 +3062,26 @@ body{text-rendering:optimizeSpeed}
     box-shadow: 0 0 8px rgba(229,9,20,0.8), 0 0 16px rgba(229,9,20,0.4);
   }
 }
-]]></b:skin>
+</style>
 </head>
 <body>
 
 <!-- BLOGGER WIDGETS (hidden) -->
-<b:section class='main' id='main' showaddelement='no'>
-  <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true'>
-    <b:widget-settings>
-      <b:widget-setting name='showDateHeader'>false</b:widget-setting>
-      <b:widget-setting name='style.textcolor'>#ffffff</b:widget-setting>
-      <b:widget-setting name='showShareButtons'>false</b:widget-setting>
-      <b:widget-setting name='showCommentLink'>true</b:widget-setting>
-      <b:widget-setting name='style.urlcolor'>#ffffff</b:widget-setting>
-      <b:widget-setting name='showAuthor'>true</b:widget-setting>
-      <b:widget-setting name='style.linkcolor'>#ffffff</b:widget-setting>
-      <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
-      <b:widget-setting name='style.bgcolor'>#ffffff</b:widget-setting>
-      <b:widget-setting name='reactionsLabel'/>
-      <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
-      <b:widget-setting name='style.layout'>1x1</b:widget-setting>
-      <b:widget-setting name='showLabels'>true</b:widget-setting>
-      <b:widget-setting name='showLocation'>true</b:widget-setting>
-      <b:widget-setting name='showTimestamp'>true</b:widget-setting>
-      <b:widget-setting name='postsPerAd'>1</b:widget-setting>
-      <b:widget-setting name='showBacklinks'>false</b:widget-setting>
-      <b:widget-setting name='style.bordercolor'>#ffffff</b:widget-setting>
-      <b:widget-setting name='showInlineAds'>false</b:widget-setting>
-      <b:widget-setting name='showReactions'>false</b:widget-setting>
-    </b:widget-settings>
-    <b:includable id='main' var='top'>
-      <b:loop values='data:posts' var='post'><b:include data='post' name='post'/></b:loop>
-    </b:includable>
-    <b:includable id='aboutPostAuthor'>
-  <div class='author-name'>
-    <a class='g-profile' expr:href='data:post.author.profileUrl' rel='author' title='author profile'>
-      <span>
-        <data:post.author.name/>
-      </span>
-    </a>
-  </div>
-  <div>
-    <span class='author-desc'>
-      <data:post.author.aboutMe/>
-    </span>
-  </div>
-</b:includable>
-    <b:includable id='addComments'>
-  <a expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick'>
-    <b:message name='messages.postAComment'/>
-  </a>
-</b:includable>
-    <b:includable id='backlinks' var='top'/>
-    <b:includable id='backlinksList' var='top'/>
-    <b:includable id='blogThisShare'>
-  <b:with value='&quot;window.open(this.href, \&quot;_blank\&quot;, \&quot;height=270,width=475\&quot;); return false;&quot;' var='onclick'>
-    <b:include name='platformShare'/>
-  </b:with>
-</b:includable>
-    <b:includable id='bylineByName' var='byline'>
-  <b:switch var='data:byline.name'>
-  <b:case value='share'/>
-    <b:include cond='data:post.shareUrl' name='postShareButtons'/>
-  <b:case value='comments'/>
-    <b:include cond='data:post.allowComments' name='postCommentsLink'/>
-  <b:case value='location'/>
-    <b:include cond='data:post.location' name='postLocation'/>
-  <b:case value='timestamp'/>
-    <b:include cond='not data:view.isPage' name='postTimestamp'/>
-  <b:case value='author'/>
-    <b:include name='postAuthor'/>
-  <b:case value='labels'/>
-    <b:include cond='data:post.labels' name='postLabels'/>
-  <b:case value='icons'/>
-    <b:include cond='data:post.emailPostUrl' name='emailPostIcon'/>
-  </b:switch>
-</b:includable>
-    <b:includable id='bylineRegion' var='regionItems'>
-  <b:loop values='data:regionItems' var='byline'>
-    <b:include data='byline' name='bylineByName'/>
-  </b:loop>
-</b:includable>
-    <b:includable id='comment-form' var='top'/>
-    <b:includable id='commentAuthorAvatar'>
-  <div class='avatar-image-container'>
-    <img alt='Author Avatar' class='author-avatar' expr:src='data:comment.authorAvatarSrc' height='35' width='35'/>
-  </div>
-</b:includable>
-    <b:includable id='commentDeleteIcon' var='comment'>
-  <span expr:class='&quot;item-control &quot; + data:comment.adminClass'>
-    <b:if cond='data:showCmtPopup'>
-      <div class='goog-toggle-button'>
-        <div class='goog-inline-block comment-action-icon'/>
-      </div>
-    <b:else/>
-      <a class='comment-delete' expr:href='data:comment.deleteUrl' expr:title='data:messages.deleteComment'>
-        <img alt='Delete Comment' src='https://resources.blogblog.com/img/icon_delete13.gif'/>
-      </a>
-    </b:if>
-  </span>
-</b:includable>
-    <b:includable id='commentForm' var='post'>
-  <div class='comment-form'>
-    <a name='comment-form'/>
-    <h4 id='comment-post-message'><data:messages.postAComment/></h4>
-    <b:if cond='data:this.messages.blogComment != &quot;&quot;'>
-      <p><data:this.messages.blogComment/></p>
-    </b:if>
-    <b:include data='post' name='commentFormIframeSrc'/>
-    <iframe allowtransparency='allowtransparency' class='blogger-iframe-colorize blogger-comment-from-post' expr:height='data:cmtIframeInitialHeight ?: &quot;90px&quot;' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%'/>
-    <data:post.cmtfpIframe/>
-    <script type='text/javascript'>
-      BLOG_CMT_createIframe(&#39;<data:post.appRpcRelayPath/>&#39;);
-    </script>
-  </div>
-</b:includable>
-    <b:includable id='commentFormIframeSrc' var='post'>
-  <a expr:href='data:post.commentFormIframeSrc' id='comment-editor-src'/>
-</b:includable>
-    <b:includable id='commentItem' var='comment'>
-  <div class='comment' expr:id='&quot;c&quot; + data:comment.id'>
-    <b:include cond='data:blog.enabledCommentProfileImages' name='commentAuthorAvatar'/>
-
-    <div class='comment-block'>
-      <div class='comment-author'>
-        <b:if cond='data:comment.authorUrl'>
-          <b:message name='messages.authorSaidWithLink'>
-            <b:param expr:value='data:comment.author' name='authorName'/>
-            <b:param expr:value='data:comment.authorUrl' name='authorUrl'/>
-          </b:message>
-        <b:else/>
-          <b:message name='messages.authorSaid'>
-            <b:param expr:value='data:comment.author' name='authorName'/>
-          </b:message>
-        </b:if>
-      </div>
-      <div expr:class='&quot;comment-body&quot; + (data:comment.isDeleted ? &quot; deleted&quot; : &quot;&quot;)'>
-        <data:comment.body/>
-      </div>
-      <div class='comment-footer'>
-        <span class='comment-timestamp'>
-          <a expr:href='data:comment.url' title='comment permalink'>
-            <data:comment.timestamp/>
-          </a>
-          <b:include data='comment' name='commentDeleteIcon'/>
-        </span>
-      </div>
-    </div>
-  </div>
-</b:includable>
-    <b:includable id='commentList' var='comments'>
-  <div id='comments-block'>
-    <b:loop values='data:comments' var='comment'>
-      <b:include data='comment' name='commentItem'/>
-    </b:loop>
-  </div>
-</b:includable>
-    <b:includable id='commentPicker' var='post'>
-  <b:if cond='data:post.showThreadedComments'>
-    <b:include data='post' name='threadedComments'/>
-  <b:else/>
-    <b:include data='post' name='comments'/>
-  </b:if>
-</b:includable>
-    <b:includable id='comments' var='top'/>
-    <b:includable id='commentsLink'>
-  <a class='comment-link' expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick'>
-    <b:if cond='data:post.numberOfComments &gt; 0'>
-      <b:message name='messages.numberOfComments'>
-        <b:param expr:value='data:post.numberOfComments' name='numComments'/>
-      </b:message>
-    <b:else/>
-      <data:messages.postAComment/>
-    </b:if>
-  </a>
-</b:includable>
-    <b:includable id='commentsLinkIframe'>
-  <!-- G+ comments, no longer available. The includable is retained for backwards-compatibility. -->
-</b:includable>
-    <b:includable id='commentsTitle'>
-  <h3 class='title'><data:messages.comments/></h3>
-</b:includable>
-    <b:includable id='defaultAdUnit'>
-  <ins class='adsbygoogle' data-ad-format='auto' expr:data-ad-client='data:adClientId ?: data:blog.adsenseClientId' expr:data-ad-host='data:blog.adsenseHostId' expr:style='data:style ?: &quot;display: block;&quot;'>
-    <b:attr cond='not data:blog.analytics4' expr:value='data:blog.analyticsAccountNumber' name='data-analytics-uacct'/>
-  </ins>
-  <script>
-   (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</b:includable>
-    <b:includable id='emailPostIcon'>
-  <span class='byline post-icons'>
-    <!-- email post links -->
-    <span class='item-action'>
-      <a expr:href='data:post.emailPostUrl' expr:title='data:messages.emailPost'>
-        <b:include data='{ iconClass: &quot;touch-icon sharing-icon&quot; }' name='emailIcon'/>
-      </a>
-    </span>
-  </span>
-</b:includable>
-    <b:includable id='facebookShare'>
-  <b:with value='&quot;window.open(this.href, \&quot;_blank\&quot;, \&quot;height=430,width=640\&quot;); return false;&quot;' var='onclick'>
-    <b:include name='platformShare'/>
-  </b:with>
-</b:includable>
-    <b:includable id='feedLinks' var='top'/>
-    <b:includable id='feedLinksBody' var='top'/>
-    <b:includable id='footerBylines'>
-  <b:if cond='data:widgets.Blog.first.footerBylines'>
-    <b:loop index='i' values='data:widgets.Blog.first.footerBylines' var='region'>
-      <b:if cond='not data:region.items.empty'>
-        <div expr:class='&quot;post-footer-line post-footer-line-&quot; + (data:i + 1)'>
-          <b:with value='&quot;footer-&quot; + (data:i + 1)' var='regionName'>
-            <b:include data='region.items' name='bylineRegion'/>
-          </b:with>
-        </div>
-      </b:if>
-    </b:loop>
-  </b:if>
-</b:includable>
-    <b:includable id='googlePlusShare'>
-</b:includable>
-    <b:includable id='headerByline'>
-  <b:if cond='data:widgets.Blog.first.headerByline'>
-    <div class='post-header'>
-      <div class='post-header-line-1'>
-        <b:with value='&quot;header-1&quot;' var='regionName'>
-          <b:include data='data:widgets.Blog.first.headerByline.items' name='bylineRegion'/>
-        </b:with>
-      </div>
-    </div>
-  </b:if>
-</b:includable>
-    <b:includable id='homePageLink'>
-  <a class='home-link' expr:href='data:blog.homepageUrl'>
-    <data:messages.home/>
-  </a>
-</b:includable>
-    <b:includable id='iframeComments' var='post'>
-  <!-- G+ comments, no longer available. The includable is retained for backwards-compatibility. -->
-</b:includable>
-    <b:includable id='inlineAd' var='post'>
-  <b:if cond='!data:view.isPreview'>
-    <b:if cond='data:this.adCode or data:this.adClientId or data:blog.adsenseClientId'>
-      <!-- Ad -->
-      <div class='inline-ad'>
-        <b:if cond='data:this.adCode != &quot;&quot;'>
-          <data:this.adCode/>
-        <b:else/>
-          <b:include cond='data:this.adClientId or data:blog.adsenseClientId' name='defaultAdUnit'/>
-        </b:if>
-      </div>
-    </b:if>
-  <b:else/>
-    <div class='inline-ad'>
-      <div class='inline-ad-placeholder'>
-        <span><b:message name='messages.adsGoHere'/></span>
-      </div>
-    </div>
-  </b:if>
-</b:includable>
-    <b:includable id='linkShare'>
-  <b:with value='&quot;window.prompt(\&quot;Copy to clipboard: Ctrl+C, Enter\&quot;, \&quot;&quot; + data:originalUrl + &quot;\&quot;); return false;&quot;' var='onclick'>
-    <b:include name='platformShare'/>
-  </b:with>
-</b:includable>
-    <b:includable id='nextPageLink'>
-  <a class='blog-pager-older-link' expr:href='data:olderPageUrl' expr:id='data:widget.instanceId + &quot;_blog-pager-older-link&quot;' expr:title='data:messages.olderPosts'>
-    <data:messages.olderPosts/>
-  </a>
-</b:includable>
-    <b:includable id='nextprev' var='top'/>
-    <b:includable id='otherSharingButton'>
-  <span class='sharing-platform-button sharing-element-other' expr:aria-label='data:messages.shareToOtherApps.escaped' expr:data-url='data:originalUrl' expr:title='data:messages.shareToOtherApps.escaped' role='menuitem' tabindex='-1'>
-    <b:with value='{key: &quot;sharingOther&quot;}' var='platform'>
-      <b:include name='sharingPlatformIcon'/>
-    </b:with>
-    <span class='platform-sharing-text'><data:messages.shareOtherApps.escaped/></span>
-  </span>
-</b:includable>
-    <b:includable id='platformShare'>
-  <a expr:class='&quot;goog-inline-block sharing-&quot; + data:platform.key' expr:data-url='data:originalUrl' expr:href='data:shareUrl + &quot;&amp;target=&quot; + data:platform.target' expr:onclick='data:onclick ? data:onclick : &quot;&quot;' expr:title='data:platform.shareMessage' target='_blank'>
-    <span class='share-button-link-text'>
-      <data:platform.shareMessage/>
-    </span>
-  </a>
-</b:includable>
-    <b:includable id='post' var='post'/>
-    <b:includable id='postAuthor'>
-  <span class='byline post-author vcard'>
-    <span class='post-author-label'>
-      <data:byline.label/>
-    </span>
-    <span class='fn'>
-      <b:if cond='data:post.author.profileUrl'>
-        <meta expr:content='data:post.author.profileUrl'/>
-        <a class='g-profile' expr:href='data:post.author.profileUrl' rel='author' title='author profile'>
-          <span><data:post.author.name/></span>
-        </a>
-      <b:else/>
-        <span><data:post.author.name/></span>
-      </b:if>
-    </span>
-  </span>
-</b:includable>
-    <b:includable id='postBody' var='post'>
-  <!-- If metaDescription is empty, use the post body as the schema.org description too, for G+/FB snippeting. -->
-  <div class='post-body entry-content float-container' expr:id='&quot;post-body-&quot; + data:post.id'>
-    <data:post.body/>
-  </div>
-</b:includable>
-    <b:includable id='postBodySnippet' var='post'>
-  <b:include data='post' name='postBody'/>
-</b:includable>
-    <b:includable id='postCommentsAndAd' var='post'>
-  <article class='post-outer-container'>
-    <!-- Post title and body -->
-    <div class='post-outer'>
-      <b:include data='post' name='post'/>
-    </div>
-
-    <!-- Comments -->
-    <b:include cond='data:view.isSingleItem' data='post' name='commentPicker'/>
-
-    <!-- Show ad inside post container, after comments, if single item. -->
-    <b:include cond='data:view.isSingleItem and data:post.includeAd' data='post' name='inlineAd'/>
-  </article>
-
-  <!-- Show ad outside post container (between posts) for feed pages. -->
-  <b:include cond='data:view.isMultipleItems and data:post.includeAd' data='post' name='inlineAd'/>
-</b:includable>
-    <b:includable id='postCommentsLink'>
-  <b:if cond='data:view.isMultipleItems'>
-    <span class='byline post-comment-link container'>
-      <b:include cond='data:post.commentSource != 1' name='commentsLink'/>
-    </span>
-  </b:if>
-</b:includable>
-    <b:includable id='postFooter' var='post'>
-  <div class='post-footer'>
-    <b:include name='footerBylines'/>
-    <b:include data='post' name='postFooterAuthorProfile'/>
-  </div>
-</b:includable>
-    <b:includable id='postFooterAuthorProfile' var='post'>
-  <b:if cond='data:post.author.aboutMe and data:view.isPost'>
-    <div class='author-profile'>
-      <b:if cond='data:post.author.authorPhoto.url'>
-        <img alt='Author' class='author-image' expr:src='data:post.author.authorPhoto.url' width='50px'/>
-        <div class='author-about'>
-          <b:include data='post' name='aboutPostAuthor'/>
-        </div>
-      <b:else/>
-        <b:include data='post' name='aboutPostAuthor'/>
-      </b:if>
-    </div>
-  </b:if>
-</b:includable>
-    <b:includable id='postHeader' var='post'>
-  <b:include name='headerByline'/>
-</b:includable>
-    <b:includable id='postJumpLink' var='post'>
-  <div class='jump-link flat-button'>
-    <a expr:href='data:post.url fragment &quot;more&quot;' expr:title='data:post.title'>
-      <b:eval expr='data:blog.jumpLinkMessage'/>
-    </a>
-  </div>
-</b:includable>
-    <b:includable id='postLabels'>
-  <span class='byline post-labels'>
-    <span class='byline-label'><data:byline.label/></span>
-    <b:loop index='i' values='data:post.labels' var='label'>
-      <a expr:href='data:label.url' rel='tag'>
-        <data:label.name/>
-      </a>
-    </b:loop>
-  </span>
-</b:includable>
-    <b:includable id='postLocation'>
-  <span class='byline post-location'>
-    <data:byline.label/>
-    <a expr:href='data:post.location.mapsUrl' target='_blank'><data:post.location.name/></a>
-  </span>
-</b:includable>
-    <b:includable id='postMeta' var='post'>
-  <b:include data='post' name='postMetadataJSON'/>
-</b:includable>
-    <b:includable id='postMetadataJSONImage'>
-  &quot;image&quot;: {
-    &quot;@type&quot;: &quot;ImageObject&quot;,
-    <b:if cond='data:post.featuredImage.isResizable'>
-    &quot;url&quot;: &quot;<b:eval expr='resizeImage(data:post.featuredImage, 1200, &quot;1200:630&quot;)'/>&quot;,
-    &quot;height&quot;: 630,
-    &quot;width&quot;: 1200
-    <b:else/>
-    &quot;url&quot;: &quot;https://blogger.googleusercontent.com/img/b/U2hvZWJveA/AVvXsEgfMvYAhAbdHksiBA24JKmb2Tav6K0GviwztID3Cq4VpV96HaJfy0viIu8z1SSw_G9n5FQHZWSRao61M3e58ImahqBtr7LiOUS6m_w59IvDYwjmMcbq3fKW4JSbacqkbxTo8B90dWp0Cese92xfLMPe_tg11g/w1200/&quot;,
-    &quot;height&quot;: 348,
-    &quot;width&quot;: 1200
-    </b:if>
-  },
-</b:includable>
-    <b:includable id='postMetadataJSONPublisher'>
- &quot;publisher&quot;: {
-    &quot;@type&quot;: &quot;Organization&quot;,
-    &quot;name&quot;: &quot;Blogger&quot;,
-    &quot;logo&quot;: {
-      &quot;@type&quot;: &quot;ImageObject&quot;,
-      &quot;url&quot;: &quot;https://blogger.googleusercontent.com/img/b/U2hvZWJveA/AVvXsEgfMvYAhAbdHksiBA24JKmb2Tav6K0GviwztID3Cq4VpV96HaJfy0viIu8z1SSw_G9n5FQHZWSRao61M3e58ImahqBtr7LiOUS6m_w59IvDYwjmMcbq3fKW4JSbacqkbxTo8B90dWp0Cese92xfLMPe_tg11g/h60/&quot;,
-      &quot;width&quot;: 206,
-      &quot;height&quot;: 60
-    }
-  },
-</b:includable>
-    <b:includable id='postPagination'>
-  <div class='blog-pager container' id='blog-pager'>
-    <b:include cond='data:newerPageUrl' name='previousPageLink'/>
-    <b:include cond='data:olderPageUrl' name='nextPageLink'/>
-    <b:include cond='data:view.url != data:blog.homepageUrl' name='homePageLink'/>
-  </div>
-</b:includable>
-    <b:includable id='postReactions'>
-  <!-- Reaction feature no longer available. The includable is retained for backwards-compatibility. -->
-</b:includable>
-    <b:includable id='postShareButtons'>
-  <div class='byline post-share-buttons goog-inline-block'>
-    <b:with value='data:sharingId ?: ((data:widget.instanceId ?: &quot;sharing&quot;) + &quot;-&quot; + (data:regionName ?: &quot;byline&quot;) + &quot;-&quot; + data:post.id)' var='sharingId'>
-      <!-- Note: 'sharingButtons' includable is from the default Sharing widget markup. -->
-      <b:include data='{                                                sharingId: data:sharingId,                                                originalUrl: data:post.url,                                                platforms: data:this.sharing.platforms,                                                shareUrl: data:post.shareUrl,                                                shareTitle: data:post.title,                                              }' name='sharingButtons'/>
-    </b:with>
-  </div>
-</b:includable>
-    <b:includable id='postTimestamp'>
-  <span class='byline post-timestamp'>
-    <data:byline.label/>
-    <b:if cond='data:post.url'>
-      <a class='timestamp-link' expr:href='data:post.url' rel='bookmark' title='permanent link'>
-        <time class='published' expr:datetime='data:post.date.iso8601' expr:title='data:post.date.iso8601'>
-          <data:post.date/>
-        </time>
-      </a>
-    </b:if>
-  </span>
-</b:includable>
-    <b:includable id='postTitle' var='post'>
-  <a expr:name='data:post.id'/>
-  <b:if cond='data:post.title != &quot;&quot;'>
-    <h3 class='post-title entry-title'>
-      <b:if cond='data:post.link or (data:post.url and data:view.url != data:post.url)'>
-        <a expr:href='data:post.link ?: data:post.url'><data:post.title/></a>
-      <b:else/>
-        <data:post.title/>
-      </b:if>
-    </h3>
-  </b:if>
-</b:includable>
-    <b:includable id='previousPageLink'>
-  <a class='blog-pager-newer-link' expr:href='data:newerPageUrl' expr:id='data:widget.instanceId + &quot;_blog-pager-newer-link&quot;' expr:title='data:messages.newerPosts'>
-    <data:messages.newerPosts/>
-  </a>
-</b:includable>
-    <b:includable id='sharingButton'>
-  <span expr:aria-label='data:platform.shareMessage' expr:class='&quot;sharing-platform-button sharing-element-&quot; + data:platform.key' expr:data-href='data:shareUrl + &quot;&amp;target=&quot; + data:platform.target' expr:data-url='data:originalUrl' expr:title='data:platform.shareMessage' role='menuitem' tabindex='-1'>
-    <b:include name='sharingPlatformIcon'/>
-    <span class='platform-sharing-text'><data:platform.name/></span>
-  </span>
-</b:includable>
-    <b:includable id='sharingButtonContent'>
-  <div class='flat-icon-button ripple'>
-    <b:include name='shareIcon'/>
-  </div>
-</b:includable>
-    <b:includable id='sharingButtons'>
-  <div class='sharing' expr:aria-owns='&quot;sharing-popup-&quot; + data:sharingId' expr:data-title='data:shareTitle'>
-    <button class='sharing-button touch-icon-button' expr:aria-controls='&quot;sharing-popup-&quot; + data:sharingId' expr:aria-label='data:messages.share.escaped' expr:id='&quot;sharing-button-&quot; + data:sharingId' role='button'>
-      <b:include name='sharingButtonContent'/>
-    </button>
-    <b:include name='sharingButtonsMenu'/>
-  </div>
-</b:includable>
-    <b:includable id='sharingButtonsMenu'>
-  <div class='share-buttons-container'>
-    <ul aria-hidden='true' class='share-buttons hidden' expr:aria-label='data:messages.share.escaped' expr:id='&quot;sharing-popup-&quot; + data:sharingId' role='menu'>
-      <b:loop values='(data:platforms ?: data:blog.sharing.platforms) filter (p =&gt; p.key not in {&quot;blogThis&quot;})' var='platform'>
-        <li>
-          <b:include name='sharingButton'/>
-        </li>
-      </b:loop>
-      <li aria-hidden='true' class='hidden'>
-        <b:include name='otherSharingButton'/>
-      </li>
-    </ul>
-  </div>
-</b:includable>
-    <b:includable id='sharingPlatformIcon'>
-  <b:include data='{ iconClass: (&quot;touch-icon sharing-&quot; + data:platform.key) }' expr:name='data:platform.key + &quot;Icon&quot;'/>
-</b:includable>
-    <b:includable id='status-message' var='top'/>
-    <b:includable id='threadedCommentForm' var='post'>
-  <div class='comment-form'>
-    <a name='comment-form'/>
-    <h4 id='comment-post-message'><data:messages.postAComment/></h4>
-    <b:if cond='data:this.messages.blogComment != &quot;&quot;'>
-      <p><data:this.messages.blogComment/></p>
-    </b:if>
-    <b:include data='post' name='commentFormIframeSrc'/>
-    <iframe allowtransparency='allowtransparency' class='blogger-iframe-colorize blogger-comment-from-post' expr:height='data:cmtIframeInitialHeight ?: &quot;90px&quot;' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%'/>
-    <data:post.cmtfpIframe/>
-    <script type='text/javascript'>
-      BLOG_CMT_createIframe(&#39;<data:post.appRpcRelayPath/>&#39;);
-    </script>
-  </div>
-</b:includable>
-    <b:includable id='threadedCommentJs' var='post'>
-  <script async='async' expr:src='data:post.commentSrc' type='text/javascript'/>
-  <b:template-script inline='true' name='threaded_comments'/>
-  <script type='text/javascript'>
-    blogger.widgets.blog.initThreadedComments(
-        <data:post.commentJso/>,
-        <data:post.commentMsgs/>,
-        <data:post.commentConfig/>);
-  </script>
-</b:includable>
-    <b:includable id='threadedComments' var='post'>
-  <section class='comments threaded' expr:data-embed='data:post.embedCommentForm' expr:data-num-comments='data:post.numberOfComments' id='comments'>
-    <a name='comments'/>
-
-    <b:include name='commentsTitle'/>
-
-    <div class='comments-content'>
-      <b:if cond='data:post.embedCommentForm'>
-        <b:include data='post' name='threadedCommentJs'/>
-      </b:if>
-      <div id='comment-holder'>
-         <data:post.commentHtml/>
-      </div>
-    </div>
-
-    <p class='comment-footer'>
-      <b:if cond='data:post.allowNewComments'>
-        <b:include data='post' name='threadedCommentForm'/>
-      <b:else/>
-        <data:post.noNewCommentsText/>
-      </b:if>
-      <b:if cond='data:post.showManageComments'>
-        <b:include data='post' name='manageComments'/>
-      </b:if>
-    </p>
-
-    <b:if cond='data:showCmtPopup'>
-      <div id='comment-popup'>
-        <iframe allowtransparency='allowtransparency' frameborder='0' id='comment-actions' name='comment-actions' scrolling='no'>
-        </iframe>
-      </div>
-    </b:if>
-  </section>
-</b:includable>
-    <b:includable id='tooltipCss'>
-  <!-- LINT.IfChange -->
-  <style>
-    .post-body a.b-tooltip-container {
-      position: relative;
-      display: inline-block;
-    }
-
-    .post-body a.b-tooltip-container .b-tooltip {
-      display: block !important;
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translate(-20%, 1px);
-      visibility: hidden;
-      opacity: 0;
-      z-index: 1;
-      transition: opacity 0.2s ease-in-out;
-    }
-
-    .post-body a.b-tooltip-container .b-tooltip iframe {
-      width: 200px;
-      height: 198px;
-      max-width: none;
-      border: none;
-      border-radius: 20px;
-      box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (hover: hover) {
-      .post-body a.b-tooltip-container:hover .b-tooltip {
-        visibility: visible;
-        opacity: 1;
-      }
-    }
-  </style>
-  <!-- LINT.ThenChange(//depot/google3/java/com/google/blogger/b2/layouts/widgets/v2-style.css) -->
-</b:includable>
-  </b:widget>
-</b:section>
 
 <!-- &#9552;&#9552; MAINTENANCE SCREEN &#9552;&#9552; -->
 <div id='cv-maintenance-screen'>
   <div class='cv-maint-icon'>🔧</div>
   <div class='cv-maint-title'>Under Maintenance</div>
   <div class='cv-maint-msg' id='cv-maint-msg'>We are performing scheduled maintenance. We&#39;ll be back shortly!</div>
-  <div class='cv-maint-time' id='cv-maint-time' style='display:none'/>
+  <div class='cv-maint-time' id='cv-maint-time' style='display:none'></div>
 </div>
 
 <!-- &#9552;&#9552; ANNOUNCEMENT BAR &#9552;&#9552; -->
 <div id='cv-ann-bar'>
   <div id='cv-ann-icon'>📢</div>
   <div class='cv-ann-text'>
-    <span class='cv-ann-title' id='cv-ann-title'/>
-    <span class='cv-ann-msg' id='cv-ann-msg'/>
+    <span class='cv-ann-title' id='cv-ann-title'></span>
+    <span class='cv-ann-msg' id='cv-ann-msg'></span>
   </div>
   <a class='cv-ann-link' href='#' id='cv-ann-link' style='display:none'>View &#8594;</a>
   <span class='cv-ann-close' onclick='cvCloseAnnBar()'>&#10005;</span>
@@ -3710,20 +3091,20 @@ body{text-rendering:optimizeSpeed}
 <div id='cv-newcontent-overlay' onclick='cvNcOverlayClick(event)'>
   <div id='cv-newcontent-popup'>
     <!-- Animated top glow bar -->
-    <div id='cv-nc-topbar'/>
+    <div id='cv-nc-topbar'></div>
     <!-- Blurred backdrop (set via JS) -->
-    <div id='cv-nc-backdrop'/>
+    <div id='cv-nc-backdrop'></div>
     <!-- Scanline texture -->
-    <div id='cv-nc-scanlines'/>
+    <div id='cv-nc-scanlines'></div>
     <!-- Close button -->
     <span class='cv-nc-close' onclick='cvCloseNcPopup()'>&#10005;</span>
     <!-- Poster Section -->
     <div id='cv-nc-poster-section'>
       <img alt='' class='cv-nc-poster' id='cv-nc-poster' onerror='this.style.opacity=&quot;0&quot;' src=''/>
-      <div id='cv-nc-poster-overlay'/>
+      <div id='cv-nc-poster-overlay'></div>
       <!-- NEW RELEASE floating badge -->
       <div id='cv-nc-floating-badge'>
-        <span class='cv-nc-badge-dot'/>
+        <span class='cv-nc-badge-dot'></span>
         New Release
       </div>
       <!-- Star rating -->
@@ -3737,9 +3118,9 @@ body{text-rendering:optimizeSpeed}
     </div>
     <!-- Bottom Info -->
     <div id='cv-nc-bottom'>
-      <div id='cv-nc-cat-wrap'><span id='cv-nc-cat'/></div>
-      <div id='cv-nc-title'/>
-      <div id='cv-nc-desc'/>
+      <div id='cv-nc-cat-wrap'><span id='cv-nc-cat'></span></div>
+      <div id='cv-nc-title'></div>
+      <div id='cv-nc-desc'></div>
       <div id='cv-nc-actions'>
         <span id='cv-nc-btn'>&#9654; Watch Now</span>
         <span class='cv-nc-btn-later' onclick='cvCloseNcPopup()'>Maybe Later</span>
@@ -3756,16 +3137,22 @@ body{text-rendering:optimizeSpeed}
         <linearGradient id='cnCircHd' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
         <radialGradient cx='32%' cy='24%' id='cnShineHd' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
         <linearGradient id='cnPlayHd' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ffffff'/><stop offset='100%' stop-color='#cfcfcf'/></linearGradient>
-        <linearGradient id='cnNovaHd' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d4d'/><stop offset='100%' stop-color='#c40410'/></linearGradient>
+        <linearGradient id='cnSilverHd' x1='0%' x2='0%' y1='0%' y2='100%'>
+          <stop offset='0%' stop-color='#ffffff'/><stop offset='20%' stop-color='#dcdcdc'/><stop offset='38%' stop-color='#7a7a7a'/><stop offset='52%' stop-color='#ffffff'/><stop offset='68%' stop-color='#5c5c5c'/><stop offset='85%' stop-color='#c8c8c8'/><stop offset='100%' stop-color='#3d3d3d'/>
+        </linearGradient>
+        <linearGradient id='cnRedChromeHd' x1='0%' x2='0%' y1='0%' y2='100%'>
+          <stop offset='0%' stop-color='#ff9a90'/><stop offset='20%' stop-color='#ff4d4d'/><stop offset='38%' stop-color='#8a0209'/><stop offset='52%' stop-color='#ff6b6b'/><stop offset='68%' stop-color='#6e0309'/><stop offset='85%' stop-color='#ff5c5c'/><stop offset='100%' stop-color='#420205'/>
+        </linearGradient>
       </defs>
       <circle cx='33' cy='36' fill='#4a0307' r='30'/>
       <circle cx='33' cy='33' fill='url(#cnCircHd)' r='30'/>
       <circle cx='33' cy='33' fill='url(#cnShineHd)' r='30'/>
       <path d='M24 19 L24 47 L48 33 Z' fill='#000000' opacity='0.3' transform='translate(1.5,2)'/>
       <path d='M24 19 L24 47 L48 33 Z' fill='url(#cnPlayHd)'/>
-      <g transform='skewX(-6)'>
-        <text fill='#000000' font-family='Arial, sans-serif' font-size='38' font-weight='700' opacity='0.55' x='78' y='49'>CineNova</text>
-        <text fill='#ffffff' font-family='Arial, sans-serif' font-size='38' font-weight='700' x='75' y='46'>Cine<tspan fill='url(#cnNovaHd)'>Nova</tspan></text>
+      <g transform='skewX(-11)'>
+        <text fill='#000000' font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' opacity='0.55' x='79' y='50'>CineNova</text>
+        <text font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' stroke='#1a0a0a' stroke-width='0.75' x='75' y='47'><tspan fill='url(#cnSilverHd)'>Cine</tspan><tspan fill='url(#cnRedChromeHd)'>Nova</tspan></text>
+        <rect fill='url(#cnRedChromeHd)' height='3' opacity='0.85' rx='1.5' width='168' x='75' y='54'/>
       </g>
     </svg>
   </a>
@@ -3774,9 +3161,10 @@ body{text-rendering:optimizeSpeed}
       <span style='color:#555;font-size:0.9rem'>🔍</span>
       <input autocomplete='off' id='cv-search' placeholder='Search movies...' type='text'/>
       <span id='cv-search-clear' onclick='cvClearSearch(&quot;cv-search&quot;)' style='display:none;color:#888;cursor:pointer;font-size:0.95rem;padding:0 2px;flex-shrink:0;line-height:1'>&#10005;</span>
-      <div id='cv-search-dropdown'/>
+      <div id='cv-search-dropdown'></div>
     </div>
     <div id='cv-search-btn' onclick='cvOpenSearch()'>🔍</div>
+    <div id='cv-nav-motd-btn' onclick='cvScrollToMotd()' style='display:none' title='Today&apos;s Pick'>🔥</div>
     <div id='cv-header-mylist-btn' onclick='cvMyListHeaderClick()' title='My List'>🔖</div>
   </div>
 </nav>
@@ -3814,11 +3202,11 @@ body{text-rendering:optimizeSpeed}
     <span id='cv-search-mobile-clear' onclick='cvClearSearch(&quot;cv-search-mobile&quot;)' style='display:none;color:#888;cursor:pointer;font-size:1rem;padding:0 4px;flex-shrink:0;line-height:1'>&#10005;</span>
     <span id='cv-search-overlay-close' onclick='cvCloseSearch()'>Cancel</span>
   </div>
-  <div id='cv-mobile-search-dropdown'/>
+  <div id='cv-mobile-search-dropdown'></div>
 </div>
 
 <!-- &#9552;&#9552; STATIC PAGE CONTAINER &#9552;&#9552; -->
-<div id='cv-static-page' style='display:none;margin-top:60px;padding:40px 16px 60px;max-width:760px;margin-left:auto;margin-right:auto'/>
+<div id='cv-static-page' style='display:none;margin-top:60px;padding:40px 16px 60px;max-width:760px;margin-left:auto;margin-right:auto'></div>
 
 <!-- &#9552;&#9552; MAIN SITE CONTENT &#9552;&#9552; -->
 <div id='cv-main-content'>
@@ -3837,45 +3225,54 @@ body{text-rendering:optimizeSpeed}
 
 <!-- FEATURED BANNER -->
 <div id='cv-featured-wrap'>
-  <script>(function(){try{var p=new URLSearchParams(location.search);if(p.get(&#39;cat&#39;)||p.get(&#39;genre&#39;)){document.getElementById(&#39;cv-featured-wrap&#39;).style.display=&#39;none&#39;;}}catch(e){}})();</script>
+  <script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';}}catch(e){}})();</script>
   <div id='cv-featured-card'>
 
     <!-- &#9552;&#9552;&#9552; CINENOVA CINEMATIC BANNER INTRO &#9552;&#9552;&#9552; -->
     <div id='cv-banner-intro'>
       <div id='cn-bi-rays'>
-        <div class='cn-bi-ray' style='transform:rotate(-85deg) translateY(-50%)'/>
-        <div class='cn-bi-ray' style='transform:rotate(-45deg) translateY(-50%)'/>
-        <div class='cn-bi-ray' style='transform:rotate(-5deg) translateY(-50%)'/>
-        <div class='cn-bi-ray' style='transform:rotate(35deg) translateY(-50%)'/>
-        <div class='cn-bi-ray' style='transform:rotate(75deg) translateY(-50%)'/>
-        <div class='cn-bi-ray' style='transform:rotate(115deg) translateY(-50%)'/>
+        <div class='cn-bi-ray' style='transform:rotate(-85deg) translateY(-50%)'></div>
+        <div class='cn-bi-ray' style='transform:rotate(-45deg) translateY(-50%)'></div>
+        <div class='cn-bi-ray' style='transform:rotate(-5deg) translateY(-50%)'></div>
+        <div class='cn-bi-ray' style='transform:rotate(35deg) translateY(-50%)'></div>
+        <div class='cn-bi-ray' style='transform:rotate(75deg) translateY(-50%)'></div>
+        <div class='cn-bi-ray' style='transform:rotate(115deg) translateY(-50%)'></div>
       </div>
-      <div id='cn-bi-scanlines'/>
+      <div id='cn-bi-scanlines'></div>
       <div id='cn-bi-circles'>
-        <div class='cn-bi-ring'/>
-        <div class='cn-bi-ring'/>
-        <div class='cn-bi-ring'/>
+        <div class='cn-bi-ring'></div>
+        <div class='cn-bi-ring'></div>
+        <div class='cn-bi-ring'></div>
       </div>
       <div id='cn-bi-logo-wrap'>
-        <div id='cn-bi-logo-row'>
-          <div id='cn-bi-play-btn'>
-            <div id='cn-bi-play-circle'>
-              <div id='cn-bi-play-triangle'/>
-            </div>
-          </div>
-          <div id='cn-bi-text-side'>
-            <div id='cn-bi-logo-main'>
-              <span id='cn-bi-cine'>CINE</span>
-              <span id='cn-bi-dot'>&#8226;</span>
-              <span id='cn-bi-nova'>NOVA</span>
-            </div>
-            <div id='cn-bi-line'/>
-            <div id='cn-bi-tagline'>STREAM &#160;&#183;&#160; WATCH &#160;&#183;&#160; ENJOY</div>
-          </div>
-        </div>
+        <div id='cn-bi-glow'></div>
+        <svg alt='CineNova' aria-label='CineNova' id='cn-bi-logo-svg' role='img' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
+          <defs>
+            <linearGradient id='cnCircBi' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
+            <radialGradient cx='32%' cy='24%' id='cnShineBi' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
+            <linearGradient id='cnPlayBi' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ffffff'/><stop offset='100%' stop-color='#cfcfcf'/></linearGradient>
+            <linearGradient id='cnSilverBi' x1='0%' x2='0%' y1='0%' y2='100%'>
+              <stop offset='0%' stop-color='#ffffff'/><stop offset='20%' stop-color='#dcdcdc'/><stop offset='38%' stop-color='#7a7a7a'/><stop offset='52%' stop-color='#ffffff'/><stop offset='68%' stop-color='#5c5c5c'/><stop offset='85%' stop-color='#c8c8c8'/><stop offset='100%' stop-color='#3d3d3d'/>
+            </linearGradient>
+            <linearGradient id='cnRedChromeBi' x1='0%' x2='0%' y1='0%' y2='100%'>
+              <stop offset='0%' stop-color='#ff9a90'/><stop offset='20%' stop-color='#ff4d4d'/><stop offset='38%' stop-color='#8a0209'/><stop offset='52%' stop-color='#ff6b6b'/><stop offset='68%' stop-color='#6e0309'/><stop offset='85%' stop-color='#ff5c5c'/><stop offset='100%' stop-color='#420205'/>
+            </linearGradient>
+          </defs>
+          <circle cx='33' cy='36' fill='#4a0307' r='30'/>
+          <circle cx='33' cy='33' fill='url(#cnCircBi)' r='30'/>
+          <circle cx='33' cy='33' fill='url(#cnShineBi)' r='30'/>
+          <path d='M24 19 L24 47 L48 33 Z' fill='#000000' opacity='0.3' transform='translate(1.5,2)'/>
+          <path d='M24 19 L24 47 L48 33 Z' fill='url(#cnPlayBi)'/>
+          <g transform='skewX(-11)'>
+            <text fill='#000000' font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' opacity='0.55' x='79' y='50'>CineNova</text>
+            <text font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' stroke='#1a0a0a' stroke-width='0.75' x='75' y='47'><tspan fill='url(#cnSilverBi)'>Cine</tspan><tspan fill='url(#cnRedChromeBi)'>Nova</tspan></text>
+            <rect fill='url(#cnRedChromeBi)' height='3' opacity='0.85' rx='1.5' width='168' x='75' y='54'/>
+          </g>
+        </svg>
+        <div id='cn-bi-tagline'>STREAM &#160;&#183;&#160; WATCH &#160;&#183;&#160; ENJOY</div>
       </div>
       <div id='cn-bi-progress'>
-        <div id='cn-bi-prog-bar'><div id='cn-bi-prog-fill'/></div>
+        <div id='cn-bi-prog-bar'><div id='cn-bi-prog-fill'></div></div>
       </div>
       <div id='cn-bi-tap' onclick='cnBiTapStart._userGesture=true;cnBiTapStart()'>
         <div id='cn-bi-tap-inner'>
@@ -3890,19 +3287,19 @@ body{text-rendering:optimizeSpeed}
     <div id='cv-upcoming-wrap' style='display:none'>
       <div id='cv-upcoming-hero'>
         <div id='cv-upcoming-track'>
-          <div class='cv-uh-skel'/>
+          <div class='cv-uh-skel'></div>
         </div>
         <button class='cv-uh-arrow' id='cv-uh-prev'>&#10094;</button>
         <button class='cv-uh-arrow' id='cv-uh-next'>&#10095;</button>
-        <div id='cv-upcoming-dots'/>
+        <div id='cv-upcoming-dots'></div>
       </div>
     </div>
 
-    <div id='cv-featured-bg'/>
+    <div id='cv-featured-bg'></div>
     <div id='cv-featured-poster-wrap'>
-      <img alt='' decoding='async' fetchpriority='high' loading='eager' id='cv-featured-img' src=''/>
+      <img alt='' decoding='async' fetchpriority='high' id='cv-featured-img' src=''/>
     </div>
-    <div id='cv-featured-overlay'/>
+    <div id='cv-featured-overlay'></div>
     <div id='cv-featured-info'>
       <div id='cv-featured-badge' style='display:none!important'><img alt='CineNova' id='cv-featured-logo-img' src='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png'/></div>
 
@@ -3913,12 +3310,18 @@ body{text-rendering:optimizeSpeed}
     <div id='cv-featured-right'>
         <svg fill='none' id='cv-mute-icon' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24'><polygon points='11,5 6,9 2,9 2,15 6,15 11,19'/><line x1='23' x2='17' y1='9' y2='15'/><line x1='17' x2='23' y1='9' y2='15'/></svg>
     </div>
-    <div id='cv-featured-dots'/>
+    <div id='cv-featured-dots'></div>
   </div>
 </div>
 
 <!-- MOVIE OF THE DAY -->
-<div id='cv-motd-wrap' style='display:none'/>
+<div id='cv-motd-outer' style='display:none'>
+  <div id='cv-motd-label'>
+    <span id='cv-motd-label-text'>🎯 Pick of the Day</span>
+    <span id='cv-motd-live-dot'></span>
+  </div>
+  <div id='cv-motd-wrap'></div>
+</div>
 
 
 
@@ -3935,27 +3338,27 @@ body{text-rendering:optimizeSpeed}
     </div>
   </div>
   <div style='overflow:hidden;padding:0 16px;'>
-    <div id='cv-ts-track' style='display:flex;gap:10px;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;'/>
+    <div id='cv-ts-track' style='display:flex;gap:10px;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;'></div>
   </div>
 </div>
 
 <!-- MY LIST SYNC BANNER -->
-<div id='cv-sync-banner' style='display:none'/>
+<div id='cv-sync-banner' style='display:none'></div>
 
 <!-- GRID -->
 <main id='cv-grid'>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
-  <div class='cv-skel'><div class='cv-skel-img'/><div class='cv-skel-bar'/><div class='cv-skel-bar short'/></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
+  <div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>
 </main>
 
 <!-- PAGINATION -->
-<div id='cv-pagination' style='display:none'/>
+<div id='cv-pagination' style='display:none'></div>
 
 <!-- MOVIE REQUEST FORM -->
 <div id='cv-request-wrap' style='display:none'>
@@ -3964,7 +3367,7 @@ body{text-rendering:optimizeSpeed}
   <input class='cv-req-inp' id='cv-req-year' placeholder='Year (optional)' type='text'/>
   <input class='cv-req-inp' id='cv-req-name' placeholder='Your name (optional)' type='text'/>
   <button class='cv-req-btn' onclick='submitRequest()'>📨 Submit Request</button>
-  <div id='cv-req-msg'/>
+  <div id='cv-req-msg'></div>
 </div>
 
 <!-- FULLSCREEN SCREENSHOT GALLERY LIGHTBOX -->
@@ -3975,17 +3378,17 @@ body{text-rendering:optimizeSpeed}
   <div id='cv-lb-img-wrap'>
     <img alt='' id='cv-lightbox-img' src=''/>
   </div>
-  <div id='cv-lb-counter'/>
-  <div id='cv-lb-dots'/>
+  <div id='cv-lb-counter'></div>
+  <div id='cv-lb-dots'></div>
 </div>
 
 
 <!-- SHARE SHEET -->
 <div id='cv-share-sheet' style='display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:5000;align-items:flex-end;justify-content:center'>
   <div id='cv-share-box' style='background:#1a1a1a;border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:0 0 30px;border-top:1px solid #2a2a2a;animation:slideup 0.3s cubic-bezier(0.34,1.56,0.64,1)'>
-    <div style='width:40px;height:4px;background:#2a2a2a;border-radius:2px;margin:12px auto 16px'/>
+    <div style='width:40px;height:4px;background:#2a2a2a;border-radius:2px;margin:12px auto 16px'></div>
     <div style='font-size:0.95rem;font-weight:800;text-align:center;color:#fff;padding:0 20px 16px;border-bottom:1px solid #1e1e1e'>🔗 Share</div>
-    <div id='cv-share-title' style='font-size:0.82rem;color:#888;text-align:center;padding:12px 20px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'/>
+    <div id='cv-share-title' style='font-size:0.82rem;color:#888;text-align:center;padding:12px 20px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'></div>
     <!-- Share Options -->
     <div style='display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:16px 16px 8px'>
       <div onclick='cvShareTo(&quot;copy&quot;)' onmouseout='this.style.background=&quot;&quot;' onmouseover='this.style.background=&quot;rgba(255,255,255,0.06)&quot;' style='display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;cursor:pointer;border-radius:12px;transition:background 0.15s'>
@@ -4007,7 +3410,7 @@ body{text-rendering:optimizeSpeed}
     </div>
     <!-- URL bar -->
     <div style='margin:4px 16px 0;display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px'>
-      <div id='cv-share-url-text' style='flex:1;font-size:0.75rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'/>
+      <div id='cv-share-url-text' style='flex:1;font-size:0.75rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'></div>
       <button onclick='cvShareTo(&quot;copy&quot;)' style='flex-shrink:0;background:#e50914;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer'>Copy</button>
     </div>
     <button onclick='cvCloseShare()' style='display:block;width:calc(100% - 32px);margin:12px 16px 0;padding:13px;background:rgba(255,255,255,0.05);border:1px solid #2a2a2a;border-radius:12px;color:#888;font-size:0.9rem;font-weight:600;cursor:pointer'>Cancel</button>
@@ -4017,31 +3420,31 @@ body{text-rendering:optimizeSpeed}
 <!-- UPGRADED MOVIE DETAIL MODAL -->
 <div id='cv-modal'>
   <div id='cv-modal-box' style='position:relative'>
-    <span id='cv-modal-handle'/>
+    <span id='cv-modal-handle'></span>
     <button id='cv-modal-close'>&#10005;</button>
     <button id='cv-modal-bookmark' onclick='cvToggleWatchlist(event)' title='Add to My List'>🔖</button>
     <div id='cv-modal-img-wrap' style='display:none'>
       <img alt='Movie Poster' id='cv-modal-img' src=''/>
-      <div id='cv-modal-img-overlay'/>
+      <div id='cv-modal-img-overlay'></div>
     </div>
     <div id='cv-modal-content'>
-      <h1 id='cv-modal-title'/>
-      <div id='cv-modal-badges'/>
-      <div id='cv-modal-desc'/>
+      <h1 id='cv-modal-title'></h1>
+      <div id='cv-modal-badges'></div>
+      <div id='cv-modal-desc'></div>
       <div class='cv-cast-row' id='cv-cast-row' style='display:none'>
         <div class='cv-section-title'>🎭 Cast</div>
-        <div class='cv-cast-track' id='cv-cast-track'/>
+        <div class='cv-cast-track' id='cv-cast-track'></div>
       </div>
-      <div id='cv-modal-btns'/>
-      <div id='cv-episodes'/>
+      <div id='cv-modal-btns'></div>
+      <div id='cv-episodes'></div>
       <!-- SCREENSHOTS -->
-      <div id='cv-screenshots'/>
+      <div id='cv-screenshots'></div>
       <!-- RATING -->
-      <div id='cv-rating-wrap'/>
+      <div id='cv-rating-wrap'></div>
       <!-- COMMENTS -->
-      <div id='cv-comments-wrap'/>
+      <div id='cv-comments-wrap'></div>
       <!-- RELATED MOVIES -->
-      <div id='cv-related-wrap'/>
+      <div id='cv-related-wrap'></div>
     </div>
   </div>
 </div>
@@ -4063,11 +3466,11 @@ body{text-rendering:optimizeSpeed}
         <span id='cv-player-loading-icon'>&#10227;</span>
         <span>Loading...</span>
       </div>
-      <div id='cv-player-inner'/>
+      <div id='cv-player-inner'></div>
     </div>
     <div id='cv-player-footer'>
       <div id='cv-player-tip'>💡 Landscape mode provides a better experience on mobile</div>
-      <div id='cv-player-quality-label' style='font-size:0.72rem;color:#555'/>
+      <div id='cv-player-quality-label' style='font-size:0.72rem;color:#555'></div>
     </div>
   </div>
 </div>
@@ -4076,9 +3479,9 @@ body{text-rendering:optimizeSpeed}
 <!-- DOWNLOAD QUALITY POPUP -->
 <div id='cv-dl-popup'>
   <div id='cv-dl-popup-box'>
-    <span id='cv-dl-popup-handle'/>
+    <span id='cv-dl-popup-handle'></span>
     <div id='cv-dl-popup-title'>&#11015; Select Download Quality</div>
-    <div id='cv-dl-popup-options'/>
+    <div id='cv-dl-popup-options'></div>
     <button id='cv-dl-popup-cancel'>Cancel</button>
   </div>
 </div>
@@ -4100,7 +3503,7 @@ body{text-rendering:optimizeSpeed}
       <svg height='18' viewBox='0 0 18 18' width='18'><path d='M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.86 2.7-6.62z' fill='#4285F4'/><path d='M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z' fill='#34A853'/><path d='M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l2.99-2.33z' fill='#FBBC05'/><path d='M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z' fill='#EA4335'/></svg>
       <span id='cv-adult-gate-btn-label'>Continue with Google</span>
     </button>
-    <div id='cv-adult-gate-error'/>
+    <div id='cv-adult-gate-error'></div>
     <div id='cv-adult-gate-footer'>Verification happens only once &#8212; you won&#8217;t be asked to sign in again on this device. Google is used only to confirm your email/name for age verification.</div>
   </div>
 </div>
@@ -4117,7 +3520,7 @@ body{text-rendering:optimizeSpeed}
       <svg height='18' viewBox='0 0 18 18' width='18'><path d='M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.86 2.7-6.62z' fill='#4285F4'/><path d='M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z' fill='#34A853'/><path d='M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l2.99-2.33z' fill='#FBBC05'/><path d='M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z' fill='#EA4335'/></svg>
       <span id='cv-mylist-modal-btn-label'>Sign in with Google</span>
     </button>
-    <div id='cv-mylist-modal-error'/>
+    <div id='cv-mylist-modal-error'></div>
     <div id='cv-mylist-modal-skip' onclick='cvMyListModalContinueGuest()'>Continue without signing in &#8594;</div>
   </div>
 </div>
@@ -4984,7 +4387,7 @@ function setupInfiniteScroll() {
     pageContent = '<div class="page-hero" style="text-align:center;padding:50px 20px 40px;position:relative;overflow:hidden"><div style="content:\'\';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(229,9,20,0.12) 0%,transparent 70%);pointer-events:none"></div><span style="font-size:3.5rem;margin-bottom:16px;display:block">🎬</span><h1 style="font-size:2rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:10px">About <span style="color:var(--red)">CineNova</span></h1><p style="font-size:0.95rem;color:var(--grey);line-height:1.7;max-width:520px;margin:0 auto">Your ultimate destination for movies, web series, and entertainment — free, fast, and always updated.</p></div>'
     + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:18px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--red);margin-bottom:4px">5K+</div><div style="font-size:0.72rem;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Movies</div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:18px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--red);margin-bottom:4px">500+</div><div style="font-size:0.72rem;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Web Series</div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:18px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--red);margin-bottom:4px">Daily</div><div style="font-size:0.72rem;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Updates</div></div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🎯</div><h2 style="font-size:1rem;font-weight:800">Who We Are</h2></div><p style="font-size:0.88rem;color:#bbb;line-height:1.8;margin-bottom:10px">CineNova is a free entertainment platform dedicated to bringing you the latest and greatest in movies, web series, and digital content. We are passionate cinephiles who believe great entertainment should be accessible to everyone.</p><p style="font-size:0.88rem;color:#bbb;line-height:1.8;margin-bottom:10px">Our team works around the clock to curate, organize, and update our library with fresh content — from Hollywood blockbusters and Bollywood hits to Korean dramas and animated gems.</p><div style="display:inline-flex;align-items:center;gap:8px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.25);border-radius:20px;padding:8px 16px;font-size:0.82rem;font-weight:700;color:#ff6b6b;margin-top:10px">❤️ Built with passion by the CineNova Team</div></div>'
-    + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">⚡</div><h2 style="font-size:1rem;font-weight:800">What Makes Us Different</h2></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🌟</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">HD Quality</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">480p, 720p &amp; 1080p</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🔄</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">Daily Updates</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">New content every day</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">📱</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">Mobile Friendly</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">All devices supported</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🆓</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">100% Free</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">No subscriptions, always free</p></div></div></div></div>'
+    + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">⚡</div><h2 style="font-size:1rem;font-weight:800">What Makes Us Different</h2></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🌟</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">HD Quality</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">480p, 720p & 1080p</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🔄</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">Daily Updates</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">New content every day</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">📱</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">Mobile Friendly</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">All devices supported</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🆓</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">100% Free</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">No subscriptions, always free</p></div></div></div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🚀</div><h2 style="font-size:1rem;font-weight:800">Our Mission</h2></div><p style="font-size:0.88rem;color:#bbb;line-height:1.8;margin-bottom:10px">Our mission is simple — to be the most comprehensive, user-friendly, and up-to-date entertainment hub on the internet. We believe that language, geography, or budget should never be a barrier to enjoying great cinema.</p><p style="font-size:0.88rem;color:#bbb;line-height:1.8">We are constantly improving our platform, adding new features, and listening to our community\'s feedback to deliver the best possible experience.</p></div>'
     + '<div style="background:linear-gradient(135deg,#1a0a0a,#111);border:1px solid rgba(229,9,20,0.2);border-radius:16px;padding:28px;text-align:center;margin-bottom:16px"><span style="font-size:2rem;display:block;margin-bottom:12px">📬</span><h2 style="font-size:1.1rem;font-weight:900;margin-bottom:8px">Have Questions or Suggestions?</h2><p style="font-size:0.86rem;color:#888;line-height:1.7;margin-bottom:20px">We love hearing from our community. Reach out to us anytime!</p><a href="/p/contact-us.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;padding:11px 24px;border-radius:10px;font-size:0.9rem;font-weight:700">📩 Contact Us</a></div>';
   }
@@ -4994,7 +4397,7 @@ function setupInfiniteScroll() {
     isStaticPage = true;
     pageContent = '<div style="text-align:center;padding:50px 20px 40px"><span style="font-size:3.5rem;display:block;margin-bottom:16px">📩</span><h1 style="font-size:2rem;font-weight:900;margin-bottom:10px">Contact <span style="color:var(--red)">Us</span></h1><p style="font-size:0.9rem;color:var(--grey);line-height:1.7;max-width:500px;margin:0 auto">Have a question, suggestion, or movie request? We\'d love to hear from you.</p></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px"><div style="background:var(--card);border:1px solid #1e1e1e;border-radius:14px;padding:22px;text-align:center"><span style="font-size:2rem;margin-bottom:12px;display:block">📧</span><h3 style="font-size:0.9rem;font-weight:800;margin-bottom:6px">Email Us</h3><p style="font-size:0.8rem;color:var(--grey);line-height:1.5;margin-bottom:12px">Reply within 24–48 hours</p><a href="mailto:contact@cinenova.site" style="display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid #2a2a2a;color:#ccc;padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:600">✉️ Send Email</a></div><div style="background:var(--card);border:1px solid #1e1e1e;border-radius:14px;padding:22px;text-align:center"><span style="font-size:2rem;margin-bottom:12px;display:block">🎬</span><h3 style="font-size:0.9rem;font-weight:800;margin-bottom:6px">Movie Request</h3><p style="font-size:0.8rem;color:var(--grey);line-height:1.5;margin-bottom:12px">Can\'t find a movie? Request it!</p><a href="/" style="display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid #2a2a2a;color:#ccc;padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:600">📤 Request Now</a></div></div>'
-    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:16px;text-align:center"><span style="font-size:1.4rem;margin-bottom:8px;display:block">⏱️</span><h4 style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Response Time</h4><p style="font-size:0.72rem;color:var(--grey)">24–48 hours</p></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:16px;text-align:center"><span style="font-size:1.4rem;margin-bottom:8px;display:block">🌐</span><h4 style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Languages</h4><p style="font-size:0.72rem;color:var(--grey)">English &amp; Urdu</p></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:16px;text-align:center"><span style="font-size:1.4rem;margin-bottom:8px;display:block">📅</span><h4 style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Support Days</h4><p style="font-size:0.72rem;color:var(--grey)">Mon – Sat</p></div></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:16px;text-align:center"><span style="font-size:1.4rem;margin-bottom:8px;display:block">⏱️</span><h4 style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Response Time</h4><p style="font-size:0.72rem;color:var(--grey)">24–48 hours</p></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:16px;text-align:center"><span style="font-size:1.4rem;margin-bottom:8px;display:block">🌐</span><h4 style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Languages</h4><p style="font-size:0.72rem;color:var(--grey)">English & Urdu</p></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:16px;text-align:center"><span style="font-size:1.4rem;margin-bottom:8px;display:block">📅</span><h4 style="font-size:0.78rem;font-weight:700;margin-bottom:4px">Support Days</h4><p style="font-size:0.72rem;color:var(--grey)">Mon – Sat</p></div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:20px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">✍️</div><h2 style="font-size:1rem;font-weight:800">Send Us a Message</h2></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><label style="display:block;font-size:0.8rem;font-weight:700;color:#ccc;margin-bottom:6px">Your Name</label><input id="sp-name" placeholder="Enter your name" type="text" style="width:100%;padding:11px 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;color:#fff;font-size:0.88rem;outline:none;font-family:inherit"/></div><div><label style="display:block;font-size:0.8rem;font-weight:700;color:#ccc;margin-bottom:6px">Email Address</label><input id="sp-email" placeholder="your@email.com" type="email" style="width:100%;padding:11px 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;color:#fff;font-size:0.88rem;outline:none;font-family:inherit"/></div></div><div style="margin-bottom:14px"><label style="display:block;font-size:0.8rem;font-weight:700;color:#ccc;margin-bottom:6px">Subject</label><select id="sp-subject" style="width:100%;padding:11px 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;color:#aaa;font-size:0.88rem;outline:none;font-family:inherit"><option value="">Select a topic...</option><option>🎬 Movie Request</option><option>🐛 Report a Bug</option><option>⚖️ DMCA / Copyright Issue</option><option>💡 Suggestion / Feedback</option><option>❓ General Question</option><option>🤝 Business / Collaboration</option></select></div><div style="margin-bottom:14px"><label style="display:block;font-size:0.8rem;font-weight:700;color:#ccc;margin-bottom:6px">Message</label><textarea id="sp-message" placeholder="Write your message here..." style="width:100%;padding:11px 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;color:#fff;font-size:0.88rem;outline:none;font-family:inherit;resize:vertical;min-height:110px;line-height:1.6"></textarea></div><button onclick="cvSendContact()" style="width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer">📨 Send Message</button><div id="sp-msg" style="text-align:center;font-size:0.8rem;margin-top:10px;min-height:16px"></div></div>'
     + '<div style="background:linear-gradient(135deg,#0d0d0d,#111);border:1px solid rgba(229,9,20,0.15);border-radius:16px;padding:20px;text-align:center"><p style="font-size:0.82rem;color:#888;line-height:1.7">⚠️ For <strong style="color:#ccc">DMCA / copyright</strong> requests, please use the <a href="/p/dmca.html" style="color:var(--red)">DMCA page</a> for faster processing.</p></div>';
   }
@@ -5007,7 +4410,7 @@ function setupInfiniteScroll() {
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:12px">Welcome to <strong style="color:#fff">CineNova</strong>. By accessing our website, you agree to the terms described in this Privacy Policy.</p><div style="background:rgba(229,9,20,0.06);border:1px solid rgba(229,9,20,0.18);border-radius:10px;padding:14px 16px;font-size:0.84rem;color:#ddd;line-height:1.7"><strong style="color:#ff6b6b">📌 Summary:</strong> We collect minimal data, we don\'t sell your personal information, and we use industry-standard practices to keep your data safe.</div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📊</div><h2 style="font-size:1rem;font-weight:800">1. Information We Collect</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:10px">We collect information you provide (name, email, contact form messages, Google Sign-In for age verification) and information collected automatically (IP address, browser type, pages visited, cookies).</p></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🎯</div><h2 style="font-size:1rem;font-weight:800">2. How We Use Your Information</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:10px">We use your information to respond to inquiries, improve website performance, analyze usage, prevent fraud, and serve relevant advertisements. We do <strong style="color:#fff">not</strong> sell or rent your personal information.</p></div>'
-    + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🍪</div><h2 style="font-size:1rem;font-weight:800">3. Cookies &amp; Tracking</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85">We use essential, analytics, advertising, and preference cookies. You can disable cookies in your browser settings, though some features may not function correctly without them.</p></div>'
+    + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🍪</div><h2 style="font-size:1rem;font-weight:800">3. Cookies & Tracking</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85">We use essential, analytics, advertising, and preference cookies. You can disable cookies in your browser settings, though some features may not function correctly without them.</p></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🔗</div><h2 style="font-size:1rem;font-weight:800">4. Third-Party Services</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85">We use Google Analytics, Google AdSense, Firebase, TMDB API, and Blogger. Each has their own privacy policies governing their data collection practices.</p></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">👶</div><h2 style="font-size:1rem;font-weight:800">5. Children\'s Privacy</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85">CineNova is not intended for children under 13. We do not knowingly collect personal information from children. Adult content section requires 18+ age verification via Google Sign-In.</p></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">⚖️</div><h2 style="font-size:1rem;font-weight:800">6. Your Rights</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:10px">You have rights to access, correct, delete, object to, and receive a portable copy of your personal data. To exercise these rights, contact us via the <a href="/p/contact-us.html" style="color:var(--red)">Contact Us</a> page.</p></div>'
@@ -5021,7 +4424,7 @@ function setupInfiniteScroll() {
     + '<div style="text-align:center;margin-bottom:24px"><div style="display:inline-flex;align-items:center;gap:8px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);border-radius:20px;padding:7px 16px;font-size:0.78rem;color:#ff6b6b">📅 Last Updated: January 1, 2025</div></div>'
     + '<div style="background:linear-gradient(135deg,#1a0a00,#130d00);border:1px solid rgba(245,197,24,0.25);border-radius:14px;padding:20px;margin-bottom:20px;display:flex;gap:14px;align-items:flex-start"><div style="font-size:1.6rem;flex-shrink:0;margin-top:2px">⚠️</div><div><h3 style="font-size:0.9rem;font-weight:800;color:#f5c518;margin-bottom:6px">Important Notice</h3><p style="font-size:0.84rem;color:#c8a84b;line-height:1.7">CineNova operates under the <strong>Digital Millennium Copyright Act (DMCA)</strong>. We respond to legitimate takedown requests within <strong>24–72 hours</strong>.</p></div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📖</div><h2 style="font-size:1rem;font-weight:800">About Our DMCA Policy</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:10px">CineNova is a content aggregation and indexing platform. We do not host any media files directly on our servers. All content is linked from third-party servers and streaming providers.</p><p style="font-size:0.87rem;color:#bbb;line-height:1.85">We fully respect the rights of copyright holders and comply with the DMCA. If you believe any content on our platform infringes your copyright, please submit a formal takedown notice.</p></div>'
-    + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📝</div><h2 style="font-size:1rem;font-weight:800">How to Submit a DMCA Notice</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:14px">Your notice must include:</p><div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">1</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Identify Yourself</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">Your full legal name, address, phone, and email as the copyright owner or representative.</p></div></div><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">2</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Identify the Copyrighted Work</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">A clear description or link to the original copyrighted work you claim has been infringed.</p></div></div><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">3</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Identify the Infringing Content</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">The exact URL(s) on our website where the allegedly infringing content appears.</p></div></div><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">4</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Good Faith &amp; Accuracy Statements</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">Statements of good faith belief and accuracy under penalty of perjury, plus your electronic signature.</p></div></div></div></div>'
+    + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📝</div><h2 style="font-size:1rem;font-weight:800">How to Submit a DMCA Notice</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85;margin-bottom:14px">Your notice must include:</p><div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">1</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Identify Yourself</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">Your full legal name, address, phone, and email as the copyright owner or representative.</p></div></div><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">2</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Identify the Copyrighted Work</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">A clear description or link to the original copyrighted work you claim has been infringed.</p></div></div><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">3</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Identify the Infringing Content</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">The exact URL(s) on our website where the allegedly infringing content appears.</p></div></div><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;color:var(--red);flex-shrink:0">4</div><div><h4 style="font-size:0.87rem;font-weight:700;margin-bottom:4px">Good Faith & Accuracy Statements</h4><p style="font-size:0.83rem;color:#aaa;line-height:1.6">Statements of good faith belief and accuracy under penalty of perjury, plus your electronic signature.</p></div></div></div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🔄</div><h2 style="font-size:1rem;font-weight:800">Counter-Notification</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85">If you believe content was removed by mistake, you may submit a counter-notification with your contact info, identification of removed content, statement that removal was in error, and your signature.</p></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🚫</div><h2 style="font-size:1rem;font-weight:800">Repeat Infringer Policy</h2></div><p style="font-size:0.87rem;color:#bbb;line-height:1.85">CineNova has a zero-tolerance policy for repeat copyright infringers. We will terminate accounts and access for users found to be repeat infringers.</p></div>'
     + '<div style="background:linear-gradient(135deg,#1a0a0a,#111);border:1px solid rgba(229,9,20,0.2);border-radius:16px;padding:28px;text-align:center;margin-bottom:14px"><h2 style="font-size:1.2rem;font-weight:900;margin-bottom:8px">Submit a DMCA Takedown Request</h2><p style="font-size:0.86rem;color:#888;line-height:1.7;margin-bottom:20px;max-width:480px;margin-left:auto;margin-right:auto">Send all required information through our contact page and we\'ll process it within 24–72 hours.</p><a href="/p/contact-us.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;padding:12px 28px;border-radius:10px;font-size:0.92rem;font-weight:700">⚖️ Submit DMCA Request</a></div>';
@@ -5082,8 +4485,8 @@ function setupInfiniteScroll() {
       // Show upcoming slider after intro
       var upcomingWrap = document.getElementById('cv-upcoming-wrap');
       if (upcomingWrap) upcomingWrap.style.display = '';
-      setTimeout(function() { intro.classList.add('cv-intro-gone'); }, 1000);
-    }, 200);
+      setTimeout(function() { intro.classList.add('cv-intro-gone'); }, 900);
+    }, 250);
   }
 
   window.cnBiSkip = function() { cnBiEnd(); };
@@ -5126,18 +4529,14 @@ function setupInfiniteScroll() {
 
   var circles  = document.getElementById('cn-bi-circles');
   var logoWrap = document.getElementById('cn-bi-logo-wrap');
-  var playBtn  = document.getElementById('cn-bi-play-btn');
-  var playCirc = document.getElementById('cn-bi-play-circle');
-  var cine     = document.getElementById('cn-bi-cine');
-  var dot      = document.getElementById('cn-bi-dot');
-  var nova     = document.getElementById('cn-bi-nova');
-  var line     = document.getElementById('cn-bi-line');
+  var logoSvg  = document.getElementById('cn-bi-logo-svg');
+  var glow     = document.getElementById('cn-bi-glow');
   var tag      = document.getElementById('cn-bi-tagline');
   var scans    = document.getElementById('cn-bi-scanlines');
   var prog     = document.getElementById('cn-bi-progress');
   var skip     = document.getElementById('cn-bi-skip');
 
-  
+  /* ── TAP TO PLAY — unlocks audio + starts animation ── */
   var cnBiMusicCtx = null;
   var cnBiStarted = false;
 
@@ -5178,12 +4577,12 @@ function setupInfiniteScroll() {
   function cnBiRunSequence() {
     setTimeout(function() {
       [prog, skip].forEach(function(el) { if(el){ el.style.transition='opacity 0.6s'; el.style.opacity='1'; } });
-      cnBiProgress(6000);
+      cnBiProgress(4400);
     }, 150);
 
   /* Phase 1 — rings + rays */
   setTimeout(function() {
-    if(circles){ circles.style.transition = 'opacity 0.7s ease'; circles.style.opacity = '1'; }
+    if(circles){ circles.style.transition = 'opacity 0.6s ease'; circles.style.opacity = '1'; }
     cnBiRays(true);
   }, 150);
 
@@ -5191,65 +4590,61 @@ function setupInfiniteScroll() {
   setTimeout(function() {
     if(scans){ scans.style.transition = 'opacity 0.08s'; scans.style.opacity = '0.75';
     setTimeout(function() { if(scans) scans.style.opacity = '0'; }, 170); }
-  }, 600);
+  }, 700);
 
-  /* Phase 2 — logo in */
+  /* Phase 2 — logo bursts in (same logo as header) */
   setTimeout(function() {
-    circles.style.transition = 'opacity 0.9s ease'; circles.style.opacity = '0';
-    logoWrap.style.transition = 'opacity 0.5s ease, transform 0.8s cubic-bezier(0.23,1,0.32,1)';
+    circles.style.transition = 'opacity 0.6s ease'; circles.style.opacity = '0';
+    logoWrap.style.transition = 'opacity 0.6s ease,transform 0.7s cubic-bezier(0.23,1,0.32,1)';
     logoWrap.style.opacity = '1'; logoWrap.style.transform = 'scale(1)';
+    cnBiSparks(16, '#e50914');
   }, 1100);
 
-  /* Play button spins in */
-  setTimeout(function() {
-    playBtn.style.transition = 'transform 0.85s cubic-bezier(0.34,1.56,0.64,1), opacity 0.5s ease';
-    playBtn.style.opacity = '1'; playBtn.style.transform = 'scale(1) rotate(0deg)';
-    cnBiSparks(14, '#e50914');
-  }, 1250);
-
-  /* CINE slides in */
-  setTimeout(function() {
-    cine.style.transition = 'clip-path 0.78s cubic-bezier(0.23,1,0.32,1)';
-    cine.style.clipPath = 'inset(0 0% 0 0)';
-  }, 1700);
-
-  /* DOT pops */
-  setTimeout(function() {
-    dot.style.transition = 'opacity 0.3s, transform 0.5s cubic-bezier(0.34,1.56,0.64,1)';
-    dot.style.opacity = '1'; dot.style.transform = 'scale(1)';
-  }, 2050);
-
-  /* NOVA slides in */
-  setTimeout(function() {
-    nova.style.transition = 'clip-path 0.78s cubic-bezier(0.23,1,0.32,1)';
-    nova.style.clipPath = 'inset(0 0 0 0%)';
-    cnBiSparks(10, '#ff3333');
-  }, 2200);
-
-  /* Underline */
-  setTimeout(function() { line.style.width = '100%'; }, 2550);
-
-  /* Tagline */
-  setTimeout(function() { tag.style.opacity = '1'; tag.style.transform = 'translateY(0)'; }, 2800);
+  /* Tagline settles in */
+  setTimeout(function() { tag.style.opacity = '1'; tag.style.transform = 'translateY(0)'; }, 1750);
 
   /* Rays fade */
-  setTimeout(function() { cnBiRays(false); }, 3300);
+  setTimeout(function() { cnBiRays(false); }, 2200);
 
-  /* 7s — glow burst */
+  /* "TA" beat — logo pulse */
   setTimeout(function() {
-    playCirc.style.transition = 'box-shadow 0.4s ease';
-    playCirc.style.boxShadow = '0 0 65px rgba(229,9,20,1),0 0 120px rgba(229,9,20,0.5),inset 0 4px 14px rgba(255,255,255,0.28)';
-    cnBiSparks(18, '#e50914');
+    logoSvg.style.transform = 'scale(1.08)';
+    logoSvg.style.filter = 'drop-shadow(0 4px 40px rgba(229,9,20,0.9))';
+    if (glow) { glow.style.transition = 'opacity 0.35s ease,transform 0.35s ease'; glow.style.opacity = '1'; glow.style.transform = 'scale(1.25)'; }
+    cnBiSparks(16, '#e50914');
+    scans.style.transition = 'opacity 0.07s'; scans.style.opacity = '0.7';
+    setTimeout(function() { scans.style.opacity = '0'; }, 160);
     setTimeout(function() {
-      playCirc.style.boxShadow = '0 0 35px rgba(229,9,20,0.75),0 0 70px rgba(229,9,20,0.35),inset 0 4px 14px rgba(255,255,255,0.28)';
-    }, 650);
+      logoSvg.style.transform = 'scale(1)';
+      logoSvg.style.filter = 'drop-shadow(0 4px 20px rgba(229,9,20,0.5))';
+      if (glow) { glow.style.opacity = ''; glow.style.transform = ''; }
+    }, 450);
+  }, 2700);
+
+  /* "DUM" beat — bigger pulse + spark burst */
+  setTimeout(function() {
+    logoSvg.style.transform = 'scale(1.1)';
+    logoSvg.style.filter = 'drop-shadow(0 4px 55px rgba(229,9,20,1))';
+    cnBiSparks(22, '#ff1a1a');
+    cnBiRays(true);
+    setTimeout(function() {
+      logoSvg.style.transform = 'scale(1)';
+      logoSvg.style.filter = 'drop-shadow(0 4px 20px rgba(229,9,20,0.5))';
+    }, 420);
   }, 3500);
 
-  /* 7.5s — scanline */
+  /* Rays fade out */
+  setTimeout(function() { cnBiRays(false); }, 4050);
+
+  /* Final flash + end */
   setTimeout(function() {
-    scans.style.transition = 'opacity 0.08s'; scans.style.opacity = '0.65';
-    setTimeout(function() { scans.style.opacity = '0'; }, 190);
-  }, 3800);
+    scans.style.transition = 'opacity 0.06s'; scans.style.opacity = '0.9';
+    cnBiSparks(18, '#e50914');
+    setTimeout(function() { scans.style.opacity = '0'; cnBiEnd(); }, 220);
+  }, 4400);
+
+  /* Cinematic score keeps playing in the background via Web Audio,
+     independent of the visual sequence above. */
 
   /* ═══════════════════════════════════════════
      CINENOVA — FULL CINEMATIC SCORE
@@ -5280,7 +4675,7 @@ function setupInfiniteScroll() {
 
     function conn(node) { node.connect(master); node.connect(rev); }
 
-    
+    /* ── EPIC BASS DRUM ── */
     function kick(at, vol) {
       var o = ctx.createOscillator(), g = ctx.createGain();
       var click = ctx.createOscillator(), cg = ctx.createGain();
@@ -5298,7 +4693,7 @@ function setupInfiniteScroll() {
       click.connect(cg); conn(cg); click.start(at); click.stop(at+0.06);
     }
 
-    
+    /* ── SNARE ── */
     function snare(at, vol) {
       var buf = ctx.createBuffer(1, sr*0.3, sr);
       var d = buf.getChannelData(0);
@@ -5315,7 +4710,7 @@ function setupInfiniteScroll() {
       o.connect(og); conn(og); o.start(at); o.stop(at+0.15);
     }
 
-    
+    /* ── CINEMATIC TOM (big floor tom) ── */
     function tom(at, freq, vol) {
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine';
@@ -5325,7 +4720,7 @@ function setupInfiniteScroll() {
       o.connect(g); conn(g); o.start(at); o.stop(at+0.65);
     }
 
-    
+    /* ── EPIC BRASS (horn stab) ── */
     function brass(at, freq, dur, vol) {
       var o1=ctx.createOscillator(), o2=ctx.createOscillator(), o3=ctx.createOscillator();
       var g=ctx.createGain(), flt=ctx.createBiquadFilter();
@@ -5341,7 +4736,7 @@ function setupInfiniteScroll() {
       [o1,o2,o3].forEach(function(o){o.start(at);o.stop(at+dur+0.1);});
     }
 
-    
+    /* ── SOARING STRINGS ── */
     function strings(at, freq, dur, vol) {
       var oscs=[], g=ctx.createGain(), flt=ctx.createBiquadFilter();
       flt.type='lowpass'; flt.frequency.value=4000; flt.Q.value=0.5;
@@ -5359,7 +4754,7 @@ function setupInfiniteScroll() {
       oscs.forEach(function(o){o.start(at);o.stop(at+dur+0.1);});
     }
 
-    
+    /* ── CHOIR AHHH ── */
     function choir(at, freq, dur, vol) {
       var o1=ctx.createOscillator(), o2=ctx.createOscillator();
       var g=ctx.createGain(), flt=ctx.createBiquadFilter();
@@ -5374,7 +4769,7 @@ function setupInfiniteScroll() {
       o2.start(at); o2.stop(at+dur+0.1);
     }
 
-    
+    /* ── SUB BOOM ── */
     function subBoom(at, vol) {
       var o=ctx.createOscillator(), g=ctx.createGain(), flt=ctx.createBiquadFilter();
       flt.type='lowpass'; flt.frequency.value=120;
@@ -5386,7 +4781,7 @@ function setupInfiniteScroll() {
       o.connect(flt); flt.connect(g); conn(g); o.start(at); o.stop(at+1.3);
     }
 
-    
+    /* ── RISER (builds tension before climax) ── */
     function riser(at, dur) {
       var o=ctx.createOscillator(), g=ctx.createGain(), flt=ctx.createBiquadFilter();
       flt.type='highpass'; flt.frequency.setValueAtTime(200, at);
@@ -5400,166 +4795,67 @@ function setupInfiniteScroll() {
     }
 
     /* ══════════════════════════════════════
-       THE SCORE — ~12 SECONDS
-       Key: D minor / cinematic
+       THE SCORE — ~4.8 SECONDS
+       Rewritten to land exactly on each visual
+       beat: rings → logo reveal → TA → DUM → end
+       Key: D minor / cinematic (English orchestral,
+       original composition — no copyrighted track)
     ══════════════════════════════════════ */
 
-    /* t+0.0 — OPENING: deep sub + first brass stab */
+    /* t+0.0 — OPENING: rings appear, deep sub + brass */
     subBoom(t, 1.0);
-    kick(t, 0.95);
-    brass(t+0.05, 146.8, 1.4, 0.55);   /* D3 */
-    strings(t+0.1, 146.8, 2.0, 0.22);
-    choir(t+0.2, 293.7, 1.8, 0.15);    /* D4 */
+    kick(t, 0.9);
+    brass(t+0.05, 146.8, 1.1, 0.5);    /* D3 */
+    strings(t+0.1, 146.8, 1.3, 0.2);
+    choir(t+0.2, 293.7, 1.2, 0.14);    /* D4 */
 
-    /* t+0.8 — first snare crack */
-    snare(t+0.8, 0.7);
-    tom(t+0.85, 120, 0.65);
+    /* t+0.65 — snare crack (scanline flash) */
+    snare(t+0.65, 0.7);
+    tom(t+0.75, 115, 0.6);
 
-    /* t+1.2 — second chord: F (sad/epic minor) */
-    brass(t+1.2, 174.6, 1.3, 0.5);    /* F3 */
-    strings(t+1.2, 174.6, 1.8, 0.2);
-    strings(t+1.25, 349.2, 1.7, 0.17);/* F4 */
-    kick(t+1.2, 0.8);
+    /* t+0.95 — quick riser into the reveal */
+    riser(t+0.95, 0.5);
+    [0,0.09,0.17,0.24].forEach(function(d,i){ snare(t+0.95+d, 0.35+i*0.12); });
 
-    /* t+1.9 — snare + tom fill */
-    snare(t+1.9, 0.75);
-    tom(t+2.0, 100, 0.7);
-    tom(t+2.15, 85, 0.6);
+    /* t+1.1 — LOGO REVEAL: full climax, matches logo burst */
+    subBoom(t+1.1, 1.1);
+    kick(t+1.1, 1.0); kick(t+1.12, 0.85);
+    snare(t+1.1, 0.9);
+    brass(t+1.1,  146.8, 1.8, 0.72);   /* D3 */
+    brass(t+1.1,  220.0, 1.8, 0.62);   /* A3 */
+    brass(t+1.12, 293.7, 1.7, 0.55);   /* D4 */
+    strings(t+1.1,  293.7, 2.0, 0.32);
+    strings(t+1.12, 440.0, 1.9, 0.25);
+    choir(t+1.1,  293.7, 2.0, 0.28);
+    choir(t+1.15, 440.0, 1.8, 0.2);
+    tom(t+1.1, 150, 0.85); tom(t+1.22, 120, 0.75);
 
-    /* t+2.4 — chord: A (the fifth, building) */
-    brass(t+2.4, 220, 1.2, 0.58);     /* A3 */
-    strings(t+2.4, 220, 1.6, 0.22);
-    strings(t+2.45, 440, 1.5, 0.18);  /* A4 */
-    choir(t+2.5, 440, 1.4, 0.18);
-    kick(t+2.4, 0.85);
-    snare(t+2.8, 0.65);
+    /* t+1.75 — tagline settles, soft sustain */
+    strings(t+1.75, 220.0, 1.0, 0.14);
+    choir(t+1.85, 349.2, 0.9, 0.1);
 
-    /* t+3.2 — RISER STARTS — tension build */
-    riser(t+3.2, 2.0);
-    strings(t+3.2, 261.6, 1.8, 0.18); /* C4 */
-    choir(t+3.4, 523.2, 1.6, 0.12);
-    kick(t+3.2, 0.7); kick(t+3.5, 0.6); kick(t+3.75, 0.55); kick(t+3.9, 0.5);
+    /* t+2.7 — "TA" beat, matches logo pulse #1 */
+    kick(t+2.7, 0.85); snare(t+2.7, 0.8);
+    brass(t+2.7, 196.0, 0.6, 0.5);     /* G3 accent */
+    tom(t+2.72, 130, 0.65);
 
-    /* t+4.0 — RAPID SNARE ROLL before climax */
-    [0,0.1,0.2,0.28,0.35,0.4,0.44,0.47,0.49].forEach(function(d,i){
-      snare(t+4.0+d, 0.3+i*0.06);
-    });
+    /* t+3.5 — "DUM" beat, matches logo pulse #2 (bigger) */
+    subBoom(t+3.5, 0.9);
+    kick(t+3.5, 1.0); kick(t+3.52, 0.8);
+    snare(t+3.5, 0.9); snare(t+3.62, 0.55);
+    brass(t+3.5, 146.8, 1.0, 0.65);
+    brass(t+3.52, 293.7, 0.9, 0.5);
+    strings(t+3.5, 293.7, 1.2, 0.25);
+    choir(t+3.52, 440.0, 1.0, 0.2);
+    tom(t+3.5, 140, 0.75); tom(t+3.65, 100, 0.65);
 
-    /* t+4.5 — CLIMAX: massive D chord — all instruments FULL */
-    subBoom(t+4.5, 1.2);
-    kick(t+4.5, 1.0); kick(t+4.52, 0.85);
-    snare(t+4.5, 0.95); snare(t+4.52, 0.8);
+    /* t+4.2 — final resolving chord, fades as banner ends */
+    brass(t+4.2, 146.8, 1.3, 0.4);
+    strings(t+4.2, 220.0, 1.4, 0.22);
+    choir(t+4.25, 293.7, 1.2, 0.16);
 
-    /* brass power chord D major */
-    brass(t+4.5,  146.8, 3.5, 0.75);  /* D3 */
-    brass(t+4.5,  220.0, 3.5, 0.65);  /* A3 */
-    brass(t+4.52, 293.7, 3.3, 0.60);  /* D4 */
-    brass(t+4.55, 369.9, 3.0, 0.50);  /* F#4 */
-
-    /* strings swell */
-    strings(t+4.5,  293.7, 4.0, 0.35);
-    strings(t+4.5,  440.0, 3.8, 0.28);
-    strings(t+4.52, 587.3, 3.5, 0.22);
-    strings(t+4.55, 880.0, 3.0, 0.15);
-
-    /* choir ahh */
-    choir(t+4.5,  293.7, 4.0, 0.30);
-    choir(t+4.55, 440.0, 3.8, 0.22);
-
-    /* tom cascade */
-    tom(t+4.5, 160, 0.9); tom(t+4.6, 130, 0.8);
-    tom(t+4.7, 105, 0.75); tom(t+4.85, 85, 0.7);
-
-    /* t+5.0 — continued groove */
-    kick(t+5.0, 0.75); kick(t+5.5, 0.7);
-    snare(t+5.25, 0.7); snare(t+5.75, 0.65);
-
-    /* t+5.5 — second melody line: G chord */
-    brass(t+5.5, 196.0, 2.0, 0.55);   /* G3 */
-    brass(t+5.55, 246.9, 1.8, 0.45);  /* B3 */
-    strings(t+5.5, 392.0, 2.5, 0.28);
-    choir(t+5.6, 392.0, 2.2, 0.2);
-
-    /* t+6.0 — beat continues */
-    kick(t+6.0, 0.7); snare(t+6.25, 0.65);
-    kick(t+6.5, 0.65); snare(t+6.75, 0.6);
-
-    /* t+6.5 — back to D, final statement */
-    brass(t+6.5, 146.8, 2.5, 0.65);
-    brass(t+6.55, 293.7, 2.3, 0.55);
-    strings(t+6.5, 293.7, 3.0, 0.3);
-    strings(t+6.55, 587.3, 2.8, 0.22);
-    choir(t+6.6, 440.0, 2.5, 0.22);
-    kick(t+6.5, 0.75); snare(t+6.9, 0.7);
-
-    /* t+7.5 — BIG FINAL BOOM then fade */
-    subBoom(t+7.5, 1.0);
-    kick(t+7.5, 1.0); kick(t+7.52, 0.9);
-    snare(t+7.5, 0.85);
-    brass(t+7.5, 146.8, 4.0, 0.7);
-    brass(t+7.52, 293.7, 3.8, 0.6);
-    strings(t+7.5, 293.7, 4.5, 0.32);
-    strings(t+7.52, 440.0, 4.5, 0.25);
-    choir(t+7.55, 293.7, 4.0, 0.28);
-    choir(t+7.58, 440.0, 3.8, 0.2);
-    tom(t+7.5, 160, 0.8); tom(t+7.62, 120, 0.75); tom(t+7.75, 90, 0.7);
-
-    /* fade out reverb tail ~9s */
+    /* fade out reverb tail ~5.5s total */
   }
-
-  /* 8.2s — logo zoom OUT slightly (riser builds in music) */
-  setTimeout(function() {
-    logoWrap.style.transition = 'transform 0.8s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease';
-    logoWrap.style.transform = 'scale(0.6)';
-    logoWrap.style.opacity = '0.5';
-  }, 4100);
-
-  /* 9.1s — music climax sync + logo ZOOM IN dramatic */
-  /* music t+4.5 climax = real time 0.1+4.5=4.6s... we start zoom at 4.6s after music start */
-  /* music starts at t+0.1s real, climax at t+4.5 = 4.6s real = banner time ~4700ms */
-  /* logo zoom out at 8200ms, zoom in at 9100ms aligns with music's 4.5s climax (music starts at ~4600ms banner time) */
-  setTimeout(function() {
-    /* screen flash on TA */
-    scans.style.transition = 'opacity 0.04s'; scans.style.opacity = '1';
-    setTimeout(function() { scans.style.opacity = '0'; }, 70);
-
-    /* TA — logo zooms in big */
-    logoWrap.style.transition = 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease';
-    logoWrap.style.transform = 'scale(1.2)';
-    logoWrap.style.opacity = '1';
-    cnBiSparks(22, '#e50914');
-    cnBiRays(true);
-
-    /* settle to scale(1) after overshoot */
-    setTimeout(function() {
-      logoWrap.style.transition = 'transform 0.65s cubic-bezier(0.23,1,0.32,1)';
-      logoWrap.style.transform = 'scale(1)';
-    }, 520);
-
-    /* DUM — +750ms, extra glow burst */
-    setTimeout(function() {
-      scans.style.transition = 'opacity 0.04s'; scans.style.opacity = '0.8';
-      setTimeout(function() { scans.style.opacity = '0'; }, 60);
-      playCirc.style.transition = 'box-shadow 0.12s ease';
-      playCirc.style.boxShadow = '0 0 100px rgba(229,9,20,1),0 0 180px rgba(229,9,20,0.8),inset 0 4px 14px rgba(255,255,255,0.45)';
-      cnBiSparks(32, '#ff1a1a');
-      setTimeout(function() {
-        playCirc.style.transition = 'box-shadow 1.5s ease';
-        playCirc.style.boxShadow = '0 0 35px rgba(229,9,20,0.75),0 0 70px rgba(229,9,20,0.35),inset 0 4px 14px rgba(255,255,255,0.28)';
-      }, 180);
-    }, 750);
-
-  }, 4600);
-
-  /* 11s — rays fade */
-  setTimeout(function() { cnBiRays(false); }, 5600);
-
-  /* 12s — final flash + end */
-  setTimeout(function() {
-    scans.style.transition = 'opacity 0.05s'; scans.style.opacity = '0.9';
-    cnBiSparks(22, '#e50914');
-    setTimeout(function() { scans.style.opacity = '0'; cnBiEnd(); }, 260);
-  }, 6000);
 
   } /* end cnBiRunSequence */
 
@@ -5771,7 +5067,7 @@ function featuredShowSlide(idx) {
   if (metaEl) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
-    if (m.rating)   metaParts.push({t:'rating',v:'&#9733; ' + m.rating});
+    if (m.rating)   metaParts.push({t:'rating',v:'★ ' + m.rating});
     if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
     if (m.language) metaParts.push({t:'lang',v:m.language});
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
@@ -5909,9 +5205,9 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=&quot;none&quot;;this.nextSibling&amp;&amp;(this.nextSibling.style.display=&quot;flex&quot;)"><div class="cv-card-no-img" style="display:none;">&#127916;</div></div>'
-      : '<div class="cv-card-no-img">&#127916;</div>';
-    var ratingBadge = m.rating ? '<div class="cv-badge">&#11088; ' + escHtml(String(m.rating)) + '</div>' : '';
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      : '<div class="cv-card-no-img">🎬</div>';
+    var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
     return '<div class="cv-card" style="flex-shrink:0;width:' + cvTsCardW + 'px;" data-key="' + escHtml(m._key) + '">'
       + imgHtml + ratingBadge + catBadge
@@ -5997,10 +5293,12 @@ function cvBuildMotd() {
       pool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
       m = pool[0];
     }
-    if (!m) { wrap.style.display = 'none'; return; }
+    var outerEl = document.getElementById('cv-motd-outer');
+    var navBtnEl = document.getElementById('cv-nav-motd-btn');
+    if (!m) { wrap.style.display = 'none'; if (outerEl) outerEl.style.display = 'none'; if (navBtnEl) navBtnEl.style.display = 'none'; return; }
 
     var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
-    var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(x); }).join(' &#183; ');
+    var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(x); }).join(' · ');
     wrap.innerHTML =
       '<div id="cv-motd-card" onclick="openModal(\'' + escJs(m._key) + '\')">' +
         (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
@@ -6008,15 +5306,33 @@ function cvBuildMotd() {
         '<div id="cv-motd-content">' +
           (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
           '<div style="flex:1;min-width:0">' +
-            '<div id="cv-motd-badge">&#127916; MOVIE OF THE DAY</div>' +
+            '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY</div>' +
             '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
             (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
           '</div>' +
-          '<div id="cv-motd-btn">&#9654; Watch</div>' +
+          '<div id="cv-motd-btn">▶ Watch</div>' +
         '</div>' +
       '</div>';
     wrap.style.display = 'block';
-  }).catch(function() { wrap.style.display = 'none'; });
+    if (outerEl) outerEl.style.display = 'block';
+    if (navBtnEl) navBtnEl.style.display = 'flex';
+  }).catch(function() {
+    wrap.style.display = 'none';
+    var oEl = document.getElementById('cv-motd-outer'); if (oEl) oEl.style.display = 'none';
+    var nEl = document.getElementById('cv-nav-motd-btn'); if (nEl) nEl.style.display = 'none';
+  });
+}
+
+function cvScrollToMotd() {
+  var el = document.getElementById('cv-motd-outer');
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  var card = document.getElementById('cv-motd-card');
+  if (card) {
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = 'cvMotdFlash 0.9s ease-in-out 2';
+  }
 }
 
 function buildTrending() {
@@ -6173,6 +5489,22 @@ function setupTrendingDrag(track, cardStep, total) {
 // ══════════════════════════════════
 var NOW_TS = Date.now();
 var NEW_THRESHOLD = 7 * 24 * 60 * 60 * 1000;
+
+// NEW EPISODE ALERT — localStorage mein har series ke episodes ka count
+// store karte hain jab user usko kholta hai. Agli baar agar count badh
+// jaye (naya episode add hua) to badge dikhta hai — sirf un users ko jo
+// pehle se series dekh chuke hain, naye visitors ko nahi (unke liye sab
+// "purana" hi hai).
+function cvEpSeenKey(key) { return 'cv_ep_seen_' + key; }
+function cvHasNewEpisode(m) {
+  if (!m.episodes || !m.episodes.length || !m._key) return false;
+  var seen = parseInt(localStorage.getItem(cvEpSeenKey(m._key)) || '0', 10);
+  return seen > 0 && m.episodes.length > seen;
+}
+function cvMarkEpisodesSeen(m) {
+  if (!m.episodes || !m._key) return;
+  try { localStorage.setItem(cvEpSeenKey(m._key), String(m.episodes.length)); } catch(e) {}
+}
 
 // ══════════════════════════════════
 // URL RESTORE — Shared Link Support
@@ -6653,7 +5985,7 @@ function cvRenderPage() {
 
   if (!cvFilteredList.length) {
     grid.innerHTML = selCat === 'watchlist'
-      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#555">Open any movie and tap the &#128278; icon to add it here</small></p></div>'
+      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#555">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
       : allData.length === 0
       ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#555">Add data in Firebase or check your connection</small></p></div>'
       : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
@@ -6811,14 +6143,14 @@ function makeCard(m) {
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">&#127916;</div></div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
-    inner += '<div class="cv-card-no-img">&#127916;</div>';
+    inner += '<div class="cv-card-no-img">🎬</div>';
   }
-  if (m.rating) inner += '<div class="cv-badge">&#11088; ' + m.rating + '</div>';
+  if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
   if (cat) inner += '<a class="cv-cat-badge cv-new" href="?cat=' + encodeURIComponent(cat) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
-           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' &middot; ' + m.quality : '') + (m.downloadCount ? ' &middot; &#11015; ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
+           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
 
   div.innerHTML = inner;
   return div;
@@ -6911,25 +6243,25 @@ function openModal(key) {
   // ko priority do; purana static videoUrl sirf un movies ke liye jo abhi
   // migrate nahi hui unke liye fallback hai.
   if (m.videoSourceUrl || m.videoUrl || (_isMob && _vlcSrc)) {
-    btns += '<div class="cv-section-title">&#x25B6; Watch</div>';
+    btns += '<div class="cv-section-title">▶ Watch</div>';
     if (m.videoSourceUrl) {
       // videoSourceUrl: worker /watch page → ALWAYS timer+ads pehle chalte hain
       // (mobile ho ya desktop). Ads ke baad worker khud decide karta hai:
       // mobile → VLC/MX player intent se khulta hai, desktop → in-page player.
       var _watchUrl = 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW);
-      btns += '<button class="cv-dl-btn" onclick="window.open(\'' + escJs(_watchUrl) + '\', \'_blank\')">&#x25B6; Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="window.open(\'' + escJs(_watchUrl) + '\', \'_blank\')">▶ Watch Now</button>';
     } else if (_isMob && _vlcSrc) {
       // Fallback: sirf un purani movies ke liye jinme videoSourceUrl set
       // nahi hai — is case mein ads NAHI chalengi (worker ke paas resolve
       // karne ke liye source hi nahi hai).
-      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">&#x25B6; Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
     } else {
       // Purana static videoUrl fallback — is case mein bhi ads nahi chalengi.
-      btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">&#x25B6; Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
     }
   }
   if (m.trailerUrl) {
-    btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">&#x1F3AC; Watch Trailer</button>';
+    btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
   }
   var hasDownload = m.download480p || m.download720p || m.download1080p || m.download4k;
   if (hasDownload) {
@@ -6954,13 +6286,16 @@ function openModal(key) {
     + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
     + 'Copy Link</button>'
     + '</div>'
-    + '<button onclick="cvOpenReportModal()" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.25);border-radius:4px;color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:inherit" onmouseover="this.style.background=\'rgba(239,68,68,0.08)\'" onmouseout="this.style.background=\'transparent\'">&#9888; Report Broken Link / Issue</button>';
+    + '<button onclick="cvOpenReportModal()" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.25);border-radius:4px;color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:inherit" onmouseover="this.style.background=\'rgba(239,68,68,0.08)\'" onmouseout="this.style.background=\'transparent\'">⚠ Report Broken Link / Issue</button>';
 
   document.getElementById('cv-modal-btns').innerHTML = btns;
 
   // Episodes (webseries)
   var epEl = document.getElementById('cv-episodes');
   if (m.episodes && m.episodes.length) {
+    // Naye episodes ka pata lagane ke liye purana seen-count save karo
+    // rendering se pehle (warna mark-as-seen ke baad "new" tag hi nahi milega)
+    var _prevSeenCount = parseInt(localStorage.getItem(cvEpSeenKey(m._key || '')) || '0', 10);
     // Store episode dl data in global registry keyed by index (safe, no inline JSON)
     window._cvEpDlRegistry = {};
     var epHtml = '<div class="cv-section-title">Episodes</div>';
@@ -6987,24 +6322,26 @@ function openModal(key) {
       if (ep.videoSourceUrl) {
         // /watch URL new tab mein — ALWAYS timer+ads pehle (mobile ho ya
         // desktop). Ads ke baad worker khud decide karta hai.
-        playBtn = '<button class="cv-ep-btn" onclick="window.open(\'' + escJs(epUrl) + '\', \'_blank\')">&#x25B6; Play</button>';
+        playBtn = '<button class="cv-ep-btn" onclick="window.open(\'' + escJs(epUrl) + '\', \'_blank\')">▶ Play</button>';
       } else if (_isMobEp && epVlc) {
         // Fallback: sirf purani episodes ke liye jinme videoSourceUrl nahi
         // hai — is case mein ads NAHI chalengi.
-        playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\')">&#x25B6; Play</button>';
+        playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\')">▶ Play</button>';
       } else if (epUrl) {
-        playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">&#x25B6; Play</button>';
+        playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">▶ Play</button>';
       }
-      var epCountBadge = ep.epCount ? '<span style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:12px;margin-left:7px;white-space:nowrap;">&#128230; ' + escHtml(String(ep.epCount)) + ' Eps in this link</span>' : '';
-      epHtml += '<div class="cv-ep-item">' +
+      var epCountBadge = ep.epCount ? '<span style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:12px;margin-left:7px;white-space:nowrap;">📦 ' + escHtml(String(ep.epCount)) + ' Eps in this link</span>' : '';
+      var _epIsNew = _prevSeenCount > 0 && i >= _prevSeenCount;
+      var epNewTag = _epIsNew ? '<span class="cv-ep-new-tag">NEW</span>' : '';
+      epHtml += '<div class="cv-ep-item' + (_epIsNew ? ' cv-ep-item-new' : '') + '">' +
         '<div class="cv-ep-title" style="flex-wrap:wrap;gap:4px;">' +
           '<span style="color:var(--red);font-size:0.72rem;font-weight:800;margin-right:6px;">' + epLabel + '</span>' +
           escHtml(ep.title || ('Episode ' + (i+1))) +
-          epCountBadge +
+          epCountBadge + epNewTag +
         '</div>' +
         '<div style="display:flex;gap:6px;flex-shrink:0;">' +
           playBtn +
-          (hasDl ? '<button class="cv-ep-btn" style="background:rgba(255,255,255,0.08);border:1px solid #2a2a2a;color:#ddd;" onclick="cvEpDl(' + i + ')">&#x2B07; DL</button>' : '') +
+          (hasDl ? '<button class="cv-ep-btn" style="background:rgba(255,255,255,0.08);border:1px solid #2a2a2a;color:#ddd;" onclick="cvEpDl(' + i + ')">⬇ DL</button>' : '') +
         '</div>' +
       '</div>';
     });
@@ -7016,6 +6353,7 @@ function openModal(key) {
         : (ep.videoUrl||ep.url||ep.link||'');
     });
     window._cvEpLabels = m.episodes.map(function(ep,i){ return (m.title||'')+ ' — S'+(ep.season||1)+'E'+(ep.episode||(i+1)); });
+    cvMarkEpisodesSeen(m);
   } else {
     epEl.innerHTML = '';
     window._cvEpDlRegistry = {};
@@ -7030,7 +6368,7 @@ function openModal(key) {
     // FIX: Store in global so lightbox always uses current movie's images (not previous post's)
     window._cvCurrentSsUrls = ssUrls;
     if (ssUrls.length) {
-      var ssHtml = '<div class="cv-section-title">&#x1F5BC; Screenshots</div>';
+      var ssHtml = '<div class="cv-section-title">🖼 Screenshots</div>';
       ssUrls.forEach(function(url, ssIdx) {
         ssHtml += '<img '
           + 'alt="Movie Poster" '
@@ -7038,7 +6376,7 @@ function openModal(key) {
           + 'loading="lazy" '
           + 'data-ssidx="' + ssIdx + '" '
           + 'onclick="openLightboxIdx(' + ssIdx + ')" '
-          + 'onerror="this.parentNode.removeChild(this)" '
+          + 'onerror="if(this.parentNode)this.parentNode.removeChild(this)" '
           + 'style="display:block;width:100%;height:auto;object-fit:contain;background:#111;margin-bottom:8px;border-radius:10px;cursor:zoom-in;"'
         + '>';
       });
@@ -7051,9 +6389,9 @@ function openModal(key) {
   // Series info (network, status, seasons)
   var seriesHtml = '';
   if (m.category === 'webseries') {
-    if (m.network) seriesHtml += '<span class="cv-series-badge">&#x1F4FA; ' + escHtml(m.network) + '</span> ';
-    if (m.status) seriesHtml += '<span class="cv-series-badge ' + (m.status==='ongoing'?'cv-status-ongoing':'cv-status-completed') + '">' + (m.status==='ongoing'?'&#x25CF; Ongoing':'&#x2713; Completed') + '</span> ';
-    if (m.seasons) seriesHtml += '<span class="cv-series-badge">&#x1F4C5; ' + escHtml(m.seasons) + ' Season(s)</span>';
+    if (m.network) seriesHtml += '<span class="cv-series-badge">📺 ' + escHtml(m.network) + '</span> ';
+    if (m.status) seriesHtml += '<span class="cv-series-badge ' + (m.status==='ongoing'?'cv-status-ongoing':'cv-status-completed') + '">' + (m.status==='ongoing'?'● Ongoing':'✓ Completed') + '</span> ';
+    if (m.seasons) seriesHtml += '<span class="cv-series-badge">📅 ' + escHtml(m.seasons) + ' Season(s)</span>';
   }
   if (seriesHtml) {
     var badgesEl = document.getElementById('cv-modal-badges');
@@ -7983,7 +7321,7 @@ function cvUhRender(movies) {
       : (m.poster_path ? 'https://image.tmdb.org/t/p/w780' + m.poster_path : '');
     var title = m.title || m.name || 'Untitled';
     var year = (m.release_date || m.first_air_date || '').substring(0, 4);
-    var rating = m.vote_average ? '&#9733; ' + m.vote_average.toFixed(1) : '';
+    var rating = m.vote_average ? '★ ' + m.vote_average.toFixed(1) : '';
     var lang = (m.original_language || '').toUpperCase();
     var langLabel = lang === 'HI' ? '🇮🇳 Hindi' : lang === 'EN' ? '🇺🇸 English' : lang;
     var mediaType = m.media_type === 'tv' ? 'tv' : 'movie';
@@ -7995,8 +7333,8 @@ function cvUhRender(movies) {
         + '<div class="cv-uh-badge">Coming Soon</div>'
         + '<div class="cv-uh-title">' + escHtml(title) + '</div>'
         + '<div class="cv-uh-meta">'
-          + (rating ? '<span class="cv-uh-rating">&#9733; ' + m.vote_average.toFixed(1) + '</span><span class="cv-uh-meta-sep">&#9679;</span>' : '')
-          + (year ? '<span>' + year + '</span><span class="cv-uh-meta-sep">&#9679;</span>' : '')
+          + (rating ? '<span class="cv-uh-rating">★ ' + m.vote_average.toFixed(1) + '</span><span class="cv-uh-meta-sep">●</span>' : '')
+          + (year ? '<span>' + year + '</span><span class="cv-uh-meta-sep">●</span>' : '')
           + (langLabel ? '<span>' + langLabel + '</span>' : '')
         + '</div>'
         + '<div class="cv-uh-btns">'
@@ -8051,8 +7389,8 @@ function cvUhLoadData() {
   if (!wrap) return;
   var today = new Date().toISOString().slice(0, 10);
   var future = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  var url1 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=US&page=1';
-  var url2 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=IN&page=1';
+  var url1 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1';
+  var url2 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=IN&page=1';
   var p1 = fetch(url1).then(function(r){return r.json();}).catch(function(){return {results:[]};});
   var p2 = fetch(url2).then(function(r){return r.json();}).catch(function(){return {results:[]};});
   Promise.all([p1, p2]).then(function(res) {
@@ -8089,7 +7427,7 @@ setTimeout(function() {
   cvUhLoadData();
   // Hollywood — Now Playing (English)
   tmdbFetch(
-    'https://api.themoviedb.org/3/movie/now_playing?api_key=' + TMDB_KEY + '&language=en-US&region=US&page=1',
+    'https://api.themoviedb.org/3/movie/now_playing?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1',
     'tmdb-hollywood'
   );
   // Bollywood — Now Playing (Hindi)
@@ -8175,16 +7513,16 @@ function trailersRender(movies) {
             ? '<img class="cv-tr-thumb" src="' + thumb + '" alt="' + escHtml(title) + '" loading="lazy" onerror="this.style.opacity=\'0\'">'
             : '<div class="cv-tr-thumb" style="background:#111"></div>')
         + '<div class="cv-tr-overlay"></div>'
-        + '<span class="cv-tr-badge">&#9654; TRAILER</span>'
+        + '<span class="cv-tr-badge">▶ TRAILER</span>'
         + (langLabel ? '<span class="cv-tr-lang">' + langLabel + '</span>' : '')
-        + (rating ? '<span class="cv-tr-rating">&#9733; ' + rating + '</span>' : '')
+        + (rating ? '<span class="cv-tr-rating">★ ' + rating + '</span>' : '')
         + '<div class="cv-tr-play"><svg viewBox="0 0 24 24" fill="#fff"><polygon points="6,3 20,12 6,21"/></svg></div>'
       + '</div>'
       + '<div class="cv-tr-info">'
         + '<div class="cv-tr-name">' + escHtml(title) + '</div>'
         + '<div class="cv-tr-meta">'
           + (year ? '<span class="cv-tr-year">' + year + '</span>' : '')
-          + '<span class="cv-tr-dot">&#9679;</span>'
+          + '<span class="cv-tr-dot">●</span>'
           + '<span class="cv-tr-hd">HD</span>'
         + '</div>'
       + '</div>'
@@ -8251,9 +7589,9 @@ function loadTrailers() {
   var today = new Date().toISOString().slice(0, 10);
   var future = new Date(Date.now() + 90*24*60*60*1000).toISOString().slice(0, 10);
   // Hollywood upcoming
-  var hwUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=US&page=1';
+  var hwUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1';
   // India region upcoming
-  var hdUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=IN&page=1';
+  var hdUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=IN&page=1';
   // Extra: popular upcoming
   var exUrl = 'https://api.themoviedb.org/3/discover/movie?api_key=' + TMDB_KEY + '&language=en-US&sort_by=popularity.desc&primary_release_date.gte=' + today + '&primary_release_date.lte=' + future + '&with_release_type=3|2&page=1';
   var hw = fetch(hwUrl).then(function(r){return r.json();}).catch(function(){return {results:[]};});
@@ -8528,10 +7866,10 @@ function loadRating(key) {
       var count = data.count || 0;
       var avg = count ? (total / count).toFixed(1) : null;
 
-      var starsHtml = '<div class="cv-section-title">&#11088; Rate This</div>';
+      var starsHtml = '<div class="cv-section-title">⭐ Rate This</div>';
       starsHtml += '<div class="cv-stars" id="cv-stars-row">';
       for (var i = 1; i <= 5; i++) {
-        starsHtml += '<span class="cv-star' + (i <= myRating ? ' active' : '') + '" data-val="' + i + '" onclick="submitRating(' + i + ')">' + (i <= myRating ? '&#11088;' : '&#9733;') + '</span>';
+        starsHtml += '<span class="cv-star' + (i <= myRating ? ' active' : '') + '" data-val="' + i + '" onclick="submitRating(' + i + ')">' + (i <= myRating ? '⭐' : '★') + '</span>';
       }
       starsHtml += '</div>';
       if (avg) starsHtml += '<div id="cv-rating-status">Average: ' + avg + '/5 (' + count + ' votes)</div>';
@@ -8561,7 +7899,7 @@ function submitRating(val) {
     var stars = document.querySelectorAll('#cv-stars-row .cv-star');
     stars.forEach(function(s, i) {
       s.classList.toggle('active', i < val);
-      s.innerHTML = i < val ? '&#11088;' : '&#9733;';
+      s.innerHTML = i < val ? '⭐' : '★';
     });
     var st = document.getElementById('cv-rating-status');
     if (st) st.textContent = 'Thanks! You rated ' + val + '/5.';
@@ -8577,10 +7915,10 @@ function loadComments(key) {
   var wrap = document.getElementById('cv-comments-wrap');
   if (!wrap) return;
 
-  var html = '<div class="cv-section-title">&#x1F4AC; Comments</div>';
+  var html = '<div class="cv-section-title">💬 Comments</div>';
   html += '<input class="cv-comment-name-inp" id="cv-cmt-name" placeholder="Your name...">';
   html += '<textarea class="cv-comment-inp" id="cv-cmt-text" placeholder="Write your comment..."></textarea>';
-  html += '<button class="cv-comment-btn" onclick="submitComment()">&#x1F4E4; Post Comment</button>';
+  html += '<button class="cv-comment-btn" onclick="submitComment()">📤 Post Comment</button>';
   html += '<div id="cv-comment-msg"></div>';
   html += '<div id="cv-comments-list" style="margin-top:12px"><div style="color:#444;font-size:0.8rem;text-align:center;padding:10px">Loading...</div></div>';
   wrap.innerHTML = html;
@@ -8596,7 +7934,7 @@ function loadComments(key) {
       var _cvMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       var timeStr = d.getDate() + ' ' + _cvMonths[d.getMonth()] + ' ' + d.getFullYear();
       return '<div class="cv-comment-item">' +
-        '<div class="cv-comment-author">&#x1F464; ' + escHtml(c.name || 'Anonymous') + '</div>' +
+        '<div class="cv-comment-author">👤 ' + escHtml(c.name || 'Anonymous') + '</div>' +
         '<div class="cv-comment-text">' + escHtml(c.text || '') + '</div>' +
         '<div class="cv-comment-time">' + timeStr + '</div>' +
       '</div>';
@@ -8612,7 +7950,7 @@ function submitComment() {
   if (!text) { if(msg) { msg.style.color='#e50914'; msg.textContent='Comment is required!'; } return; }
   db.ref('comments/' + currentCommentKey).push({ name: name, text: text, ts: Date.now() }).then(function() {
     document.getElementById('cv-cmt-text').value = '';
-    if (msg) { msg.style.color='#22c55e'; msg.textContent='&#x2705; Comment posted!'; }
+    if (msg) { msg.style.color='#22c55e'; msg.textContent='✅ Comment posted!'; }
     loadComments(currentCommentKey);
   }).catch(function(e) {
     if (msg) { msg.style.color='#e50914'; msg.textContent='Error: ' + e.message; }
@@ -8655,21 +7993,21 @@ function loadRelatedMovies(currentKey, m) {
 
   if (!related.length) { wrap.innerHTML = ''; return; }
 
-  var html = '<div class="cv-section-title">&#x1F3AC; Related Movies</div>';
+  var html = '<div class="cv-section-title">🎬 Related Movies</div>';
   html += '<div class="cv-related-grid">';
   related.forEach(function(rx) {
     var rKey = rx._key;
     html += '<div class="cv-rel-card" onclick="openModal(\'' + escJs(rKey) + '\')">';
     if (rx.thumbnail) {
       html += '<img src="' + escHtml(rx.thumbnail) + '" loading="lazy" alt="' + escHtml(rx.title||'') + '" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">';
-      html += '<div class="cv-rel-card-no-img" style="display:none">&#x1F3AC;</div>';
+      html += '<div class="cv-rel-card-no-img" style="display:none">🎬</div>';
     } else {
-      html += '<div class="cv-rel-card-no-img">&#x1F3AC;</div>';
+      html += '<div class="cv-rel-card-no-img">🎬</div>';
     }
-    if (rx.rating) html += '<div class="cv-rel-badge">&#x2605; ' + escHtml(String(rx.rating)) + '</div>';
+    if (rx.rating) html += '<div class="cv-rel-badge">★ ' + escHtml(String(rx.rating)) + '</div>';
     html += '<div class="cv-rel-info">'
       + '<div class="cv-rel-title">' + escHtml(rx.title || 'Untitled') + '</div>'
-      + '<div class="cv-rel-meta">' + (rx.year ? escHtml(String(rx.year)) : '') + (rx.quality ? ' &middot; ' + escHtml(rx.quality) : '') + '</div>'
+      + '<div class="cv-rel-meta">' + (rx.year ? escHtml(String(rx.year)) : '') + (rx.quality ? ' · ' + escHtml(rx.quality) : '') + '</div>'
       + '</div>';
     html += '</div>';
   });
@@ -8691,7 +8029,7 @@ function submitRequest() {
     document.getElementById('cv-req-title').value = '';
     document.getElementById('cv-req-year').value = '';
     document.getElementById('cv-req-name').value = '';
-    if(msg){msg.style.color='#22c55e';msg.textContent='&#x2705; Request sent! Admin will approve it soon.';}
+    if(msg){msg.style.color='#22c55e';msg.textContent='✅ Request sent! Admin will approve it soon.';}
     setTimeout(function(){if(msg)msg.textContent='';},4000);
   }).catch(function(e){
     if(msg){msg.style.color='#e50914';msg.textContent='Error: '+e.message;}
@@ -8846,7 +8184,7 @@ function cvThumb(url) {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
 }
 // ===== Cast Row (storyline ke neeche) =====
 // Post ka title SEO-friendly hota hai jese "Desert Warrior (2026) (Hindi Dubbed) Dual Audio..."
@@ -8957,10 +8295,10 @@ function cvFindBySlug(slug) {
 // ── SEO DYNAMIC UPDATE — Movie modal ke liye ──
 // ══════════════════════════════════════════════════════
 var _cvDefaultSEO = {
-  title:       'CineNova - Free HD Movies &amp; Web Series',
-  desc:        'Watch free HD movies, web series &amp; latest releases on CineNova. No login, no subscription \u2014 Hollywood, Bollywood, Tollywood &amp; more. Updated daily!',
-  ogTitle:     'CineNova - Free HD Movies &amp; Web Series',
-  ogDesc:      'Watch free HD movies, web series &amp; latest releases. No login, no subscription!',
+  title:       'CineNova - Free HD Movies & Web Series',
+  desc:        'Watch free HD movies, web series & latest releases on CineNova. No login, no subscription \u2014 Hollywood, Bollywood, Tollywood & more. Updated daily!',
+  ogTitle:     'CineNova - Free HD Movies & Web Series',
+  ogDesc:      'Watch free HD movies, web series & latest releases. No login, no subscription!',
   ogImage:     'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png',
   ogUrl:       'https://www.cinenova.site/',
   ogType:      'website',
@@ -9347,7 +8685,7 @@ function cvResetSEO() {
   display:flex;align-items:center;gap:10px;
 }
 .cvf-ul li::before{
-  content:&#39;&#39;;width:3px;height:14px;
+  content:'';width:3px;height:14px;
   background:#e50914;border-radius:2px;flex-shrink:0;
 }
 .cvf-ul li a{color:#888;font-size:0.88rem;text-decoration:none;transition:color 0.2s;}
@@ -9409,7 +8747,7 @@ function cvResetSEO() {
 </style>
 
 <!-- GLOW BAR -->
-<div class='cvf-glow-bar'/>
+<div class='cvf-glow-bar'></div>
 
 <!-- MAIN AREA -->
 <div class='cvf-main'>
@@ -9436,7 +8774,7 @@ function cvResetSEO() {
       </svg>
     </div>
     <div class='cvf-live-pill'>
-      <div class='cvf-live-dot'/>
+      <div class='cvf-live-dot'></div>
       <span class='cvf-live-text'>Live &amp; Updated Daily</span>
     </div>
     <p class='cvf-desc'>Free HD Movies, Adult, Web Series Download &amp; Entertainment. No Subscription, No Login &#8212; Just Watch. Updated Every Day With Latest Releases.</p>
@@ -9444,7 +8782,7 @@ function cvResetSEO() {
 
   <!-- Quick Links -->
   <div class='cvf-col cvf-col-border'>
-    <div class='cvf-col-head'>Explore <div class='cvf-col-line'/></div>
+    <div class='cvf-col-head'>Explore <div class='cvf-col-line'></div></div>
     <ul class='cvf-ul'>
       <li><a href='/'>Home</a></li>
       <li><a href='/p/about-us.html'>About Us</a></li>
@@ -9457,7 +8795,7 @@ function cvResetSEO() {
 
   <!-- Categories -->
   <div class='cvf-col cvf-col-border'>
-    <div class='cvf-col-head'>Categories <div class='cvf-col-line'/></div>
+    <div class='cvf-col-head'>Categories <div class='cvf-col-line'></div></div>
     <ul class='cvf-ul'>
       <li><a href='/?cat=hollywood'>Hollywood</a></li>
       <li><a href='/?cat=bollywood'>Bollywood</a></li>
@@ -9538,6 +8876,72 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 
 
 
+
+
+<script>
+//<![CDATA[
+// ── HOME PAGE BACKGROUND MUSIC — Firebase (settings/homeMusic) se
+//    control hota hai (admin panel se URL/volume/on-off set hote hain).
+//    Koi button ya player UI KAHIN nahi dikhta — poori tarah invisible,
+//    background mein bajta hai. Browsers bina user-interaction ke
+//    sound-wali autoplay block karte hain, isliye:
+//    - autoplayMode 'muted'   → muted hi shuru hoti hai, pehle click/
+//      scroll/keypress par khud-ba-khud unmute ho jati hai (silently).
+//    - autoplayMode 'interact' → pehli interaction ka wait karti hai,
+//      phir seedha sound ke sath bajti hai.
+//    Dono cases mein koi visible control kabhi nahi dikhta. ──
+(function(){
+  try {
+    // Pehle Blogger ka b:if 'canonicalUrl == homepageUrl' yeh check karta
+    // tha ke sirf homepage par yeh script chale. Static site mein wahi
+    // check plain JS se: sirf '/' ya '/index.html' par music chalao.
+    var _p = location.pathname.replace(/\/+$/, '') || '/';
+    if (_p !== '/' && _p !== '/index.html' && _p !== '/index') return;
+
+    fetch('https://cinenova-8987c-default-rtdb.firebaseio.com/settings/homeMusic.json', { cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(cfg){
+        if (!cfg || !cfg.enabled || !cfg.url) return;
+
+        var vol = (typeof cfg.volume === 'number') ? Math.max(0, Math.min(1, cfg.volume)) : 0.5;
+        var mode = cfg.autoplayMode === 'interact' ? 'interact' : 'muted';
+
+        var audio = document.createElement('audio');
+        audio.src = cfg.url;
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.style.display = 'none';
+        audio.setAttribute('playsinline', '');
+        document.body.appendChild(audio);
+
+        var unlocked = false;
+        function unlockAndPlay(){
+          if (unlocked) return;
+          unlocked = true;
+          audio.volume = vol;
+          audio.muted = false;
+          audio.play().catch(function(){});
+          ['click','touchstart','keydown','scroll'].forEach(function(ev){
+            document.removeEventListener(ev, unlockAndPlay);
+          });
+        }
+
+        if (mode === 'muted') {
+          audio.muted = true;
+          audio.volume = vol;
+          audio.play().catch(function(){});
+        }
+        // Dono mode mein: pehli user-interaction par (agar abhi tak
+        // unmute/play nahi hua) sound ke sath bajana shuru karo.
+        ['click','touchstart','keydown','scroll'].forEach(function(ev){
+          document.addEventListener(ev, unlockAndPlay, { passive: true, once: false });
+        });
+      })
+      .catch(function(){});
+  } catch (e) {}
+})();
+//]]>
+</script>
 
 
 </body>
