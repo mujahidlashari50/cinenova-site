@@ -63,8 +63,6 @@
 
 <link crossorigin='' href='https://fonts.gstatic.com' rel='preconnect'/>
 <link href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='dns-prefetch'/>
-<link href='https://www.gstatic.com' rel='dns-prefetch'/>
-<link crossorigin='' href='https://www.gstatic.com' rel='preconnect'/>
 <link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
 <link href='https://api.themoviedb.org' rel='dns-prefetch'/>
 <link href='https://image.tmdb.org' rel='dns-prefetch'/>
@@ -193,8 +191,8 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-nav.scrolled{
   background:rgba(10,10,10,0.96);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   box-shadow:0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.6);
 }
 #cv-nav::after{display:none}
@@ -624,20 +622,23 @@ body{text-rendering:optimizeSpeed}
   cursor:pointer;
   position:relative;
   border:1px solid rgba(255,255,255,0.04);
-  animation:cardFadeIn 0.25s ease both;
+  animation:cardFadeIn 0.35s ease both;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
     border-color 0.18s ease;
-  contain:layout paint;
 }
 
 /* Staggered fade-in — sirf first 8 cards pe (baaki ke liye heavy animation avoid) */
-.cv-card:nth-child(1){animation-delay:0.03s}
-.cv-card:nth-child(2){animation-delay:0.06s}
-.cv-card:nth-child(3){animation-delay:0.09s}
-.cv-card:nth-child(4){animation-delay:0.12s}
-.cv-card:nth-child(n+5){animation-delay:0s;animation-duration:0.18s}
+.cv-card:nth-child(1){animation-delay:0.05s}
+.cv-card:nth-child(2){animation-delay:0.1s}
+.cv-card:nth-child(3){animation-delay:0.15s}
+.cv-card:nth-child(4){animation-delay:0.2s}
+.cv-card:nth-child(5){animation-delay:0.25s}
+.cv-card:nth-child(6){animation-delay:0.3s}
+.cv-card:nth-child(7){animation-delay:0.35s}
+.cv-card:nth-child(8){animation-delay:0.4s}
+.cv-card:nth-child(n+9){animation-delay:0s;animation-duration:0.2s}
 
 /* Hover — GPU layer sirf hover pe */
 .cv-card:hover{
@@ -652,7 +653,7 @@ body{text-rendering:optimizeSpeed}
 .cv-card::before{display:none}
 
 /* Play button overlay on hover */
-.cv-card-img-wrap{position:relative;overflow:hidden;aspect-ratio:2/3;background:#1a1a1a;}
+.cv-card-img-wrap{position:relative;overflow:hidden;}
 .cv-card-img-wrap::after{
   content:'\25B6';
   position:absolute;top:50%;left:50%;
@@ -716,7 +717,7 @@ body{text-rendering:optimizeSpeed}
 }
 .cv-card:hover .cv-card-no-img{filter:brightness(1.3)}
 
-#cv-grid{contain:content;content-visibility:auto;contain-intrinsic-size:0 1200px;min-height:500px;}
+#cv-grid{contain:content;content-visibility:auto;min-height:500px;}
 .cv-card-img{image-rendering:auto;color-scheme:dark;}
 
 .cv-badge{
@@ -751,7 +752,7 @@ body{text-rendering:optimizeSpeed}
 .cv-skel-img{width:100%;aspect-ratio:2/3;background:linear-gradient(90deg,#1f1f1f 25%,#2a2a2a 50%,#1f1f1f 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;contain:paint}
 .cv-skel-bar{height:12px;background:#2a2a2a;margin:8px 8px;border-radius:2px;animation:shimmer 1.5s infinite}
 .cv-skel-bar.short{width:60%}
-/* shimmer defined above */
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 /* EMPTY / ERROR */
 .cv-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--grey)}
@@ -769,7 +770,7 @@ body{text-rendering:optimizeSpeed}
   will-change:opacity;
 }
 #cv-modal.open{opacity:1;visibility:visible;pointer-events:all}
-#cv-modal-box{will-change:transform}#cv-modal.closing #cv-modal-box{animation:slidedown 0.22s cubic-bezier(0.4,0,1,1) forwards}
+#cv-modal.closing #cv-modal-box{animation:slidedown 0.22s cubic-bezier(0.4,0,1,1) forwards}
 #cv-modal-box{
   background:#141414;
   border-radius:20px 20px 0 0;
@@ -3061,6 +3062,878 @@ body{text-rendering:optimizeSpeed}
     box-shadow: 0 0 8px rgba(229,9,20,0.8), 0 0 16px rgba(229,9,20,0.4);
   }
 }
+
+.cv-card{}
+
+/* ══════════════════════════════════════════
+   FULL RESPONSIVE SYSTEM — CINENOVA
+   Mobile First → Tablet → Desktop
+══════════════════════════════════════════ */
+
+/* ── MOBILE SMALL (max 360px) — chota screen, 2 col tight ── */
+@media(max-width:360px){
+  :root{--nav-h:54px}
+
+  /* NAV */
+  #cv-nav{padding:0 10px}
+  #cv-logo span{font-size:1rem!important}
+
+  /* GRID — 2 col very tight */
+  #cv-grid{grid-template-columns:repeat(2,1fr);gap:8px;padding:8px}
+  .cv-card-title{font-size:0.72rem}
+  .cv-card-info{padding:6px 7px}
+
+  /* CATEGORIES */
+  #cv-cats{padding:8px 10px;gap:5px}
+  .cv-pill{padding:5px 11px;font-size:0.72rem}
+
+  /* SLIDERS */
+    
+  /* FEATURED */
+
+  /* MODAL */
+  #cv-modal-box{max-height:95svh}
+  #cv-modal-title{font-size:1.1rem}
+
+  /* FOOTER */
+  .cvf-grid{gap:16px;padding:20px 12px}
+  .cvf-genres{padding:12px}
+  .cvf-genre-list{gap:6px}
+  .cvf-ticket{padding:12px;flex-direction:column;gap:8px;text-align:center}
+}
+
+/* ── MOBILE (max 480px) — standard mobile ── */
+@media(max-width:480px){
+  :root{--nav-h:56px}
+
+  /* NAV */
+  #cv-nav{padding:0 12px}
+
+  /* GRID — 2 columns poster */
+  #cv-grid{grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+  .cv-card{border-radius:12px}
+  .cv-card-img,.cv-card-no-img{aspect-ratio:2/3}
+  .cv-card-info{padding:7px 8px}
+  .cv-card-title{font-size:0.78rem;font-weight:700}
+  .cv-card-meta{font-size:0.68rem}
+  .cv-badge{font-size:0.6rem;padding:2px 5px;top:5px;right:5px}
+  .cv-cat-badge{font-size:0.55rem;padding:2px 5px;top:5px;left:5px}
+
+  /* SKELETON */
+  .cv-skel-img{aspect-ratio:2/3}
+  .cv-skel-bar{height:10px;margin:6px 8px}
+
+  /* SLIDERS */
+    .cv-tr-card{width:110px}
+  .tmdb-skel,.cv-tr-skel{width:110px}
+  
+
+  /* CATEGORIES BAR */
+  #cv-cats{padding:10px 12px;gap:6px}
+  .cv-pill{padding:6px 14px;font-size:0.78rem}
+
+  /* MODAL — full bottom sheet */
+  #cv-modal-box{border-radius:20px 20px 0 0;max-height:93svh}
+  #cv-modal-title{font-size:1.15rem}
+  #cv-modal-img-wrap{height:340px;width:100%}
+  #cv-modal-img{height:340px;object-position:center top}
+  #cv-modal-content{padding:0 14px}
+  #cv-modal-desc{font-size:0.82rem;padding:10px 12px}
+  .cv-mbadge{padding:4px 10px;font-size:0.7rem}
+  .cv-dl-btn{padding:12px;font-size:0.88rem}
+
+  /* PLAYER — centered on mobile (same as desktop) */
+  #cv-player{padding:10px;align-items:center;justify-content:center}
+  #cv-player-popup{
+    border-radius:14px;
+    max-height:calc(100svh - 20px);max-width:100%;
+  }
+  #cv-player-title{font-size:0.78rem}
+  #cv-player-header{padding:8px 12px}
+
+  /* DOWNLOAD POPUP */
+  #cv-dl-popup-box{border-radius:20px 20px 0 0}
+  .cv-dl-quality-btn{padding:12px 14px;font-size:0.85rem}
+
+  /* TRENDING */
+  #cv-trending-wrap{padding-left:12px}
+
+  /* SCREENSHOTS */
+  /* SCREENSHOTS — mobile full width */
+  .cv-ss-grid{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px);gap:3px}
+
+  /* FOOTER */
+  .cvf-grid{
+    grid-template-columns:1fr!important;
+    gap:18px;
+    padding:20px 14px;
+  }
+  .cvf-col-border{
+    border-left:none!important;
+    border-top:1px solid #1e1e1e;
+    padding-top:14px;
+  }
+  .cvf-brand{margin-bottom:6px}
+  .cvf-genre-list{gap:7px}
+  .cvf-genre-tag{padding:5px 12px;font-size:0.74rem}
+  .cvf-ticket{
+    flex-direction:column;gap:10px;text-align:center;
+    padding:14px 14px;
+  }
+  .cvf-badges{justify-content:center}
+  .cvf-copy{font-size:0.75rem}
+
+  /* REQUEST FORM */
+  #cv-request-wrap{margin:0 10px 14px;padding:14px}
+
+  /* NOTICE BAR */
+  
+
+  /* SEARCH OVERLAY */
+  #cv-search-overlay{padding:10px 12px}
+}
+
+/* ── TABLET (481px — 768px) ── */
+@media(min-width:481px) and (max-width:768px){
+  :root{--nav-h:58px}
+
+  /* GRID — 3 columns */
+  #cv-grid{grid-template-columns:repeat(3,1fr);gap:12px;padding:14px}
+  .cv-card-title{font-size:0.8rem}
+
+  /* SLIDERS */
+    .cv-tr-card{width:125px}
+  .tmdb-skel,.cv-tr-skel{width:125px}
+
+  /* FEATURED */
+
+  /* CATEGORIES */
+  .cv-pill{padding:7px 16px;font-size:0.8rem}
+
+  /* MODAL */
+  #cv-modal-box{max-width:520px;border-radius:20px 20px 0 0}
+  #cv-modal-title{font-size:1.25rem}
+
+  /* NAV search width */
+  #cv-search-wrap{width:200px}
+
+  /* FOOTER */
+  .cvf-grid{
+    grid-template-columns:1fr 1fr!important;
+    gap:20px;
+    padding:24px 20px;
+  }
+  .cvf-col:first-child{grid-column:1/-1}
+  .cvf-ticket{padding:14px 20px}
+}
+
+/* ── DESKTOP (769px — 1024px) ── */
+@media(min-width:769px){
+  :root{--nav-h:60px}
+
+  /* NAV */
+  #cv-nav{padding:0 24px}
+  #cv-search-wrap{width:260px;max-width:320px}
+
+  /* GRID — auto fill with bigger cards */
+  #cv-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;padding:20px}
+  .cv-card:hover{transform:scale(1.04);box-shadow:0 8px 24px rgba(229,9,20,0.3)}
+  .cv-card-title{font-size:0.85rem}
+  .cv-card-info{padding:10px 12px}
+  .cv-card-meta{font-size:0.75rem}
+
+  /* SLIDERS — bigger */
+    .cv-tr-card{width:140px}
+  .tmdb-skel,.cv-tr-skel{width:140px}
+  .tmdb-section-header,
+  .cv-trailers-header,
+  .cv-trending-header{padding-right:24px}
+
+  /* FEATURED */
+
+  /* CATEGORIES */
+  #cv-cats{padding:14px 24px;gap:10px}
+  .cv-pill{padding:8px 20px;font-size:0.84rem}
+
+  /* MODAL — centered overlay on desktop */
+  #cv-modal{align-items:center;padding:20px}
+  #cv-modal-box{
+    border-radius:20px!important;
+    max-height:88svh;
+    animation:fadeInScale 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #cv-modal-title{font-size:1.4rem}
+  #cv-modal-content{padding:0 22px}
+  #cv-modal-img-wrap{height:400px;width:100%}
+  #cv-modal-img{height:400px;object-position:center top}
+  .cv-dl-btn{font-size:0.92rem;padding:14px}
+
+  /* PLAYER — centered on desktop, not bottom sheet */
+  #cv-player{padding:20px;align-items:center}
+  #cv-player-popup{
+    border-radius:14px!important;
+    max-width:960px;max-height:calc(100svh - 40px);
+  }
+  #cv-player-title{font-size:0.88rem}
+
+  /* DOWNLOAD POPUP — centered */
+  #cv-dl-popup{align-items:center;padding:20px}
+  #cv-dl-popup-box{border-radius:20px!important;max-width:420px}
+
+  /* SCREENSHOTS — desktop 3 col full width */
+  .cv-ss-grid{grid-template-columns:repeat(3,1fr);gap:4px;margin-left:-22px;margin-right:-22px;width:calc(100% + 44px)}
+  .cv-ss-img:hover{opacity:0.82}
+
+  /* REQUEST FORM */
+  #cv-request-wrap{margin:0 24px 20px;padding:22px}
+
+  /* FOOTER */
+  .cvf-grid{
+    grid-template-columns:2fr 1fr 1fr!important;
+    gap:24px;
+    padding:32px 40px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+  .cvf-genre-list{gap:10px}
+  .cvf-genre-tag{padding:7px 16px;font-size:0.8rem}
+  .cvf-ticket{padding:16px 40px;max-width:1200px;margin:0 auto}
+
+  /* NOTICE BAR */
+  
+
+  /* AD HEADER */
+  
+  
+}
+
+/* ── LARGE DESKTOP (1025px+) ── */
+@media(min-width:1025px){
+  #cv-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;padding:24px}
+  .cv-card-title{font-size:0.88rem}
+
+  /* SLIDERS — even bigger */
+    .cv-tr-card{width:155px}
+  .tmdb-skel,.cv-tr-skel{width:155px}
+
+  #cv-featured-card{height:520px}
+  #cv-featured-title{font-size:2.6rem}
+  #cv-featured-info{width:48%;padding:28px 32px 32px}
+  #cv-featured-play{padding:13px 28px;font-size:1rem}
+  #cv-featured-info-btn{padding:13px 22px;font-size:0.96rem}
+
+  #cv-nav{padding:0 40px}
+  #cv-cats{padding:14px 40px}
+  .tmdb-section-header,
+  .cv-trailers-header,
+  .cv-trending-header{padding-right:40px}
+  #cv-featured-wrap{padding:20px 20px 0}
+  #cv-request-wrap{margin:0 40px 24px;padding:24px}
+  
+  
+
+  /* FOOTER wider */
+  .cvf-grid{padding:36px 60px;max-width:1400px}
+  .cvf-ticket{padding:18px 60px;max-width:1400px}
+
+  /* SEARCH wider */
+  #cv-search-wrap{width:320px}
+}
+
+/* ══ LIVE SEARCH DROPDOWN ══ */
+#cv-search-dropdown{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;right:0;
+  background:rgba(18,18,24,0.98);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  overflow:hidden;
+  z-index:9999;
+  box-shadow:0 12px 40px rgba(0,0,0,0.9),0 0 0 1px rgba(229,9,20,0.08);
+  display:none;
+  max-height:380px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#2a2a2a transparent;
+}
+#cv-search-dropdown::-webkit-scrollbar{width:4px}
+#cv-search-dropdown::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+#cv-search-dropdown.open{display:block;animation:cvDropDown 0.18s ease}
+@keyframes cvDropDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.cv-sug-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;cursor:pointer;
+  transition:background 0.15s;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cv-sug-item:last-child{border-bottom:none}
+.cv-sug-item:hover,.cv-sug-item.focused{background:rgba(229,9,20,0.1)}
+.cv-sug-thumb{
+  width:34px;height:50px;border-radius:5px;
+  object-fit:cover;flex-shrink:0;background:#1e1e1e;
+}
+.cv-sug-thumb-placeholder{
+  width:34px;height:50px;border-radius:5px;
+  background:#1e1e1e;display:flex;align-items:center;
+  justify-content:center;font-size:1.1rem;flex-shrink:0;
+}
+.cv-sug-info{flex:1;min-width:0}
+.cv-sug-title{
+  font-size:0.83rem;font-weight:700;color:#eee;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cv-sug-title em{color:var(--red);font-style:normal;font-weight:800}
+.cv-sug-meta{font-size:0.7rem;color:#666;margin-top:2px;display:flex;gap:6px;align-items:center}
+.cv-sug-qual{
+  background:rgba(26,140,255,0.15);color:#5ba8ff;
+  font-size:0.6rem;font-weight:800;padding:1px 5px;border-radius:3px;border:1px solid rgba(26,140,255,0.2);
+}
+.cv-sug-cat{
+  background:rgba(229,9,20,0.12);color:#ff6b6b;
+  font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:3px;
+}
+.cv-sug-empty{padding:20px;text-align:center;color:#444;font-size:0.82rem}
+.cv-sug-header{
+  padding:7px 12px 5px;font-size:0.65rem;font-weight:800;
+  color:#444;text-transform:uppercase;letter-spacing:1px;background:#111;
+}
+#cv-search-wrap{position:relative}
+#cv-mobile-search-dropdown{
+  position:absolute;top:calc(100% + 2px);
+  left:0;right:0;
+  background:#161616;
+  border:1px solid #2a2a2a;
+  border-radius:0 0 14px 14px;
+  overflow:hidden;z-index:9999;
+  box-shadow:0 14px 40px rgba(0,0,0,0.95);
+  display:none;max-height:60vh;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:#2a2a2a transparent;
+}
+#cv-mobile-search-dropdown::-webkit-scrollbar{width:4px}
+#cv-mobile-search-dropdown::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+#cv-mobile-search-dropdown.open{display:block}
+#cv-search-overlay{position:relative}
+
+/* ── TOUCH DEVICE — remove hover effects ── */
+@media(hover:none) and (pointer:coarse){
+  .cv-card:hover{transform:none;box-shadow:none;border-color:#1e1e1e}
+  .cv-card:active{transform:scale(0.97);box-shadow:0 4px 16px rgba(229,9,20,0.25);border-color:var(--red)}
+  .cv-slide-card:hover{transform:none;box-shadow:none;border-color:#1e1e1e}
+  .cv-slide-card:active{transform:scale(0.95);box-shadow:0 4px 14px rgba(229,9,20,0.3);border-color:var(--red)}
+  .cv-dl-btn:hover{transform:none;box-shadow:none}
+  .cv-dl-btn:active{opacity:0.85}
+  #cv-featured-play:hover{transform:none;box-shadow:0 4px 18px rgba(229,9,20,0.45)}
+  #cv-featured-play:active{transform:scale(0.97)}
+  .cv-ep-item:hover{background:rgba(255,255,255,0.04);border-color:#1e1e1e}
+  .cv-ep-item:active{background:rgba(229,9,20,0.08);border-color:rgba(229,9,20,0.3)}
+}
+
+/* ── LANDSCAPE MOBILE ── */
+@media(max-width:768px) and (orientation:landscape){
+  :root{--nav-h:50px}
+  #cv-featured-card{height:200px}
+  #cv-featured-title{font-size:1.1rem;-webkit-line-clamp:1}
+  #cv-featured-info{padding:12px 14px 14px}
+  #cv-featured-play{padding:7px 12px;font-size:0.76rem}
+  #cv-featured-info-btn{padding:7px 10px;font-size:0.72rem}
+  #cv-player-popup{max-height:95svh}
+  #cv-modal-box{max-height:90svh}
+}
+
+/* ══════════════════════════════════════════
+   MASTER PRO LEVEL — PREMIUM ADDITIONS
+   Advanced visual effects & micro-interactions
+══════════════════════════════════════════ */
+
+/* ── GLOW EFFECTS ── */
+.cv-pill.active{
+  text-shadow:0 0 20px rgba(229,9,20,0.5);
+}
+
+/* ── NAV SCROLL EFFECT ── */
+#cv-nav.scrolled{
+  background:#141414;
+  box-shadow:none;
+}
+
+/* ── NETFLIX CARD EFFECTS ── */
+.cv-card{
+  transition:transform 0.2s ease,
+             box-shadow 0.2s ease;
+  contain:layout style;
+}
+
+/* ── FEATURED SECTION GRADIENT — NETFLIX ── */
+#cv-featured-overlay{
+  background:linear-gradient(
+    to right,
+    rgba(20,20,20,0.98) 0%,
+    rgba(20,20,20,0.75) 30%,
+    rgba(20,20,20,0.2) 60%,
+    transparent 85%
+  ),
+  linear-gradient(
+    to top,
+    #141414 0%,
+    rgba(20,20,20,0.85) 25%,
+    transparent 55%
+  );
+}
+
+/* ── TRENDING BADGE GLOW ── */
+.cv-trending-badge{
+  box-shadow:0 0 14px rgba(229,9,20,0.5);
+  font-family:'Outfit',sans-serif;
+  letter-spacing:1px;
+}
+
+/* ── PREMIUM INPUT STYLES ── */
+.cv-req-inp,.cv-comment-inp,.cv-comment-name-inp{
+  background:rgba(255,255,255,0.04) !important;
+  border:1px solid var(--border) !important;
+  border-radius:var(--radius-sm) !important;
+  font-family:'Outfit',sans-serif !important;
+  color:var(--text) !important;
+  transition:all 0.2s ease !important;
+}
+.cv-req-inp:focus,.cv-comment-inp:focus,.cv-comment-name-inp:focus{
+  background:rgba(255,255,255,0.07) !important;
+  border-color:rgba(229,9,20,0.5) !important;
+  box-shadow:0 0 0 3px rgba(229,9,20,0.1) !important;
+}
+
+/* ── NETFLIX BUTTONS ── */
+.cv-req-btn,.cv-comment-btn{
+  background:#e50914 !important;
+  box-shadow:none !important;
+  font-family:inherit !important;
+  letter-spacing:0.3px !important;
+  transition:background 0.15s ease !important;
+  border-radius:4px !important;
+}
+.cv-req-btn:hover,.cv-comment-btn:hover{
+  background:#f40612 !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+/* ── SERIES BADGES ── */
+.cv-series-badge{
+  background:rgba(255,255,255,0.05) !important;
+  border:1px solid var(--border2) !important;
+  backdrop-filter:blur(4px) !important;
+}
+
+
+
+/* ── LIGHTBOX ── */
+#cv-lightbox{
+  background:rgba(0,0,0,0.97) !important;
+  backdrop-filter:blur(10px) !important;
+}
+
+/* ── PLAYER POPUP ── */
+#cv-player-popup{
+  background:#000 !important;
+  border:none !important;
+  box-shadow:0 0 40px rgba(0,0,0,0.9) !important;
+}
+#cv-player-header{
+  background:#141414 !important;
+  border-bottom:1px solid #2a2a2a !important;
+}
+
+/* ── MOBILE SEARCH OVERLAY ── */
+#cv-search-overlay{
+  background:rgba(4,4,6,0.99) !important;
+  backdrop-filter:blur(10px) !important;
+  border-bottom:1px solid var(--border) !important;
+}
+
+/* ── SCROLL INDICATOR ── */
+#cv-loading-more::before{
+  border-color:var(--border2) !important;
+  border-top-color:var(--red) !important;
+}
+
+/* ── SUGGESTION ITEMS ── */
+.cv-sug-item:hover,.cv-sug-item.focused{
+  background:rgba(229,9,20,0.08) !important;
+}
+.cv-sug-title em{
+  color:var(--red);
+  font-style:normal;
+  font-weight:800;
+  text-shadow:0 0 12px rgba(229,9,20,0.4);
+}
+
+/* ── MOBILE IMPROVEMENTS ── */
+@media(max-width:480px){
+  .cv-pill{
+    padding:7px 14px;
+    font-size:0.75rem;
+  }
+  #cv-nav{
+    padding:0 14px;
+  }
+}
+
+/* ── NAV SCROLL SCRIPT HOOK ── */
+@keyframes navReveal{
+  from{opacity:0;transform:translateY(-10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+#cv-nav{animation:navReveal 0.4s ease both}
+
+/* ── FEATURED PLAY BUTTON — NETFLIX ── */
+#cv-featured-play{
+  background:#fff !important;
+  font-family:inherit !important;
+  font-weight:700 !important;
+  letter-spacing:0.5px !important;
+  transition:background 0.15s ease !important;
+  border-radius:4px !important;
+}
+#cv-featured-play:hover{
+  background:rgba(255,255,255,0.75) !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+/* ── MODAL TITLE ── */
+#cv-modal-title{
+  font-family:inherit !important;
+  font-weight:700 !important;
+  letter-spacing:-0.3px !important;
+  color:#e5e5e5 !important;
+}
+
+/* ── CV CARD TITLE FONT ── */
+.cv-card-title{
+  font-family:inherit;
+  font-weight:700;
+  letter-spacing:0;
+}
+
+/* ── META FONT ── */
+.cv-card-meta,.cv-tr-year,.cv-tr-meta{
+  font-family:inherit;
+  color:#b3b3b3;
+}
+
+/* ── FOOTER DESCRIPTION ── */
+.cvf-desc{
+  font-family:inherit !important;
+  color:#b3b3b3 !important;
+  line-height:1.7 !important;
+}
+.cvf-col-head{
+  font-family:inherit !important;
+  font-weight:700 !important;
+  letter-spacing:0 !important;
+  font-size:0.9rem !important;
+  text-transform:none !important;
+  color:#e5e5e5 !important;
+}
+.cvf-ul a{
+  font-family:inherit !important;
+  color:#b3b3b3 !important;
+  font-size:0.85rem !important;
+  transition:color 0.15s ease !important;
+}
+.cvf-ul a:hover{
+  color:#e5e5e5 !important;
+}
+
+/* ══ NETFLIX HOVER POPUP ══ */
+.cv-card{overflow:visible!important;z-index:1;}
+.cv-card:hover{z-index:10;}
+
+.cv-hover-popup{
+  display:none!important;
+}
+.cv-card:hover .cv-hover-popup{
+  display:none!important;
+}
+
+/* Actions row — Play + Info */
+.cv-hp-actions{
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+}
+.cv-hp-play{
+  flex:1;
+  background:#e5e5e5;color:#000;
+  border:none;border-radius:3px;
+  padding:5px 8px;
+  font-size:0.75rem;font-weight:700;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  transition:background 0.15s;
+  white-space:nowrap;
+}
+.cv-hp-play:hover{background:#fff;}
+.cv-hp-info{
+  width:28px;height:28px;
+  background:transparent;
+  border:2px solid rgba(255,255,255,0.5);
+  border-radius:50%;
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:border-color 0.15s;
+}
+.cv-hp-info:hover{border-color:#fff;}
+
+/* Title */
+.cv-hp-title{
+  font-size:0.78rem;font-weight:700;color:#e5e5e5;
+  margin-bottom:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Meta row — rating, year, quality */
+.cv-hp-meta{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+  margin-bottom:4px;
+}
+.cv-hp-rating{
+  font-size:0.68rem;color:#46d369;font-weight:700;
+}
+.cv-hp-year{
+  font-size:0.68rem;color:#b3b3b3;
+}
+.cv-hp-qual{
+  font-size:0.6rem;font-weight:700;color:#e5e5e5;
+  border:1px solid rgba(255,255,255,0.4);
+  padding:1px 5px;border-radius:2px;
+}
+
+/* Genre/Language tags */
+.cv-hp-tags{
+  display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;
+}
+.cv-hp-genre,.cv-hp-lang{
+  font-size:0.62rem;color:#b3b3b3;
+  background:rgba(255,255,255,0.08);
+  padding:2px 6px;border-radius:2px;
+}
+
+/* Mobile — popup hide karo, normal tap kaam kare */
+@media(hover:none) and (pointer:coarse){
+  .cv-hover-popup{display:none!important;}
+  .cv-card{overflow:hidden!important;}
+}
+
+/* ══════════════════════════════════════════════
+   CINENOVA MOBILE NETFLIX STYLE — APPEND ONLY
+   Sirf @media(max-width:480px) — desktop safe
+══════════════════════════════════════════════ */
+
+/* Bottom nav height variable */
+@media(max-width:480px){
+  :root{ --bottom-nav-h: 62px; }
+
+  /* Body bottom padding — bottom nav ke liye space */
+  body{ padding-bottom: var(--bottom-nav-h) !important; padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px)) !important; }
+
+  /* ── NAV — slim app style ── */
+  #cv-nav{
+    background: #0a0a0a !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  #cv-nav.scrolled{ background: #0a0a0a !important; }
+  #cv-search-btn{
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+  #cv-nav-motd-btn{
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+  #cv-nav-motd-btn::after{ border-radius: 50% !important; }
+
+  /* ── CATEGORY PILLS — rounded Netflix style ── */
+  .cv-pill{
+    border-radius: 20px !important;
+    font-size: 0.8rem !important;
+    padding: 7px 16px !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #ccc !important;
+  }
+  .cv-pill.active{
+    background: #e50914 !important;
+    border-color: #e50914 !important;
+    color: #fff !important;
+  }
+
+  /* ── GRID — bottom nav ke liye padding ── */
+  #cv-grid{
+    padding-bottom: calc(var(--bottom-nav-h) + 12px) !important;
+  }
+
+  /* ── PAGINATION — pill style ── */
+  .cv-page-btn{
+    border-radius: 50px !important;
+  }
+  .cv-page-btn.active{
+    box-shadow: 0 0 12px rgba(229,9,20,0.4) !important;
+  }
+  #cv-pagination{
+    padding-bottom: calc(var(--bottom-nav-h) + 14px) !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px !important;
+  }
+  #cv-pagination::-webkit-scrollbar{ display:none; }
+  .cv-page-btn{
+    min-width: 38px !important;
+    height: 38px !important;
+    padding: 0 10px !important;
+    font-size: 0.82rem !important;
+    flex-shrink: 0;
+  }
+
+  /* ── BOTTOM NAV BAR ── */
+  #cv-bottom-nav{
+    display: flex !important;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--bottom-nav-h);
+    background: rgba(10,10,10,0.92);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    z-index: 950;
+    align-items: stretch;
+    justify-content: space-around;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.9);
+    padding: 0;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .cv-bnav-item{
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    cursor: pointer;
+    padding: 8px 4px 10px;
+    color: #444;
+    border: none;
+    background: none;
+    font-family: inherit;
+    transition: color 0.2s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .cv-bnav-item.active{ color: #e50914; transform: translateY(-1px); }
+  .cv-bnav-item:active{ opacity: 0.7; transform: scale(0.92); }
+  .cv-bnav-icon{ font-size: 1.3rem; line-height: 1; transition: transform 0.2s; }
+  .cv-bnav-item.active .cv-bnav-icon{ transform: scale(1.15); }
+  .cv-bnav-label{
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  /* Active top indicator — glow pill */
+  .cv-bnav-item.active::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 2px;
+    background: #e50914;
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 0 8px rgba(229,9,20,0.8), 0 0 16px rgba(229,9,20,0.4);
+  }
+}
+
+/* ── AUTO FETCH SYSTEM ── */
+.cv-sug-autofetch {
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;
+  background:rgba(245,158,11,0.08);
+  border:1px solid rgba(245,158,11,0.2);
+  border-radius:10px;
+  margin:6px 8px;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.cv-sug-autofetch:hover { background:rgba(245,158,11,0.15); }
+.cv-sug-autofetch-icon { font-size:1.4rem; flex-shrink:0; }
+.cv-sug-autofetch-text { flex:1; }
+.cv-sug-autofetch-title { font-size:0.85rem; font-weight:700; color:#fbbf24; }
+.cv-sug-autofetch-sub { font-size:0.72rem; color:#9ca3af; margin-top:2px; }
+.cv-sug-fetching {
+  display:flex;align-items:center;gap:10px;
+  padding:14px;text-align:center;justify-content:center;
+  color:#fbbf24;font-size:0.82rem;
+}
+.cv-sug-fetch-spinner {
+  width:16px;height:16px;
+  border:2px solid rgba(245,158,11,0.3);
+  border-top-color:#fbbf24;
+  border-radius:50%;
+  animation:cv-spin 0.8s linear infinite;
+  flex-shrink:0;
+}
+@keyframes cv-spin{to{transform:rotate(360deg)}}
+.cv-sug-fetch-result {
+  padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(34,197,94,0.08);
+  border:1px solid rgba(34,197,94,0.2);
+  border-radius:10px;
+  margin:6px 8px;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.cv-sug-fetch-result:hover { background:rgba(34,197,94,0.15); }
+.cv-sug-fetch-result img { width:36px;height:54px;object-fit:cover;border-radius:4px;flex-shrink:0; }
+.cv-sug-fetch-result-info { flex:1; }
+.cv-sug-fetch-result-title { font-size:0.85rem;font-weight:700;color:#fff; }
+.cv-sug-fetch-result-meta { font-size:0.72rem;color:#86efac;margin-top:2px; }
+.cv-sug-fetch-badge {
+  font-size:0.65rem;background:#16a34a;color:#fff;
+  padding:2px 6px;border-radius:4px;font-weight:700;
+  flex-shrink:0;
+}
+.cv-af-toast {
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#16a34a;color:#fff;
+  padding:10px 20px;border-radius:20px;
+  font-size:0.82rem;font-weight:600;
+  z-index:99999;opacity:0;
+  transition:opacity 0.3s;pointer-events:none;
+  white-space:nowrap;
+}
+.cv-af-toast.show { opacity:1; }
+
+/* ── AUTO FETCH SYSTEM ── */
+.cv-sug-autofetch{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;margin:6px 8px;cursor:pointer;transition:background 0.2s;}
+.cv-sug-autofetch:hover{background:rgba(245,158,11,0.15);}
+.cv-sug-autofetch-title{font-size:0.85rem;font-weight:700;color:#fbbf24;}
+.cv-sug-autofetch-sub{font-size:0.72rem;color:#9ca3af;margin-top:2px;}
+.cv-sug-fetching{display:flex;align-items:center;gap:10px;padding:14px;justify-content:center;color:#fbbf24;font-size:0.82rem;}
+.cv-sug-fetch-spinner{width:16px;height:16px;border:2px solid rgba(245,158,11,0.3);border-top-color:#fbbf24;border-radius:50%;animation:cvSpin 0.8s linear infinite;flex-shrink:0;}
+@keyframes cvSpin{to{transform:rotate(360deg)}}
+.cv-sug-fetch-result{padding:10px 14px;display:flex;align-items:center;gap:10px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;margin:6px 8px;cursor:pointer;transition:background 0.2s;}
+.cv-sug-fetch-result:hover{background:rgba(34,197,94,0.15);}
+.cv-sug-fetch-result-info{flex:1;}
+.cv-sug-fetch-result-title{font-size:0.85rem;font-weight:700;color:#fff;}
+.cv-sug-fetch-result-meta{font-size:0.72rem;color:#86efac;margin-top:2px;}
+.cv-sug-fetch-badge{font-size:0.65rem;background:#16a34a;color:#fff;padding:2px 6px;border-radius:4px;font-weight:700;flex-shrink:0;}
+.cv-af-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.82rem;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+.cv-af-toast.show{opacity:1;}
 </style>
 </head>
 <body>
@@ -3296,7 +4169,7 @@ body{text-rendering:optimizeSpeed}
 
     <div id='cv-featured-bg'></div>
     <div id='cv-featured-poster-wrap'>
-      <img alt='' decoding='async' fetchpriority='high' loading='eager' id='cv-featured-img' src=''/>
+      <img alt='' decoding='async' fetchpriority='high' id='cv-featured-img' src=''/>
     </div>
     <div id='cv-featured-overlay'></div>
     <div id='cv-featured-info'>
@@ -5204,7 +6077,7 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
@@ -5349,7 +6222,7 @@ function buildTrending() {
   var makeTrendCard = function(m, num) {
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<img alt="Movie Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      ? '<img alt="Movie Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
         '<div class="cv-slide-no-img" style="display:none">🎬</div>'
       : '<div class="cv-slide-no-img">🎬</div>';
     return '<div class="cv-slide-card" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="openModal(\'' + escJs(m._key) + '\')">' +
@@ -6142,7 +7015,7 @@ function makeCard(m) {
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
@@ -7019,8 +7892,32 @@ function cvBuildSuggestions(q, dropdownEl) {
   cvSugFocusIdx = -1;
 
   if (!results.length) {
-    dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
-    dropdownEl.classList.add('open');
+    if (allLoaded && q.length >= 3) {
+      dropdownEl.innerHTML = '<div class="cv-sug-empty" style="padding-bottom:4px;">CineNova pe nahi mili...</div>'
+        + '<div class="cv-sug-autofetch" id="cv-af-btn">'
+          + '<span style="font-size:1.4rem;">⚡</span>'
+          + '<div><div class="cv-sug-autofetch-title">FilmyFly se dhundho</div>'
+          + '<div class="cv-sug-autofetch-sub">"' + escHtml(q) + '" auto-import hogi</div></div>'
+        + '</div>';
+      dropdownEl.classList.add('open');
+      clearTimeout(_cvFetchDebounceTimer);
+      var _q = q, _el = dropdownEl;
+      _cvFetchDebounceTimer = setTimeout(function(){
+        var cv = document.getElementById('cv-search');
+        var mv = document.getElementById('cv-search-mobile');
+        if ((cv && cv.value.trim() === _q) || (mv && mv.value.trim() === _q)) {
+          cvAutoFetchFromFilmyFly(_q, _el);
+        }
+      }, 1500);
+      var afBtn = dropdownEl.querySelector('.cv-sug-autofetch');
+      if (afBtn) {
+        afBtn.addEventListener('mousedown', function(e){ e.preventDefault(); clearTimeout(_cvFetchDebounceTimer); cvAutoFetchFromFilmyFly(q, dropdownEl); });
+        afBtn.addEventListener('touchend', function(e){ e.preventDefault(); clearTimeout(_cvFetchDebounceTimer); cvAutoFetchFromFilmyFly(q, dropdownEl); });
+      }
+    } else {
+      dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+      dropdownEl.classList.add('open');
+    }
     return;
   }
 
@@ -7029,7 +7926,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
     var thumbHtml = thumb
-      ? '<img alt="Movie Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+      ? '<img alt="Movie Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.hidden=true">  '
       : '<div class="cv-sug-thumb-placeholder">🎬</div>';
     html += '<div class="cv-sug-item" data-key="' + escHtml(m._key) + '">'
       + thumbHtml
@@ -8852,6 +9749,218 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 
 <script>
 //<![CDATA[
+
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// AUTO-FETCH SYSTEM — Search miss → FilmyFly → Firebase
+// ══════════════════════════════════════════════════════
+
+var _cvFetchWorker = 'https://cinenova-fetch.mujahidlashari50.workers.dev/?url=';
+var _cvFetchCache = {};
+var _cvFetchInProgress = {};
+var _cvFetchDebounceTimer = null;
+var FIREBASE_DB_URL = 'https://cinenova-8987c-default-rtdb.firebaseio.com';
+
+function cvSlugAuto(t) {
+  if (!t) return '';
+  return t.toLowerCase().replace(/[^a-z0-9 -]/g,'').replace(/ +/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+}
+
+function cvAfToast(msg, color) {
+  var t = document.getElementById('cv-af-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'cv-af-toast'; t.className = 'cv-af-toast'; document.body.appendChild(t); }
+  t.style.background = color || '#16a34a';
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+function cvAutoFetchFromFilmyFly(query, dropdownEl) {
+  if (_cvFetchCache[query]) { cvShowAutoResults(_cvFetchCache[query], query, dropdownEl); return; }
+  if (_cvFetchInProgress[query]) return;
+  _cvFetchInProgress[query] = true;
+
+  var searchUrls = [
+    'https://filmyfly.hair/?s=' + encodeURIComponent(query),
+    'https://filmyfly.builders/?s=' + encodeURIComponent(query),
+    'https://filmyfly.racing/?s=' + encodeURIComponent(query)
+  ];
+
+  dropdownEl.innerHTML = '<div class="cv-sug-fetching"><div class="cv-sug-fetch-spinner"></div> FilmyFly se dhundh raha hoon...</div>';
+  dropdownEl.classList.add('open');
+
+  var tried = 0;
+  function tryNext() {
+    if (tried >= searchUrls.length) {
+      _cvFetchInProgress[query] = false;
+      dropdownEl.innerHTML = '<div class="cv-sug-empty">Koi movie nahi mili. Baad mein try karo.</div>';
+      return;
+    }
+    var searchUrl = searchUrls[tried++];
+    var ctrl = new AbortController();
+    var timer = setTimeout(function(){ ctrl.abort(); tryNext(); }, 8000);
+    fetch(_cvFetchWorker + encodeURIComponent(searchUrl), { signal: ctrl.signal })
+      .then(function(r){ clearTimeout(timer); return r.text(); })
+      .then(function(html){
+        if (!html || html.length < 500) { tryNext(); return; }
+        var results = cvParseFilmyFlySearch(html);
+        if (!results || !results.length) { tryNext(); return; }
+        _cvFetchInProgress[query] = false;
+        _cvFetchCache[query] = results;
+        cvShowAutoResults(results, query, dropdownEl);
+      })
+      .catch(function(){ clearTimeout(timer); tryNext(); });
+  }
+  tryNext();
+}
+
+function cvParseFilmyFlySearch(html) {
+  var results = [];
+  var seen = {};
+  var re = /href="([^"]*page-download[^"]*)"[^>]*>[\s\S]*?<\/a>/gi;
+  var m;
+  while ((m = re.exec(html)) !== null) {
+    var url = m[1];
+    if (seen[url]) continue;
+    seen[url] = 1;
+    var slugM = url.match(/page-download\/\d+\/([^/?#]+)/);
+    if (!slugM) continue;
+    var raw = decodeURIComponent(slugM[1]).replace(/-/g,' ');
+    var title = raw.replace(/\b(Hindi|English|Dual Audio|HEVC|WEB|BluRay|720p|1080p|480p|4K|Download|\d{4})\b.*/i,'').trim();
+    if (!title || title.length < 3) continue;
+    var imgM = m[0].match(/src="([^"]+\.(?:jpg|jpeg|png|webp))"/i);
+    var yearM = url.match(/(20\d{2})/);
+    results.push({ url: url, title: title, thumb: imgM ? imgM[1] : '', year: yearM ? yearM[1] : '' });
+    if (results.length >= 6) break;
+  }
+  return results;
+}
+
+function cvShowAutoResults(results, query, dropdownEl) {
+  if (!results || !results.length) {
+    dropdownEl.innerHTML = '<div class="cv-sug-empty">FilmyFly pe bhi nahi mili.</div>';
+    return;
+  }
+  var html = '<div class="cv-sug-header" style="color:#fbbf24;">⚡ FilmyFly se mili (' + results.length + ')</div>';
+  results.forEach(function(r, i) {
+    var imgTag = r.thumb ? ('<img src="' + escHtml(r.thumb) + '" style="width:36px;height:54px;object-fit:cover;border-radius:4px;">') : '<div style="width:36px;height:54px;background:#2a2a2a;border-radius:4px;text-align:center;line-height:54px;">🎬</div>';
+    html += '<div class="cv-sug-fetch-result" data-idx="' + i + '">'
+      + imgTag
+      + '<div class="cv-sug-fetch-result-info">'
+        + '<div class="cv-sug-fetch-result-title">' + escHtml(r.title) + (r.year ? ' (' + r.year + ')' : '') + '</div>'
+        + '<div class="cv-sug-fetch-result-meta">⚡ Auto-import hoga</div>'
+      + '</div>'
+      + '<span class="cv-sug-fetch-badge">NEW</span>'
+    + '</div>';
+  });
+  dropdownEl.innerHTML = html;
+  dropdownEl.classList.add('open');
+
+  dropdownEl.querySelectorAll('.cv-sug-fetch-result').forEach(function(el) {
+    function doImport(e) {
+      e.preventDefault();
+      var idx = parseInt(el.getAttribute('data-idx'));
+      cvAutoImportMovie(results[idx], dropdownEl);
+    }
+    el.addEventListener('mousedown', doImport);
+    el.addEventListener('touchend', doImport);
+  });
+}
+
+function cvAutoImportMovie(ref, dropdownEl) {
+  dropdownEl.innerHTML = '<div class="cv-sug-fetching"><div class="cv-sug-fetch-spinner"></div> Import ho raha hai...</div>';
+  var proxies = [
+    function(u){ return _cvFetchWorker + encodeURIComponent(u); },
+    function(u){ return 'https://api.allorigins.win/get?url=' + encodeURIComponent(u); },
+    function(u){ return 'https://corsproxy.io/?' + encodeURIComponent(u); }
+  ];
+  var tried = 0;
+  function tryProxy() {
+    if (tried >= proxies.length) {
+      cvSaveMovieToFirebase({ title: ref.title, thumbnail: ref.thumb || '', year: ref.year || '', category: 'hollywood', quality: 'HD', description: '', filmyflyUrl: ref.url }, dropdownEl);
+      return;
+    }
+    var ctrl = new AbortController();
+    var timer = setTimeout(function(){ ctrl.abort(); tryProxy(); }, 8000);
+    fetch(proxies[tried++](ref.url), { signal: ctrl.signal })
+      .then(function(r){ clearTimeout(timer); return r.text(); })
+      .then(function(raw){
+        var html = raw;
+        try { var j = JSON.parse(raw); if (j.contents) html = j.contents; } catch(e){}
+        if (!html || html.length < 300) { tryProxy(); return; }
+        cvSaveMovieToFirebase(cvParseFilmyFlyPage(html, ref), dropdownEl);
+      })
+      .catch(function(){ clearTimeout(timer); tryProxy(); });
+  }
+  tryProxy();
+}
+
+function cvParseFilmyFlyPage(html, ref) {
+  function meta(n) {
+    var m = html.match(new RegExp('meta[^>]+(?:name|property)=["\']' + n + '["\'][^>]+content=["\']([^"\']+)["\']','i'))
+           || html.match(new RegExp('meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:name|property)=["\']' + n,'i'));
+    return m ? m[1].trim() : '';
+  }
+  function after(lbl) {
+    var i = html.toLowerCase().indexOf(lbl.toLowerCase());
+    if (i === -1) return '';
+    return html.substring(i + lbl.length, i + 300).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().split(/[|\n]/)[0].trim();
+  }
+  var ogT = meta('og:title') || meta('twitter:title') || '';
+  var raw = (ogT || ref.title).replace(/\s*[|–-]\s*(FilmyFly|Download|HD|Movies?)[^]*/i,'').trim();
+  var clean = raw.replace(/\s*(Hindi|English|Dual Audio|HEVC|WEBRip|BluRay|720p|1080p|480p|4K|Season|\d{4}).*/i,'').trim() || raw;
+  var yearM = raw.match(/(20\d{2})/);
+  var quality = /4K|2160p/i.test(raw) ? '4K' : /1080p/i.test(raw) ? '1080p' : /720p/i.test(raw) ? '720p' : /480p/i.test(raw) ? '480p' : 'HD';
+  var lang = after('Language:');
+  var cat = /hindi|bollywood/i.test(raw+lang) ? 'bollywood' : /tamil|telugu/i.test(raw+lang) ? 'tollywood' : /season|series/i.test(raw) ? 'webseries' : 'hollywood';
+  return {
+    title: clean || ref.title,
+    thumbnail: meta('og:image') || meta('twitter:image') || ref.thumb || '',
+    year: yearM ? yearM[1] : ref.year || '',
+    description: (meta('og:description') || '').substring(0, 600),
+    language: lang.substring(0, 60),
+    genre: after('Genre:').substring(0, 60),
+    quality: quality,
+    category: cat,
+    filmyflyUrl: ref.url,
+    published: true,
+    addedAt: Date.now()
+  };
+}
+
+function cvSaveMovieToFirebase(data, dropdownEl) {
+  data.seoSlug = cvSlugAuto(data.title);
+  data.seoTitle = (data.title || '') + (data.year ? ' (' + data.year + ')' : '') + ' | CineNova';
+  data.addedAt = data.addedAt || Date.now();
+  data.published = true;
+  fetch(FIREBASE_DB_URL + '/movies.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    if (res && res.name) {
+      dropdownEl.innerHTML = '<div class="cv-sug-fetch-result" style="cursor:default;">'
+        + (data.thumbnail ? '<img src="' + escHtml(data.thumbnail) + '" style="width:36px;height:54px;object-fit:cover;border-radius:4px;">' : '')
+        + '<div class="cv-sug-fetch-result-info">'
+          + '<div class="cv-sug-fetch-result-title">' + escHtml(data.title) + '</div>'
+          + '<div class="cv-sug-fetch-result-meta">✅ Save ho gayi!</div>'
+        + '</div></div>';
+      cvAfToast('✅ "' + data.title + '" add ho gayi!', '#16a34a');
+      data._key = res.name;
+      allData.unshift(data);
+      setTimeout(function(){ cvCloseSugDropdowns(); openModal(res.name); }, 1200);
+    } else {
+      dropdownEl.innerHTML = '<div class="cv-sug-empty">Save nahi hua. Try karo.</div>';
+    }
+  })
+  .catch(function(){
+    dropdownEl.innerHTML = '<div class="cv-sug-empty">Network error.</div>';
+  });
+}
+
 // ── MASTER PRO: NAV Scroll Effect ──
 (function(){
   var nav = document.getElementById('cv-nav');
