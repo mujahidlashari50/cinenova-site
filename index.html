@@ -12,6 +12,8 @@
 <meta content='CineNova - Free HD Movies &amp; Web Series' id='cv-og-title' property='og:title'/>
 <meta content='Watch free HD movies, web series &amp; latest releases. No login, no subscription!' id='cv-og-desc' property='og:description'/>
 <meta content='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' id='cv-og-image' property='og:image'/>
+<meta content='512' property='og:image:width'/>
+<meta content='512' property='og:image:height'/>
 <meta content='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' id='cv-tw-image' name='twitter:image'/>
 <meta content='summary_large_image' name='twitter:card'/>
 <meta content='CineNova - Free HD Movies' id='cv-tw-title' name='twitter:title'/>
@@ -3867,26 +3869,13 @@ function _cvOnFirebaseReady() {
   if (!db) return;
 
   // ── CONNECTIVITY TEST ──
-  // '.info/connected' ki pehli value almost hamesha 'false' hoti hai (connection
-  // abhi handshake kar raha hota hai) — .once() se woh 'false' hi capture ho jati
-  // thi aur "Connecting..." badge HAR BAAR flash hota tha, chahe internet bilkul
-  // theek ho aur connection turant (milliseconds mein) ho jaye. Ab thoda grace
-  // period (1.2s) dete hain — agar isi dauran connect ho jaye (jo normal case
-  // hai) to badge kabhi dikhta hi nahi. Agar waqai slow ho to dikhega, aur
-  // connect hote hi turant khud hide bhi ho jayega.
-  (function() {
-    var _connGrace = setTimeout(function() {
-      db.ref('.info/connected').once('value', function(snap) {
-        if (snap.val() !== true) showStatus('⏳ Connecting...', '#f59e0b');
-      });
-    }, 1200);
-    db.ref('.info/connected').on('value', function(snap) {
-      if (snap.val() === true) {
-        clearTimeout(_connGrace);
-        showStatus(null);
-      }
-    });
-  })();
+  // Firebase connection background mein hoti rehti hai, lekin ab user ko
+  // koi bhi "Connecting..." badge/message kabhi nahi dikhaya jayega —
+  // site turant apni normal UI dikhata hai, connection status silently
+  // background mein hi track hoti hai.
+  db.ref('.info/connected').on('value', function(snap) {
+    // Intentionally no UI shown — sirf internal tracking.
+  });
 
   // Website Settings — Featured Banner + Custom Banner Images
   db.ref('settings').once('value', function(snap) {
@@ -5382,7 +5371,7 @@ function buildTrending() {
   var makeTrendCard = function(m, num) {
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<img alt="Movie Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
         '<div class="cv-slide-no-img" style="display:none">🎬</div>'
       : '<div class="cv-slide-no-img">🎬</div>';
     return '<div class="cv-slide-card" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="openModal(\'' + escJs(m._key) + '\')">' +
@@ -6175,7 +6164,7 @@ function makeCard(m) {
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
@@ -6229,6 +6218,7 @@ function openModal(key) {
   // Image with overlay
   var imgWrap = document.getElementById('cv-modal-img-wrap');
   var img = document.getElementById('cv-modal-img');
+  img.alt = (m.title || 'Movie') + ' Poster';
   if (m.thumbnail) {
     img.src = '';  // Clear first to force reload on new movie
     var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=600&output=webp&q=85';
@@ -7062,7 +7052,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
     var thumbHtml = thumb
-      ? '<img alt="Movie Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
       : '<div class="cv-sug-thumb-placeholder">🎬</div>';
     html += '<div class="cv-sug-item" data-key="' + escHtml(m._key) + '">'
       + thumbHtml
@@ -7211,7 +7201,7 @@ function tmdbRender(trackId, movies) {
     var mediaType = m.media_type === 'tv' ? 'tv' : 'movie';
     html += '<div class="cv-slide-card" onclick="tmdbPlayTrailer(' + tmdbId + ',\'' + mediaType + '\',\'' + escJs(title) + '\')">'
       + (poster
-          ? '<img alt="Movie Poster" class="cv-slide-img" src="' + poster + '" alt="' + escHtml(title) + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">'
+          ? '<img class="cv-slide-img" src="' + poster + '" alt="' + escHtml(title) + ' Poster" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">'
             + '<div class="cv-slide-no-img" style="display:none">🎬</div>'
           : '<div class="cv-slide-no-img">🎬</div>')
       + (rating ? '<div class="cv-slide-badge">⭐ ' + rating + '</div>' : '')
