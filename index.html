@@ -3866,10 +3866,27 @@ function cvAdultGoogleVerify() {
 function _cvOnFirebaseReady() {
   if (!db) return;
 
-  // ── CONNECTIVITY TEST (one-time) ──
-  db.ref('.info/connected').once('value', function(snap) {
-    if (snap.val() !== true) showStatus('⏳ Connecting...', '#f59e0b');
-  });
+  // ── CONNECTIVITY TEST ──
+  // '.info/connected' ki pehli value almost hamesha 'false' hoti hai (connection
+  // abhi handshake kar raha hota hai) — .once() se woh 'false' hi capture ho jati
+  // thi aur "Connecting..." badge HAR BAAR flash hota tha, chahe internet bilkul
+  // theek ho aur connection turant (milliseconds mein) ho jaye. Ab thoda grace
+  // period (1.2s) dete hain — agar isi dauran connect ho jaye (jo normal case
+  // hai) to badge kabhi dikhta hi nahi. Agar waqai slow ho to dikhega, aur
+  // connect hote hi turant khud hide bhi ho jayega.
+  (function() {
+    var _connGrace = setTimeout(function() {
+      db.ref('.info/connected').once('value', function(snap) {
+        if (snap.val() !== true) showStatus('⏳ Connecting...', '#f59e0b');
+      });
+    }, 1200);
+    db.ref('.info/connected').on('value', function(snap) {
+      if (snap.val() === true) {
+        clearTimeout(_connGrace);
+        showStatus(null);
+      }
+    });
+  })();
 
   // Website Settings — Featured Banner + Custom Banner Images
   db.ref('settings').once('value', function(snap) {
@@ -4160,26 +4177,40 @@ function loadMoviesFirstPage() {
   });
 }
 
-function fetchFirebasePage(isFirst) {
+function fetchFirebasePage(isFirst, _retryCount) {
   if (isLoadingMore || (allLoaded && !isFirst)) return;
   isLoadingMore = true;
+  _retryCount = _retryCount || 0;
 
   var query = db.ref('movies').orderByKey().limitToLast(PAGE_SIZE);
   if (!isFirst && lastFirebaseKey) {
     query = db.ref('movies').orderByKey().endAt(lastFirebaseKey).limitToLast(PAGE_SIZE + 1);
   }
 
-  // Connection timeout — 6 seconds, then show retry
+  // Connection timeout — 10 seconds (pehle 6s tha, jo normal connections pe bhi
+  // bohat jaldi trigger ho jata tha). Ab pehli baar timeout hone par khud hi ek
+  // baar background mein retry karte hain — sirf dusri baar bhi fail ho to hi
+  // user ko manual "Reload" wala dead-end dikhate hain.
   var fetchTimeout = null;
   var didRespond = false;
   if (isFirst) {
     fetchTimeout = setTimeout(function() {
-      if (!didRespond) {
-        isLoadingMore = false;
+      if (didRespond) return;
+      isLoadingMore = false;
+      var hasCachedContent = allData && allData.length > 0;
+      if (_retryCount < 1) {
+        // Cache se content pehle se dikh raha ho to grid ko touch hi mat karo —
+        // sirf background mein khamoshi se retry karo.
+        if (!hasCachedContent) {
+          var gridRetry = document.getElementById('cv-grid');
+          if (gridRetry) gridRetry.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Taking longer than usual, retrying...<br/><small style="color:#555">Please wait a moment</small></p></div>';
+        }
+        fetchFirebasePage(true, _retryCount + 1);
+      } else if (!hasCachedContent) {
         var grid = document.getElementById('cv-grid');
         if (grid) grid.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Connection is slow<br/><small style="color:#555">Check your internet connection — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
       }
-    }, 6000);
+    }, 10000);
   }
 
   query.once('value', function(snap) {
@@ -4259,10 +4290,12 @@ function fetchFirebasePage(isFirst) {
       // Auto retry once after 3 seconds
       setTimeout(function() {
         isLoadingMore = false;
-        fetchFirebasePage(true);
+        fetchFirebasePage(true, _retryCount + 1);
       }, 3000);
-      var grid = document.getElementById('cv-grid');
-      if (grid) grid.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#555">' + (err.message||'Firebase error') + '</small></p></div>';
+      if (!allData || allData.length === 0) {
+        var gridErr = document.getElementById('cv-grid');
+        if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#555">' + (err.message||'Firebase error') + '</small></p></div>';
+      }
     } else {
       showStatus('❌ Load error: ' + err.message, '#e50914');
     }
