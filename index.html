@@ -1042,7 +1042,11 @@ body{text-rendering:optimizeSpeed}
   width:36px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a;
   border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem;
 }
-#cv-header-profile-btn:hover{border-color:#3b82f6}
+#cv-header-profile-btn:hover{border-color:var(--red)}
+#cv-header-profile-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none}
+#cv-header-profile-btn.cv-has-avatar{padding:0;overflow:hidden;border-color:rgba(229,9,20,0.5)}
+#cv-header-profile-btn.cv-has-avatar #cv-header-profile-icon{display:none}
+#cv-header-profile-btn.cv-has-avatar #cv-header-profile-avatar{display:block}
 
 /* ══ MY PROFILE — account info + My List + Watch History ══ */
 #cv-profile-modal{
@@ -3226,7 +3230,10 @@ body{text-rendering:optimizeSpeed}
     <div id='cv-search-btn' onclick='cvOpenSearch()'>🔍</div>
     <div id='cv-nav-motd-btn' onclick='cvScrollToMotd()' style='display:none' title='Today&apos;s Pick'>🔥</div>
     <div id='cv-header-mylist-btn' onclick='cvMyListHeaderClick()' title='My List'>🔖</div>
-    <div id='cv-header-profile-btn' onclick='cvOpenProfileModal()' title='My Profile'>👤</div>
+    <div id='cv-header-profile-btn' onclick='cvOpenProfileModal()' title='My Profile'>
+      <svg fill='none' height='18' id='cv-header-profile-icon' stroke='#e5e5e5' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='18'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>
+      <img alt='' id='cv-header-profile-avatar'/>
+    </div>
   </div>
 </nav>
 
@@ -5882,6 +5889,7 @@ function cvWatchlistOnSignedIn(user) {
   try { localStorage.setItem('cv_sync_email', user.email || ''); } catch (e) {}
   try { localStorage.setItem('cv_sync_name', user.displayName || ''); } catch (e) {}
   try { localStorage.setItem('cv_sync_photo', user.photoURL || ''); } catch (e) {}
+  cvUpdateHeaderProfileIcon();
 
   // Account record (admin ke liye — kaun sign up hua)
   try {
@@ -5945,8 +5953,34 @@ function cvWatchlistSignOut() {
     localStorage.removeItem('cv_sync_uid'); localStorage.removeItem('cv_sync_email');
     localStorage.removeItem('cv_sync_name'); localStorage.removeItem('cv_sync_photo');
   } catch (e) {}
+  cvUpdateHeaderProfileIcon();
   cvUpdateSyncUI();
 }
+
+// Header 👤 icon ki jagah signed-in user ki Google photo dikhao
+function cvUpdateHeaderProfileIcon() {
+  var btn = document.getElementById('cv-header-profile-btn');
+  var avatar = document.getElementById('cv-header-profile-avatar');
+  if (!btn || !avatar) return;
+  if (window._cvSyncPhoto) {
+    avatar.src = cvThumb(window._cvSyncPhoto, 80, 80);
+    btn.classList.add('cv-has-avatar');
+    btn.title = window._cvSyncName || 'My Profile';
+  } else {
+    avatar.src = '';
+    btn.classList.remove('cv-has-avatar');
+    btn.title = 'My Profile';
+  }
+}
+
+// Page load pe turant (Firebase confirm hone se pehle) cached photo se avatar dikha do — snappy UX
+(function() {
+  try {
+    var cachedPhoto = localStorage.getItem('cv_sync_photo');
+    var cachedName = localStorage.getItem('cv_sync_name');
+    if (cachedPhoto) { window._cvSyncPhoto = cachedPhoto; window._cvSyncName = cachedName || ''; }
+  } catch (e) {}
+})();
 
 // ══════════════════════════════════
 // MY PROFILE MODAL — account info + My List + Watch History tabs
@@ -7161,6 +7195,7 @@ document.getElementById('cv-dl-popup').onclick = function(e) {
     var n = Object.keys(cvGetWatchlist()).length;
     if (n) countPill.textContent = '🔖 My List (' + n + ')';
   }
+  cvUpdateHeaderProfileIcon();
   cvWatchlistTryAutoSync();
 })();
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
