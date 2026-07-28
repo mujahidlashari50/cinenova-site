@@ -633,6 +633,14 @@ body{text-rendering:optimizeSpeed}
     border-color 0.18s ease;
   contain:layout paint;
 }
+/* Screen se bahar cards ka rendering kaam skip karo — sirf supporting
+   browsers (Chrome/Edge) mein, baaki jagah normal behave karta hai. */
+@supports (content-visibility: auto) {
+  .cv-card{
+    content-visibility:auto;
+    contain-intrinsic-size:150px 280px;
+  }
+}
 
 /* Staggered fade-in — sirf first 8 cards pe (baaki ke liye heavy animation avoid) */
 .cv-card:nth-child(1){animation-delay:0.03s}
@@ -3065,65 +3073,11 @@ body{text-rendering:optimizeSpeed}
     box-shadow: 0 0 8px rgba(229,9,20,0.8), 0 0 16px rgba(229,9,20,0.4);
   }
 }
-
-/* ══ DNS/ISP BLOCK HELP BANNER ══ */
-#cv-dns-banner{
-  position:relative;z-index:500;
-  background:#1a1005;border-bottom:1px solid rgba(245,158,11,0.3);
-}
-#cv-dns-banner-bar{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:8px 14px;cursor:pointer;
-}
-#cv-dns-banner-text{
-  font-size:0.78rem;color:#f59e0b;font-weight:600;
-}
-#cv-dns-banner-text b{color:#fbbf24;text-decoration:underline;}
-#cv-dns-banner-close{
-  color:#888;font-size:1rem;cursor:pointer;padding:2px 6px;flex-shrink:0;
-}
-#cv-dns-banner-panel{
-  display:none;padding:0 14px 14px;font-size:0.8rem;color:#ddd;line-height:1.6;
-}
-#cv-dns-banner-panel.open{display:block}
-#cv-dns-banner-panel p{margin:0 0 8px}
-#cv-dns-banner-panel ol{margin:0 0 12px;padding-left:20px}
-#cv-dns-banner-panel li{margin-bottom:4px}
-#cv-dns-banner-panel b{color:#fbbf24}
-#cv-dns-banner-actions{display:flex;gap:8px;flex-wrap:wrap}
-#cv-dns-banner-actions button{
-  background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);
-  color:#fbbf24;padding:8px 14px;border-radius:8px;font-size:0.78rem;
-  font-weight:700;cursor:pointer;font-family:inherit;
-}
-#cv-dns-banner-actions button:active{opacity:0.7}
 </style>
 </head>
 <body>
 
 <!-- BLOGGER WIDGETS (hidden) -->
-
-<!-- ══ DNS/ISP BLOCK HELP BANNER — kuch Pakistani ISPs site block karte hain, -->
-<!-- yeh un users ko dikhta hai jinke liye site khul rahi hai, taake wo apne  -->
-<!-- blocked doston ko steps forward kar sakein ══ -->
-<div id='cv-dns-banner' style='display:none'>
-  <div id='cv-dns-banner-bar'>
-    <span id='cv-dns-banner-text'>⚠️ Site kisi ke liye nahi khul rahi? <b>Steps dekho</b></span>
-    <span id='cv-dns-banner-close' onclick='cvDnsBannerDismiss()'>✕</span>
-  </div>
-  <div id='cv-dns-banner-panel'>
-    <p><b>Agar CineNova nahi khul raha</b>, aapke internet provider (ISP) ne DNS block kiya ho sakta hai. Yeh try karo:</p>
-    <ol>
-      <li>Phone Settings → Wi-Fi/Mobile Data → Private DNS ya DNS settings kholo</li>
-      <li>DNS ko <b>1.1.1.1</b> (Cloudflare) ya <b>8.8.8.8</b> (Google) pe set karo</li>
-      <li>Ya phir koi bhi free VPN app laga ke try karo</li>
-    </ol>
-    <div id='cv-dns-banner-actions'>
-      <button onclick='cvDnsBannerShare()'>📤 Doston ko Share Karo</button>
-      <button onclick='cvDnsBannerDismiss()'>Theek Hai</button>
-    </div>
-  </div>
-</div>
 
 <!-- &#9552;&#9552; MAINTENANCE SCREEN &#9552;&#9552; -->
 <div id='cv-maintenance-screen'>
@@ -5424,10 +5378,11 @@ function buildTrending() {
   var gap = 10;
   var cardStep = trendingCardW + gap;
 
-  var makeTrendCard = function(m, num) {
+  var makeTrendCard = function(m, num, _eager) {
     var thumb = m.thumbnail || '';
+    var _imgAttrs = _eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
     var imgHtml = thumb
-      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" ' + _imgAttrs + ' decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
         '<div class="cv-slide-no-img" style="display:none">🎬</div>'
       : '<div class="cv-slide-no-img">🎬</div>';
     return '<div class="cv-slide-card" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="openModal(\'' + escJs(m._key) + '\')">' +
@@ -5445,15 +5400,18 @@ function buildTrending() {
   trendingCloneCount = Math.min(4, items.length);
 
   var html = '';
-  // Clones at start (last few items)
+  // Clones at start (last few items) — carousel loop ke liye, initial scroll
+  // position inhe skip kar ke real items pe hoti hai, isliye yeh eager nahi honi chahiye.
   for (var i = items.length - trendingCloneCount; i < items.length; i++) {
-    html += makeTrendCard(items[i], 0);
+    html += makeTrendCard(items[i], 0, false);
   }
-  // Real items
-  items.forEach(function(m, i) { html += makeTrendCard(m, i + 1); });
+  // Real items — inme se pehle ~4 cards hi actual viewport mein visible hote
+  // hain page load pe (baaki carousel scroll karne pe dikhte hain), isliye
+  // sirf unhe eager/high-priority rakha hai, taake wasted bandwidth na ho.
+  items.forEach(function(m, i) { html += makeTrendCard(m, i + 1, i < 4); });
   // Clones at end (first few items)
   for (var j = 0; j < trendingCloneCount; j++) {
-    html += makeTrendCard(items[j], 0);
+    html += makeTrendCard(items[j], 0, false);
   }
 
   track.innerHTML = html;
@@ -8605,45 +8563,6 @@ function cvResetSEO() {
     setTimeout(activateCatFromUrl, 800);
   }
 })();
-
-
-// ── DNS/ISP BLOCK HELP BANNER ──
-(function() {
-  var banner = document.getElementById('cv-dns-banner');
-  if (!banner) return;
-  var DISMISS_KEY = 'cv_dns_banner_dismissed_v1';
-  try {
-    if (localStorage.getItem(DISMISS_KEY)) return; // pehle dismiss kiya hua hai
-  } catch (e) {}
-  // Thoda delay — pehle asal content load hone do, banner distract na kare
-  setTimeout(function() { banner.style.display = 'block'; }, 2500);
-})();
-
-function cvDnsBannerDismiss() {
-  var banner = document.getElementById('cv-dns-banner');
-  if (banner) banner.style.display = 'none';
-  try { localStorage.setItem('cv_dns_banner_dismissed_v1', '1'); } catch (e) {}
-}
-
-document.addEventListener('click', function(e) {
-  if (e.target && e.target.id === 'cv-dns-banner-text') {
-    var panel = document.getElementById('cv-dns-banner-panel');
-    if (panel) panel.classList.toggle('open');
-  }
-});
-
-function cvDnsBannerShare() {
-  var msg = 'CineNova (cinenova.site) nahi khul raha? Aapke ISP ne DNS block kiya ho sakta hai:\n\n1. Phone Settings mein DNS ko 1.1.1.1 (Cloudflare) ya 8.8.8.8 (Google) pe set karo\n2. Ya koi bhi free VPN app laga lo\n\nUske baad www.cinenova.site try karo.';
-  if (navigator.share) {
-    navigator.share({ title: 'CineNova — Site Access Help', text: msg }).catch(function(){});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(msg).then(function() {
-      if (typeof showStatus === 'function') showStatus('✅ Copied! WhatsApp pe paste kar do', '#22c55e'); else alert('Copied!');
-    }).catch(function(){});
-  } else {
-    alert(msg);
-  }
-}
 
 
 // ── MOBILE BOTTOM NAV JS ──
