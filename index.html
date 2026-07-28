@@ -1037,65 +1037,6 @@ body{text-rendering:optimizeSpeed}
   border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem;
 }
 #cv-header-mylist-btn:hover{border-color:#3b82f6}
-#cv-header-profile-btn{
-  display:flex;align-items:center;justify-content:center;
-  width:36px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a;
-  border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem;
-}
-#cv-header-profile-btn:hover{border-color:var(--red)}
-#cv-header-profile-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none}
-#cv-header-profile-btn.cv-has-avatar{padding:0;overflow:hidden;border-color:rgba(229,9,20,0.5)}
-#cv-header-profile-btn.cv-has-avatar #cv-header-profile-icon{display:none}
-#cv-header-profile-btn.cv-has-avatar #cv-header-profile-avatar{display:block}
-
-/* ══ MY PROFILE — account info + My List + Watch History ══ */
-#cv-profile-modal{
-  display:flex;position:fixed;inset:0;
-  background:rgba(0,0,0,0.92);z-index:5000;
-  align-items:center;justify-content:center;padding:16px;
-  opacity:0;visibility:hidden;pointer-events:none;
-  transition:opacity 0.25s ease,visibility 0.25s ease;
-  backdrop-filter:blur(6px);
-}
-#cv-profile-modal.open{opacity:1;visibility:visible;pointer-events:all}
-#cv-profile-modal-box{
-  position:relative;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;
-  background:linear-gradient(160deg,#10141a,#080a0d);
-  border:1px solid rgba(59,130,246,0.25);
-  border-radius:20px;padding:32px 22px 24px;
-  animation:cvAdultGateIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow:0 20px 60px rgba(0,0,0,0.7);
-}
-#cv-profile-modal-close{
-  position:absolute;top:14px;right:14px;
-  width:30px;height:30px;border-radius:50%;
-  background:rgba(255,255,255,0.06);border:none;color:#999;
-  font-size:0.85rem;cursor:pointer;z-index:2;
-}
-#cv-profile-modal-close:hover{background:rgba(255,255,255,0.12);color:#fff}
-#cv-profile-signin{text-align:center;padding:14px 4px}
-#cv-profile-signin-icon{font-size:2.2rem;margin-bottom:10px}
-#cv-profile-signin-title{font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:10px}
-#cv-profile-signin-desc{font-size:0.85rem;color:#999;line-height:1.6;margin-bottom:22px}
-#cv-profile-signin-btn{
-  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
-  background:#fff;border:none;border-radius:10px;padding:13px;
-  font-size:0.88rem;font-weight:700;color:#1a1a1a;cursor:pointer;
-}
-#cv-profile-signin-btn.loading{opacity:0.7;pointer-events:none}
-#cv-profile-signin-error{color:#ff6b6b;font-size:0.78rem;margin-top:12px;min-height:1em}
-#cv-profile-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-right:24px}
-#cv-profile-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(59,130,246,0.4);flex-shrink:0;background:#1a1a1a}
-#cv-profile-name{font-size:1.05rem;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#cv-profile-email{font-size:0.75rem;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#cv-profile-signout{margin-top:4px;font-size:0.72rem;color:#ff6b6b;cursor:pointer;font-weight:600}
-#cv-profile-signout:hover{text-decoration:underline}
-#cv-profile-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid #1e1e1e}
-.cv-profile-tab{padding:9px 4px;font-size:0.82rem;font-weight:700;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.cv-profile-tab.active{color:#fff;border-color:var(--red)}
-#cv-profile-content{min-height:120px}
-.cv-profile-empty{text-align:center;color:#666;font-size:0.85rem;padding:36px 10px}
-.cv-rel-time{font-size:0.6rem;color:#666;margin-top:2px}
 #cv-mylist-modal{
   display:flex;position:fixed;inset:0;
   background:rgba(0,0,0,0.92);z-index:5000;
@@ -3230,10 +3171,6 @@ body{text-rendering:optimizeSpeed}
     <div id='cv-search-btn' onclick='cvOpenSearch()'>🔍</div>
     <div id='cv-nav-motd-btn' onclick='cvScrollToMotd()' style='display:none' title='Today&apos;s Pick'>🔥</div>
     <div id='cv-header-mylist-btn' onclick='cvMyListHeaderClick()' title='My List'>🔖</div>
-    <div id='cv-header-profile-btn' onclick='cvOpenProfileModal()' title='My Profile'>
-      <svg fill='none' height='18' id='cv-header-profile-icon' stroke='#e5e5e5' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='18'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>
-      <img alt='' id='cv-header-profile-avatar'/>
-    </div>
   </div>
 </nav>
 
@@ -3593,40 +3530,6 @@ body{text-rendering:optimizeSpeed}
   </div>
 </div>
 
-<!-- MY PROFILE &#8212; account, My List &amp; Watch History -->
-<div id='cv-profile-modal'>
-  <div id='cv-profile-modal-box'>
-    <button aria-label='Close' id='cv-profile-modal-close' onclick='closeProfileModal()'>&#10005;</button>
-
-    <div id='cv-profile-signin'>
-      <div id='cv-profile-signin-icon'>👤</div>
-      <div id='cv-profile-signin-title'>My Profile</div>
-      <p id='cv-profile-signin-desc'>Sign in with Google to see your account, your saved list, and your watch history &#8212; synced across devices.</p>
-      <button id='cv-profile-signin-btn' onclick='cvProfileSignIn()'>
-        <svg height='18' viewBox='0 0 18 18' width='18'><path d='M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.86 2.7-6.62z' fill='#4285F4'/><path d='M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z' fill='#34A853'/><path d='M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l2.99-2.33z' fill='#FBBC05'/><path d='M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z' fill='#EA4335'/></svg>
-        <span id='cv-profile-signin-btn-label'>Sign in with Google</span>
-      </button>
-      <div id='cv-profile-signin-error'></div>
-    </div>
-
-    <div id='cv-profile-account' style='display:none'>
-      <div id='cv-profile-header'>
-        <img alt='' id='cv-profile-avatar'/>
-        <div style='min-width:0;flex:1'>
-          <div id='cv-profile-name'></div>
-          <div id='cv-profile-email'></div>
-          <div id='cv-profile-signout' onclick='cvProfileSignOut()'>Sign out</div>
-        </div>
-      </div>
-      <div id='cv-profile-tabs'>
-        <div class='cv-profile-tab active' data-tab='list' onclick='cvProfileSwitchTab(&quot;list&quot;)'>🔖 My List</div>
-        <div class='cv-profile-tab' data-tab='history' onclick='cvProfileSwitchTab(&quot;history&quot;)'>🕐 Watch History</div>
-      </div>
-      <div id='cv-profile-content'></div>
-    </div>
-  </div>
-</div>
-
 <!-- REPORT ISSUE &#8212; apna alag popup -->
 <div id='cv-report-modal'>
   <div id='cv-report-modal-box'>
@@ -3885,9 +3788,6 @@ document.getElementById('cv-adult-gate').addEventListener('click', function(e) {
 });
 document.getElementById('cv-mylist-modal').addEventListener('click', function(e) {
   if (e.target === this) closeMyListModal();
-});
-document.getElementById('cv-profile-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeProfileModal();
 });
 document.getElementById('cv-report-modal').addEventListener('click', function(e) {
   if (e.target === this) closeReportModal();
@@ -5231,7 +5131,7 @@ function featuredShowSlide(idx) {
     if (playBtn) {
       playBtn.onclick = function(e) {
         e.stopPropagation();
-        if (m.videoUrl) { cvTrackWatch(m._key, m.title, m.thumbnail); playVideo(m.videoUrl, m.title || 'Now Playing'); }
+        if (m.videoUrl) playVideo(m.videoUrl, m.title || 'Now Playing');
         else openModal(key);
       };
     }
@@ -5870,8 +5770,6 @@ function cvToggleWatchlist(e) {
 // ══ CLOUD SYNC (Google account) ══
 window._cvSyncUid = null;
 window._cvSyncEmail = '';
-window._cvSyncName = '';
-window._cvSyncPhoto = '';
 
 function cvUpdateSyncUI() {
   // My List category ke andar login/sync banner nahi dikhana — sirf header
@@ -5883,20 +5781,8 @@ function cvUpdateSyncUI() {
 function cvWatchlistOnSignedIn(user) {
   window._cvSyncUid = user.uid;
   window._cvSyncEmail = user.email || '';
-  window._cvSyncName = user.displayName || '';
-  window._cvSyncPhoto = user.photoURL || '';
   try { localStorage.setItem('cv_sync_uid', user.uid); } catch (e) {}
   try { localStorage.setItem('cv_sync_email', user.email || ''); } catch (e) {}
-  try { localStorage.setItem('cv_sync_name', user.displayName || ''); } catch (e) {}
-  try { localStorage.setItem('cv_sync_photo', user.photoURL || ''); } catch (e) {}
-  cvUpdateHeaderProfileIcon();
-
-  // Account record (admin ke liye — kaun sign up hua)
-  try {
-    db.ref('users/' + user.uid + '/profile').update({
-      name: user.displayName || '', email: user.email || '', photo: user.photoURL || '', lastSeen: Date.now()
-    });
-  } catch (e) {}
 
   var localWl = cvGetWatchlist();
   db.ref('users/' + user.uid + '/watchlist').once('value').then(function(snap) {
@@ -5914,7 +5800,6 @@ function cvWatchlistOnSignedIn(user) {
     }
     cvUpdateSyncUI();
     if (selCat === 'watchlist') renderGrid();
-    cvRenderProfileAccount();
   }).catch(function() { cvUpdateSyncUI(); });
 }
 
@@ -5947,169 +5832,8 @@ function cvWatchlistSignOut() {
   try { if (typeof firebase !== 'undefined' && firebase.auth) firebase.auth().signOut(); } catch (e) {}
   window._cvSyncUid = null;
   window._cvSyncEmail = '';
-  window._cvSyncName = '';
-  window._cvSyncPhoto = '';
-  try {
-    localStorage.removeItem('cv_sync_uid'); localStorage.removeItem('cv_sync_email');
-    localStorage.removeItem('cv_sync_name'); localStorage.removeItem('cv_sync_photo');
-  } catch (e) {}
-  cvUpdateHeaderProfileIcon();
+  try { localStorage.removeItem('cv_sync_uid'); localStorage.removeItem('cv_sync_email'); } catch (e) {}
   cvUpdateSyncUI();
-}
-
-// Header 👤 icon ki jagah signed-in user ki Google photo dikhao
-function cvUpdateHeaderProfileIcon() {
-  var btn = document.getElementById('cv-header-profile-btn');
-  var avatar = document.getElementById('cv-header-profile-avatar');
-  if (!btn || !avatar) return;
-  if (window._cvSyncPhoto) {
-    avatar.src = cvThumb(window._cvSyncPhoto, 80, 80);
-    btn.classList.add('cv-has-avatar');
-    btn.title = window._cvSyncName || 'My Profile';
-  } else {
-    avatar.src = '';
-    btn.classList.remove('cv-has-avatar');
-    btn.title = 'My Profile';
-  }
-}
-
-// Page load pe turant (Firebase confirm hone se pehle) cached photo se avatar dikha do — snappy UX
-(function() {
-  try {
-    var cachedPhoto = localStorage.getItem('cv_sync_photo');
-    var cachedName = localStorage.getItem('cv_sync_name');
-    if (cachedPhoto) { window._cvSyncPhoto = cachedPhoto; window._cvSyncName = cachedName || ''; }
-  } catch (e) {}
-})();
-
-// ══════════════════════════════════
-// MY PROFILE MODAL — account info + My List + Watch History tabs
-// ══════════════════════════════════
-window._cvProfileTab = 'list';
-
-function cvOpenProfileModal() {
-  var modal = document.getElementById('cv-profile-modal');
-  if (!modal) return;
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  if (window._cvSyncUid) {
-    cvRenderProfileAccount();
-  } else {
-    document.getElementById('cv-profile-signin').style.display = 'block';
-    document.getElementById('cv-profile-account').style.display = 'none';
-    var errEl = document.getElementById('cv-profile-signin-error');
-    if (errEl) errEl.textContent = '';
-  }
-}
-
-function closeProfileModal() {
-  var modal = document.getElementById('cv-profile-modal');
-  if (modal) modal.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function cvProfileSignIn() {
-  var btn = document.getElementById('cv-profile-signin-btn');
-  var errEl = document.getElementById('cv-profile-signin-error');
-  if (errEl) errEl.textContent = '';
-  if (btn) btn.classList.add('loading');
-  cvWatchlistSignIn(function(err) {
-    if (btn) btn.classList.remove('loading');
-    if (err) { if (errEl) errEl.textContent = 'Sign in nahi ho saka. Dobara try karo.'; return; }
-    cvRenderProfileAccount();
-  });
-}
-
-function cvProfileSignOut() {
-  cvWatchlistSignOut();
-  closeProfileModal();
-}
-
-function cvRenderProfileAccount() {
-  if (!window._cvSyncUid) return;
-  document.getElementById('cv-profile-signin').style.display = 'none';
-  document.getElementById('cv-profile-account').style.display = 'block';
-
-  var avatar = document.getElementById('cv-profile-avatar');
-  if (avatar) avatar.src = window._cvSyncPhoto ? cvThumb(window._cvSyncPhoto, 120, 120) : 'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png';
-  var nameEl = document.getElementById('cv-profile-name');
-  if (nameEl) nameEl.textContent = window._cvSyncName || 'CineNova User';
-  var emailEl = document.getElementById('cv-profile-email');
-  if (emailEl) emailEl.textContent = window._cvSyncEmail || '';
-
-  cvProfileSwitchTab(window._cvProfileTab || 'list');
-}
-
-function cvProfileSwitchTab(tab) {
-  window._cvProfileTab = tab;
-  document.querySelectorAll('.cv-profile-tab').forEach(function(t) {
-    t.classList.toggle('active', t.getAttribute('data-tab') === tab);
-  });
-  var content = document.getElementById('cv-profile-content');
-  if (!content) return;
-  content.innerHTML = '<div class="cv-profile-empty">Loading...</div>';
-
-  if (tab === 'list') {
-    var keys = Object.keys(cvGetWatchlist());
-    var items = keys.map(function(k) { return allData.find(function(x) { return x._key === k; }); }).filter(Boolean);
-    content.innerHTML = cvProfileRenderGrid(items, 'Abhi tak koi movie save nahi ki. 🔖 icon se movies apni list mein add karo.');
-  } else {
-    if (!window._cvSyncUid || !db) { content.innerHTML = cvProfileRenderGrid([], 'Watch history dekhne ke liye sign in karo.'); return; }
-    db.ref('users/' + window._cvSyncUid + '/watchHistory').orderByChild('watchedAt').limitToLast(30).once('value').then(function(snap) {
-      var d = snap.val() || {};
-      var rows = Object.keys(d).map(function(k) { return { key: k, data: d[k] }; });
-      rows.sort(function(a, b) { return (b.data.watchedAt || 0) - (a.data.watchedAt || 0); });
-      var items = rows.map(function(r) {
-        var m = allData.find(function(x) { return x._key === r.key; });
-        return m || { _key: r.key, title: r.data.title, thumbnail: r.data.thumb, _watchedAt: r.data.watchedAt };
-      });
-      rows.forEach(function(r, i) { if (items[i]) items[i]._watchedAt = r.data.watchedAt; });
-      content.innerHTML = cvProfileRenderGrid(items, 'Abhi tak koi movie dekhi nahi. Kuch watch karo, yahan history dikhegi.', true);
-    }).catch(function() {
-      content.innerHTML = cvProfileRenderGrid([], 'History load nahi ho saki.');
-    });
-  }
-}
-
-function cvProfileRenderGrid(items, emptyMsg, showTime) {
-  if (!items.length) return '<div class="cv-profile-empty">' + emptyMsg + '</div>';
-  var html = '<div class="cv-related-grid">';
-  items.forEach(function(m) {
-    var thumb = m.thumbnail ? cvThumb(m.thumbnail, 300, 450) : '';
-    html += '<div class="cv-rel-card" onclick="closeProfileModal();openModal(\'' + escJs(m._key) + '\')">';
-    if (thumb) {
-      html += '<img src="' + escHtml(thumb) + '" width="150" height="225" loading="lazy" alt="' + escHtml(m.title || '') + '" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">';
-      html += '<div class="cv-rel-card-no-img" style="display:none">🎬</div>';
-    } else {
-      html += '<div class="cv-rel-card-no-img">🎬</div>';
-    }
-    html += '<div class="cv-rel-info"><div class="cv-rel-title">' + escHtml(m.title || 'Untitled') + '</div>';
-    if (showTime && m._watchedAt) html += '<div class="cv-rel-time">' + cvTimeAgo(m._watchedAt) + '</div>';
-    html += '</div></div>';
-  });
-  html += '</div>';
-  return html;
-}
-
-function cvTimeAgo(ts) {
-  var diff = Date.now() - ts;
-  var mins = Math.floor(diff / 60000);
-  if (mins < 60) return mins <= 1 ? 'Abhi' : mins + 'm pehle';
-  var hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + 'h pehle';
-  var days = Math.floor(hrs / 24);
-  if (days < 30) return days + 'd pehle';
-  return Math.floor(days / 30) + 'mo pehle';
-}
-
-// Watch history record — sirf signed-in users ke liye (Firebase 'users/{uid}/watchHistory')
-function cvTrackWatch(key, title, thumb) {
-  if (!key || !window._cvSyncUid || !db) return;
-  try {
-    db.ref('users/' + window._cvSyncUid + '/watchHistory/' + key).set({
-      title: title || '', thumb: thumb || '', watchedAt: Date.now()
-    });
-  } catch (e) {}
 }
 
 // ══ MY LIST HEADER POPUP — adult gate se bilkul alag flow ══
@@ -6543,9 +6267,6 @@ function openModal(key) {
   var _isMob = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   var _vlcSrc = m.vlcUrl || m.vlcUrl2 || '';
   var _mkeyW = m._key || window._cvCurrentKey || '';
-  var _wThumb = escJs(m.thumbnail || '');
-  var _wTitle = escJs(m.title || '');
-  var _trackJs = "cvTrackWatch('" + escJs(_mkeyW) + "','" + _wTitle + "','" + _wThumb + "');";
   // videoSourceUrl (naya, worker fresh-resolve karta hai — expire nahi hota)
   // ko priority do; purana static videoUrl sirf un movies ke liye jo abhi
   // migrate nahi hui unke liye fallback hai.
@@ -6556,15 +6277,15 @@ function openModal(key) {
       // (mobile ho ya desktop). Ads ke baad worker khud decide karta hai:
       // mobile → VLC/MX player intent se khulta hai, desktop → in-page player.
       var _watchUrl = 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW);
-      btns += '<button class="cv-dl-btn" onclick="' + _trackJs + 'window.open(\'' + escJs(_watchUrl) + '\', \'_blank\')">▶ Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="window.open(\'' + escJs(_watchUrl) + '\', \'_blank\')">▶ Watch Now</button>';
     } else if (_isMob && _vlcSrc) {
       // Fallback: sirf un purani movies ke liye jinme videoSourceUrl set
       // nahi hai — is case mein ads NAHI chalengi (worker ke paas resolve
       // karne ke liye source hi nahi hai).
-      btns += '<button class="cv-dl-btn" onclick="' + _trackJs + 'openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
     } else {
       // Purana static videoUrl fallback — is case mein bhi ads nahi chalengi.
-      btns += '<button class="cv-dl-btn" onclick="' + _trackJs + 'playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
     }
   }
   if (m.trailerUrl) {
@@ -7195,7 +6916,6 @@ document.getElementById('cv-dl-popup').onclick = function(e) {
     var n = Object.keys(cvGetWatchlist()).length;
     if (n) countPill.textContent = '🔖 My List (' + n + ')';
   }
-  cvUpdateHeaderProfileIcon();
   cvWatchlistTryAutoSync();
 })();
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
