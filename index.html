@@ -5637,6 +5637,7 @@ function cvRestoreFromUrl() {
       var allPill = document.querySelector('.cv-pill[data-cat="all"]');
       if (allPill) allPill.classList.add('active');
       renderGrid();
+      requestAnimationFrame(cvScrollToCatSection);
       cvRestorePageFromUrl();
       window._cvRestoringFromUrl = false;
       return;
@@ -5653,6 +5654,7 @@ function cvRestoreFromUrl() {
       var targetPill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
       if (targetPill) targetPill.classList.add('active');
       renderGrid();
+      requestAnimationFrame(cvScrollToCatSection);
       if (!allLoaded) _cvLoadAllForCategory();
     } else {
       // ✅ FIX — koi cat/genre param nahi hai, matlab ye Home hai (ya category
@@ -6937,6 +6939,20 @@ document.getElementById('cv-dl-popup').onclick = function(e) {
   }
   cvWatchlistTryAutoSync();
 })();
+// ── Category select hone par grid section tak smooth auto-scroll —
+//    fixed nav + sticky category-pills bar ki height nikaal ke offset
+//    lagate hain, taake section theek nav ke neeche se shuru dikhe.
+//    Sabhi devices (mobile/tablet/desktop) par khud offsetHeight se
+//    kaam karta hai, isliye har screen size par sahi rehta hai. ──
+function cvScrollToCatSection() {
+  var grid = document.getElementById('cv-grid');
+  if (!grid) return;
+  var nav = document.getElementById('cv-nav');
+  var cats = document.getElementById('cv-cats');
+  var offset = (nav ? nav.offsetHeight : 0) + (cats ? cats.offsetHeight : 0);
+  var top = grid.getBoundingClientRect().top + window.pageYOffset - offset - 6;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
   pill.addEventListener('click', function() {
     var cat = pill.dataset.cat;
@@ -6962,6 +6978,10 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     }
 
     renderGrid();
+    // Category/genre select hote hi poore grid section tak smooth scroll —
+    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
+    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
+    requestAnimationFrame(cvScrollToCatSection);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
