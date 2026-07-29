@@ -4334,12 +4334,25 @@ function watchNewMovies() {
   if (_cvWatchersAttached) return;
   _cvWatchersAttached = true;
 
-  // ── NEW MOVIE ADDED (full list, no limitToLast cap) ──
+  // ── PERF FIX: pehle yahan `db.ref('movies').on(...)` — bina kisi limit ke
+  // — laga hua tha. Iska matlab tha: har visitor ke browser mein, poore
+  // 'movies' node (aapki SAARI movies, chahe kitni bhi sau/hazar hon) ka
+  // real-time sync automatically shuru ho jata tha, sirf naye add/edit
+  // detect karne ke liye — jabke grid pe sirf 20-30 paginated movies dikhti
+  // hain. Jitni catalog badhi, utna hi zyada data/CPU/RAM har tab par
+  // consume hota gaya — isi se site "ruk ruk ke" chalti thi aur waqt ke
+  // saath aur slow hoti jati. Ab sirf recent-most movies (jo Firebase push
+  // keys ki wajah se chronological order mein hain) ke limited window par
+  // hi listen hota hai — catalog jitni bhi badi ho, sync hamesha halka
+  // rehta hai.
+  var CV_WATCH_WINDOW = 60;
+  var watchQuery = db.ref('movies').orderByKey().limitToLast(CV_WATCH_WINDOW);
+
   // We track by key so initial data events are skipped
   var initialKeys = {};
   allData.forEach(function(m) { initialKeys[m._key] = true; });
 
-  db.ref('movies').on('child_added', function(snap) {
+  watchQuery.on('child_added', function(snap) {
     var item = snap.val();
     item._key = snap.key;
     if (initialKeys[item._key]) return; // Skip already-loaded items
@@ -4362,7 +4375,7 @@ function watchNewMovies() {
   // ka wahi item silently in-place update ho jata hai, koi visible
   // re-render/reflow trigger nahi hota.
   var CV_COUNTER_ONLY_FIELDS = { downloadCount: true, views: true, rating: true, ratingCount: true };
-  db.ref('movies').on('child_changed', function(snap) {
+  watchQuery.on('child_changed', function(snap) {
     var updated = snap.val();
     updated._key = snap.key;
 
@@ -4401,7 +4414,7 @@ function watchNewMovies() {
   });
 
   // ── MOVIE DELETED ──
-  db.ref('movies').on('child_removed', function(snap) {
+  watchQuery.on('child_removed', function(snap) {
     var removedKey = snap.key;
     allData = allData.filter(function(m) { return m._key !== removedKey; });
     _cvDebouncedRefresh();
