@@ -6281,27 +6281,15 @@ function openModal(key) {
 
   // Buttons
   var btns = '';
-  var _isMob = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   var _vlcSrc = m.vlcUrl || m.vlcUrl2 || '';
-  var _mkeyW = m._key || window._cvCurrentKey || '';
-  // videoSourceUrl (naya, worker fresh-resolve karta hai — expire nahi hota)
-  // ko priority do; purana static videoUrl sirf un movies ke liye jo abhi
-  // migrate nahi hui unke liye fallback hai.
-  if (m.videoSourceUrl || m.videoUrl || (_isMob && _vlcSrc)) {
+  if (_vlcSrc || m.videoUrl) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    if (m.videoSourceUrl) {
-      // videoSourceUrl: worker /watch page → ALWAYS timer+ads pehle chalte hain
-      // (mobile ho ya desktop). Ads ke baad worker khud decide karta hai:
-      // mobile → VLC/MX player intent se khulta hai, desktop → in-page player.
-      var _watchUrl = 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW);
-      btns += '<button class="cv-dl-btn" onclick="window.open(\'' + escJs(_watchUrl) + '\', \'_blank\')">▶ Watch Now</button>';
-    } else if (_isMob && _vlcSrc) {
-      // Fallback: sirf un purani movies ke liye jinme videoSourceUrl set
-      // nahi hai — is case mein ads NAHI chalengi (worker ke paas resolve
-      // karne ke liye source hi nahi hai).
+    if (_vlcSrc) {
+      // vlcUrl admin panel se manually add hota hai — koi worker/ads/timer
+      // nahi, seedha VLC/player launch hota hai (mobile ho ya desktop).
       btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
     } else {
-      // Purana static videoUrl fallback — is case mein bhi ads nahi chalengi.
+      // Purana static videoUrl fallback — in-page player.
       btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
     }
   }
@@ -6344,15 +6332,10 @@ function openModal(key) {
     // Store episode dl data in global registry keyed by index (safe, no inline JSON)
     window._cvEpDlRegistry = {};
     var epHtml = '<div class="cv-section-title">Episodes</div>';
-    var _isMobEp = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     m.episodes.forEach(function(ep, i) {
       var epSeasonNum = ep.season || 1;
       var epNumVal = ep.episode || (i+1);
-      // videoSourceUrl hai to worker route (fresh-resolve, expire nahi hota);
-      // warna purana static url/link fallback
-      var epUrl = ep.videoSourceUrl
-        ? 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW) + '&s=' + encodeURIComponent(epSeasonNum) + '&e=' + encodeURIComponent(epNumVal)
-        : (ep.videoUrl || ep.url || ep.link || '');
+      var epUrl = ep.videoUrl || ep.url || ep.link || '';
       var epVlc = ep.vlcUrl || '';
       var epLabel = 'S' + (ep.season||1) + 'E' + (ep.episode||(i+1));
       var hasDl = ep.dl480 || ep.dl720 || ep.dl1080;
@@ -6364,13 +6347,9 @@ function openModal(key) {
         window._cvEpDlRegistry[i] = arr;
       }
       var playBtn = '';
-      if (ep.videoSourceUrl) {
-        // /watch URL new tab mein — ALWAYS timer+ads pehle (mobile ho ya
-        // desktop). Ads ke baad worker khud decide karta hai.
-        playBtn = '<button class="cv-ep-btn" onclick="window.open(\'' + escJs(epUrl) + '\', \'_blank\')">▶ Play</button>';
-      } else if (_isMobEp && epVlc) {
-        // Fallback: sirf purani episodes ke liye jinme videoSourceUrl nahi
-        // hai — is case mein ads NAHI chalengi.
+      if (epVlc) {
+        // epVlc admin panel se manually add hota hai — koi worker/ads/timer
+        // nahi, seedha VLC/player launch (mobile ho ya desktop).
         playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\')">▶ Play</button>';
       } else if (epUrl) {
         playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">▶ Play</button>';
@@ -6393,9 +6372,7 @@ function openModal(key) {
     epEl.innerHTML = epHtml;
     // Store episode urls for play function
     window._cvEpUrls = m.episodes.map(function(ep,i){
-      return ep.videoSourceUrl
-        ? 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW) + '&s=' + encodeURIComponent(ep.season||1) + '&e=' + encodeURIComponent(ep.episode||(i+1))
-        : (ep.videoUrl||ep.url||ep.link||'');
+      return ep.videoUrl||ep.url||ep.link||'';
     });
     window._cvEpLabels = m.episodes.map(function(ep,i){ return (m.title||'')+ ' — S'+(ep.season||1)+'E'+(ep.episode||(i+1)); });
     cvMarkEpisodesSeen(m);
