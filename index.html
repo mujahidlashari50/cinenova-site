@@ -79,7 +79,6 @@
 <link as='style' href='https://cdn.plyr.io/3.7.8/plyr.css' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://cdn.plyr.io/3.7.8/plyr.css' rel='stylesheet'/></noscript>
 <link href='https://cdn.plyr.io' rel='dns-prefetch'/>
-<link crossorigin='' href='https://cdn.plyr.io' rel='preconnect'/>
 
 <!-- Fonts async load &#8212; non-blocking with font-display:swap -->
 <link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
@@ -1123,7 +1122,7 @@ body{text-rendering:optimizeSpeed}
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
 }
-#cv-player.open{display:flex;animation:playerFadeIn 0.2s ease-out}
+#cv-player.open{display:flex;animation:playerFadeIn 0.22s ease}
 @keyframes playerFadeIn{from{opacity:0}to{opacity:1}}
 #cv-player-popup{
   position:relative;
@@ -1133,15 +1132,9 @@ body{text-rendering:optimizeSpeed}
   border:none;
   box-shadow:0 20px 60px rgba(0,0,0,0.9);
   overflow:hidden;
-  animation:playerSlideUp 0.26s cubic-bezier(0.22,1,0.36,1);
+  animation:playerSlideUp 0.28s cubic-bezier(0.22,1,0.36,1);
   max-height:calc(100svh - 20px);
   display:flex;flex-direction:column;
-  will-change:transform,opacity;
-}
-/* Low-power/mobile devices: heavy blur causes jank on modal open,
-   so drop it to a much cheaper level while keeping the darkened backdrop. */
-@media (max-width:768px){
-  #cv-player{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 }
 #cv-player-popup::before{
   content:'';position:absolute;top:0;left:0;right:0;height:2px;
@@ -1216,28 +1209,14 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-player-loading.show{display:flex}
 #cv-player-loading-icon{
-  position:relative;
-  width:40px;height:40px;
-}
-#cv-player-loading-icon::before,
-#cv-player-loading-icon::after{
-  content:'';position:absolute;inset:0;
-  border-radius:50%;
-  border:2.5px solid transparent;
-}
-#cv-player-loading-icon::before{
+  width:36px;height:36px;
+  border:2.5px solid #1e1e1e;
   border-top-color:#e50914;
-  border-right-color:rgba(229,9,20,0.35);
-  animation:cvSpin 0.85s cubic-bezier(0.5,0.1,0.5,0.9) infinite;
-}
-#cv-player-loading-icon::after{
-  inset:7px;
-  border-top-color:rgba(255,255,255,0.5);
-  animation:cvSpin 0.6s linear infinite reverse;
+  border-radius:50%;
+  animation:cvSpin 0.75s linear infinite;
 }
 @keyframes cvSpin{to{transform:rotate(360deg)}}
-#cv-player-loading span{font-size:0.7rem;color:#444;font-weight:700;letter-spacing:2px;text-transform:uppercase;animation:cvPulseText 1.4s ease-in-out infinite}
-@keyframes cvPulseText{0%,100%{opacity:0.45}50%{opacity:1}}
+#cv-player-loading span{font-size:0.7rem;color:#333;font-weight:700;letter-spacing:2px;text-transform:uppercase}
 /* Footer — hidden */
 #cv-player-footer,#cv-player-tip,#cv-player-quality-label{display:none!important}
 /* Mobile — centered (same as desktop) */
@@ -5637,7 +5616,6 @@ function cvRestoreFromUrl() {
       var allPill = document.querySelector('.cv-pill[data-cat="all"]');
       if (allPill) allPill.classList.add('active');
       renderGrid();
-      requestAnimationFrame(cvScrollToCatSection);
       cvRestorePageFromUrl();
       window._cvRestoringFromUrl = false;
       return;
@@ -5654,7 +5632,6 @@ function cvRestoreFromUrl() {
       var targetPill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
       if (targetPill) targetPill.classList.add('active');
       renderGrid();
-      requestAnimationFrame(cvScrollToCatSection);
       if (!allLoaded) _cvLoadAllForCategory();
     } else {
       // ✅ FIX — koi cat/genre param nahi hai, matlab ye Home hai (ya category
@@ -6661,11 +6638,7 @@ function playVideo(url, title) {
   var isWorkerVideo = /download\.cinenova\.site\/video/i.test(url);
   var isDirectVideo = /\.(mp4|webm|m3u8)(\?|$)/i.test(url) || /googleusercontent\.com/i.test(url) || /googlevideo\.com/i.test(url) || /drive\.google\.com\/uc/i.test(url) || isR2Cloud || isWorkerVideo;
 
-  // Content build turant shuru — koi artificial wait nahi. Spinner
-  // sirf uss waqt tak dikhta hai jab tak asal video/iframe khud
-  // load na ho jaye (real network/buffering signal par depend karta
-  // hai, fixed timer par nahi — is se modal open feel bohot fast hota hai).
-  requestAnimationFrame(function() {
+  setTimeout(function() {
     if (loading) loading.classList.remove('show');
 
     if (isPixeldrain) {
@@ -6719,7 +6692,7 @@ function playVideo(url, title) {
       // ── Other embeds: Abyss, Dailymotion, Streamtape, etc. — direct iframe ──
       inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     }
-  });
+  }, 300);
 
   document.getElementById('cv-modal').classList.remove('open');
   document.getElementById('cv-player').classList.add('open');
@@ -6939,20 +6912,6 @@ document.getElementById('cv-dl-popup').onclick = function(e) {
   }
   cvWatchlistTryAutoSync();
 })();
-// ── Category select hone par grid section tak smooth auto-scroll —
-//    fixed nav + sticky category-pills bar ki height nikaal ke offset
-//    lagate hain, taake section theek nav ke neeche se shuru dikhe.
-//    Sabhi devices (mobile/tablet/desktop) par khud offsetHeight se
-//    kaam karta hai, isliye har screen size par sahi rehta hai. ──
-function cvScrollToCatSection() {
-  var grid = document.getElementById('cv-grid');
-  if (!grid) return;
-  var nav = document.getElementById('cv-nav');
-  var cats = document.getElementById('cv-cats');
-  var offset = (nav ? nav.offsetHeight : 0) + (cats ? cats.offsetHeight : 0);
-  var top = grid.getBoundingClientRect().top + window.pageYOffset - offset - 6;
-  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-}
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
   pill.addEventListener('click', function() {
     var cat = pill.dataset.cat;
@@ -6978,10 +6937,6 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     }
 
     renderGrid();
-    // Category/genre select hote hi poore grid section tak smooth scroll —
-    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
-    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
-    requestAnimationFrame(cvScrollToCatSection);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
@@ -8899,37 +8854,19 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 //<![CDATA[
 (function(){
   var _plyrLoaded = false;
-  var _plyrLoading = false;
-  var _plyrCallbacks = [];
   function loadPlyr(cb){
     if(_plyrLoaded){ if(cb) cb(); return; }
-    if(cb) _plyrCallbacks.push(cb);
-    if(_plyrLoading) return;
-    _plyrLoading = true;
     var s = document.createElement('script');
     s.src = 'https://cdn.plyr.io/3.7.8/plyr.polyfilled.js';
-    s.onload = function(){
-      _plyrLoaded = true;
-      var cbs = _plyrCallbacks; _plyrCallbacks = [];
-      cbs.forEach(function(fn){ try { fn(); } catch(e){} });
-    };
+    s.onload = function(){ _plyrLoaded = true; if(cb) cb(); };
     document.head.appendChild(s);
   }
-  // Override playVideo to use Plyr (already warm by the time user clicks, in most cases)
+  // Override playVideo to lazy-load Plyr first
   var _origPlay = window.playVideo;
   if(typeof _origPlay === 'function'){
     window.playVideo = function(url, title){
       loadPlyr(function(){ _origPlay(url, title); });
     };
-  }
-  // ── Warm up Plyr in the background as soon as the browser is idle,
-  //    so it's already cached/ready before the user taps play — this
-  //    removes the network-wait lag on the FIRST video open. ──
-  var warm = function(){ loadPlyr(); };
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(warm, { timeout: 4000 });
-  } else {
-    setTimeout(warm, 2000);
   }
 })();
 //]]>
@@ -8955,6 +8892,75 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
       }
     });
   }, {passive:true});
+})();
+//]]>
+</script>
+
+
+
+
+
+<script>
+//<![CDATA[
+// ── HOME PAGE BACKGROUND MUSIC — Firebase (settings/homeMusic) se
+//    control hota hai (admin panel se URL/volume/on-off set hote hain).
+//    Koi button ya player UI KAHIN nahi dikhta — poori tarah invisible,
+//    background mein bajta hai. Browsers bina user-interaction ke
+//    sound-wali autoplay block karte hain, isliye:
+//    - autoplayMode 'muted'   → muted hi shuru hoti hai, pehle click/
+//      scroll/keypress par khud-ba-khud unmute ho jati hai (silently).
+//    - autoplayMode 'interact' → pehli interaction ka wait karti hai,
+//      phir seedha sound ke sath bajti hai.
+//    Dono cases mein koi visible control kabhi nahi dikhta. ──
+(function(){
+  try {
+    // Pehle Blogger ka b:if 'canonicalUrl == homepageUrl' yeh check karta
+    // tha ke sirf homepage par yeh script chale. Static site mein wahi
+    // check plain JS se: sirf '/' ya '/index.html' par music chalao.
+    var _p = location.pathname.replace(/\/+$/, '') || '/';
+    if (_p !== '/' && _p !== '/index.html' && _p !== '/index') return;
+
+    fetch('https://cinenova-8987c-default-rtdb.firebaseio.com/settings/homeMusic.json', { cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(cfg){
+        if (!cfg || !cfg.enabled || !cfg.url) return;
+
+        var vol = (typeof cfg.volume === 'number') ? Math.max(0, Math.min(1, cfg.volume)) : 0.5;
+        var mode = cfg.autoplayMode === 'interact' ? 'interact' : 'muted';
+
+        var audio = document.createElement('audio');
+        audio.src = cfg.url;
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.style.display = 'none';
+        audio.setAttribute('playsinline', '');
+        document.body.appendChild(audio);
+
+        var unlocked = false;
+        function unlockAndPlay(){
+          if (unlocked) return;
+          unlocked = true;
+          audio.volume = vol;
+          audio.muted = false;
+          audio.play().catch(function(){});
+          ['click','touchstart','keydown','scroll'].forEach(function(ev){
+            document.removeEventListener(ev, unlockAndPlay);
+          });
+        }
+
+        if (mode === 'muted') {
+          audio.muted = true;
+          audio.volume = vol;
+          audio.play().catch(function(){});
+        }
+        // Dono mode mein: pehli user-interaction par (agar abhi tak
+        // unmute/play nahi hua) sound ke sath bajana shuru karo.
+        ['click','touchstart','keydown','scroll'].forEach(function(ev){
+          document.addEventListener(ev, unlockAndPlay, { passive: true, once: false });
+        });
+      })
+      .catch(function(){});
+  } catch (e) {}
 })();
 //]]>
 </script>
