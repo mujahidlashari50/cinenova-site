@@ -4189,6 +4189,15 @@ function loadMoviesFirstPage() {
 
 function fetchFirebasePage(isFirst, _retryCount) {
   if (isLoadingMore || (allLoaded && !isFirst)) return;
+  // PERF/CRASH FIX: agar Firebase abhi load hi nahi hui (slow/blocked
+  // network — bilkul wahi users jinke liye site "nahi chalti" thi), to
+  // db.ref() call karne se seedha crash ho jata tha (TypeError: Cannot
+  // read properties of null). Ab bas thodi der wait karke khud retry
+  // karta hai jab tak Firebase ready na ho jaye — koi crash nahi.
+  if (!db) {
+    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount); }, 400);
+    return;
+  }
   isLoadingMore = true;
   _retryCount = _retryCount || 0;
 
@@ -6503,8 +6512,16 @@ function closeModal() {
   if (window._cvModalLiveRef) { try { window._cvModalLiveRef.off(); } catch(e){} window._cvModalLiveRef = null; }
 }
 
-document.getElementById('cv-modal-close').onclick = function() { cvGoBack(); };
-document.getElementById('cv-modal').onclick = function(e) {
+// CRASH FIX: pehle yahan seedha document.getElementById(...).onclick = ...
+// likha hua tha. Blogger ki static pages (About Us, Contact Us wagera) pe
+// ye #cv-modal / #cv-modal-close elements exist hi nahi karte (wo pages
+// SPA template use nahi karte) — is se yahan crash ho jata tha aur is
+// se NEECHE ki SAARI JS (player, download popup, sab kuch) us page par
+// kabhi chalti hi nahi thi. Ab null-check ke sath safe hai.
+var _cvModalCloseEl = document.getElementById('cv-modal-close');
+if (_cvModalCloseEl) _cvModalCloseEl.onclick = function() { cvGoBack(); };
+var _cvModalEl = document.getElementById('cv-modal');
+if (_cvModalEl) _cvModalEl.onclick = function(e) {
   if (e.target === this) cvGoBack();
 };
 
@@ -6731,16 +6748,20 @@ function closePlayer() {
 }
 
 // Player close button
-document.getElementById('cv-player-close').onclick = function() { cvGoBack(); };
+var _cvPlayerCloseEl = document.getElementById('cv-player-close');
+if (_cvPlayerCloseEl) _cvPlayerCloseEl.onclick = function() { cvGoBack(); };
 
 // Click outside popup to close
-document.getElementById('cv-player').onclick = function(e) {
+var _cvPlayerEl = document.getElementById('cv-player');
+if (_cvPlayerEl) _cvPlayerEl.onclick = function(e) {
   if (e.target === this) cvGoBack();
 };
 
 // Fullscreen button
-document.getElementById('cv-player-fullscreen-btn').onclick = function() {
+var _cvPlayerFsBtn = document.getElementById('cv-player-fullscreen-btn');
+if (_cvPlayerFsBtn) _cvPlayerFsBtn.onclick = function() {
   var wrap = document.getElementById('cv-player-video-wrap');
+  if (!wrap) return;
   if (wrap.requestFullscreen) wrap.requestFullscreen();
   else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
   else if (wrap.mozRequestFullScreen) wrap.mozRequestFullScreen();
@@ -6913,8 +6934,10 @@ function cvEpDl(idx) {
   document.getElementById('cv-dl-popup').classList.add('open');
 }
 
-document.getElementById('cv-dl-popup-cancel').onclick = closeDlPopup;
-document.getElementById('cv-dl-popup').onclick = function(e) {
+var _cvDlPopupCancelEl = document.getElementById('cv-dl-popup-cancel');
+if (_cvDlPopupCancelEl) _cvDlPopupCancelEl.onclick = closeDlPopup;
+var _cvDlPopupEl = document.getElementById('cv-dl-popup');
+if (_cvDlPopupEl) _cvDlPopupEl.onclick = function(e) {
   if (e.target === this) closeDlPopup();
 };
 
