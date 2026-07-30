@@ -6640,7 +6640,17 @@ function openMxPlayer(url) {
       + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/any;end';
     window.location.href = intent;
   } else {
+    // Desktop (Windows/Mac/Linux) — VLC install hone par 'vlc://' protocol
+    // se seedha launch ho jata hai. Agar VLC install nahi hai to ye
+    // silently fail hoti hai (koi error dikhta nahi) — isliye chhota sa
+    // helpful hint dikha dete hain taake user confuse na ho.
     window.location.href = 'vlc://' + url.replace(/^https?:\/\//, '');
+    setTimeout(function() {
+      if (document.hidden) return; // agar VLC khul gaya to tab background mein chala jata hai
+      if (typeof showStatus === 'function') {
+        showStatus('VLC nahi khula? VLC Media Player install karein — videolan.org', '#e50914');
+      }
+    }, 1800);
   }
 }
 
