@@ -12,6 +12,8 @@
 <meta content='CineNova - Free HD Movies &amp; Web Series' id='cv-og-title' property='og:title'/>
 <meta content='Watch free HD movies, web series &amp; latest releases. No login, no subscription!' id='cv-og-desc' property='og:description'/>
 <meta content='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' id='cv-og-image' property='og:image'/>
+<meta content='512' property='og:image:width'/>
+<meta content='512' property='og:image:height'/>
 <meta content='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' id='cv-tw-image' name='twitter:image'/>
 <meta content='summary_large_image' name='twitter:card'/>
 <meta content='CineNova - Free HD Movies' id='cv-tw-title' name='twitter:title'/>
@@ -63,6 +65,8 @@
 
 <link crossorigin='' href='https://fonts.gstatic.com' rel='preconnect'/>
 <link href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='dns-prefetch'/>
+<link href='https://www.gstatic.com' rel='dns-prefetch'/>
+<link crossorigin='' href='https://www.gstatic.com' rel='preconnect'/>
 <link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
 <link href='https://api.themoviedb.org' rel='dns-prefetch'/>
 <link href='https://image.tmdb.org' rel='dns-prefetch'/>
@@ -75,6 +79,7 @@
 <link as='style' href='https://cdn.plyr.io/3.7.8/plyr.css' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://cdn.plyr.io/3.7.8/plyr.css' rel='stylesheet'/></noscript>
 <link href='https://cdn.plyr.io' rel='dns-prefetch'/>
+<link crossorigin='' href='https://cdn.plyr.io' rel='preconnect'/>
 
 <!-- Fonts async load &#8212; non-blocking with font-display:swap -->
 <link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
@@ -191,8 +196,8 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-nav.scrolled{
   background:rgba(10,10,10,0.96);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
   box-shadow:0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.6);
 }
 #cv-nav::after{display:none}
@@ -622,23 +627,20 @@ body{text-rendering:optimizeSpeed}
   cursor:pointer;
   position:relative;
   border:1px solid rgba(255,255,255,0.04);
-  animation:cardFadeIn 0.35s ease both;
+  animation:cardFadeIn 0.25s ease both;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
     border-color 0.18s ease;
+  contain:layout paint;
 }
 
 /* Staggered fade-in — sirf first 8 cards pe (baaki ke liye heavy animation avoid) */
-.cv-card:nth-child(1){animation-delay:0.05s}
-.cv-card:nth-child(2){animation-delay:0.1s}
-.cv-card:nth-child(3){animation-delay:0.15s}
-.cv-card:nth-child(4){animation-delay:0.2s}
-.cv-card:nth-child(5){animation-delay:0.25s}
-.cv-card:nth-child(6){animation-delay:0.3s}
-.cv-card:nth-child(7){animation-delay:0.35s}
-.cv-card:nth-child(8){animation-delay:0.4s}
-.cv-card:nth-child(n+9){animation-delay:0s;animation-duration:0.2s}
+.cv-card:nth-child(1){animation-delay:0.03s}
+.cv-card:nth-child(2){animation-delay:0.06s}
+.cv-card:nth-child(3){animation-delay:0.09s}
+.cv-card:nth-child(4){animation-delay:0.12s}
+.cv-card:nth-child(n+5){animation-delay:0s;animation-duration:0.18s}
 
 /* Hover — GPU layer sirf hover pe */
 .cv-card:hover{
@@ -653,7 +655,7 @@ body{text-rendering:optimizeSpeed}
 .cv-card::before{display:none}
 
 /* Play button overlay on hover */
-.cv-card-img-wrap{position:relative;overflow:hidden;}
+.cv-card-img-wrap{position:relative;overflow:hidden;aspect-ratio:2/3;background:#1a1a1a;}
 .cv-card-img-wrap::after{
   content:'\25B6';
   position:absolute;top:50%;left:50%;
@@ -717,7 +719,7 @@ body{text-rendering:optimizeSpeed}
 }
 .cv-card:hover .cv-card-no-img{filter:brightness(1.3)}
 
-#cv-grid{contain:content;content-visibility:auto;min-height:500px;}
+#cv-grid{contain:content;content-visibility:auto;contain-intrinsic-size:0 1200px;min-height:500px;}
 .cv-card-img{image-rendering:auto;color-scheme:dark;}
 
 .cv-badge{
@@ -752,7 +754,7 @@ body{text-rendering:optimizeSpeed}
 .cv-skel-img{width:100%;aspect-ratio:2/3;background:linear-gradient(90deg,#1f1f1f 25%,#2a2a2a 50%,#1f1f1f 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;contain:paint}
 .cv-skel-bar{height:12px;background:#2a2a2a;margin:8px 8px;border-radius:2px;animation:shimmer 1.5s infinite}
 .cv-skel-bar.short{width:60%}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* shimmer defined above */
 
 /* EMPTY / ERROR */
 .cv-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--grey)}
@@ -770,7 +772,7 @@ body{text-rendering:optimizeSpeed}
   will-change:opacity;
 }
 #cv-modal.open{opacity:1;visibility:visible;pointer-events:all}
-#cv-modal.closing #cv-modal-box{animation:slidedown 0.22s cubic-bezier(0.4,0,1,1) forwards}
+#cv-modal-box{will-change:transform}#cv-modal.closing #cv-modal-box{animation:slidedown 0.22s cubic-bezier(0.4,0,1,1) forwards}
 #cv-modal-box{
   background:#141414;
   border-radius:20px 20px 0 0;
@@ -1121,7 +1123,7 @@ body{text-rendering:optimizeSpeed}
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
 }
-#cv-player.open{display:flex;animation:playerFadeIn 0.22s ease}
+#cv-player.open{display:flex;animation:playerFadeIn 0.2s ease-out}
 @keyframes playerFadeIn{from{opacity:0}to{opacity:1}}
 #cv-player-popup{
   position:relative;
@@ -1131,9 +1133,15 @@ body{text-rendering:optimizeSpeed}
   border:none;
   box-shadow:0 20px 60px rgba(0,0,0,0.9);
   overflow:hidden;
-  animation:playerSlideUp 0.28s cubic-bezier(0.22,1,0.36,1);
+  animation:playerSlideUp 0.26s cubic-bezier(0.22,1,0.36,1);
   max-height:calc(100svh - 20px);
   display:flex;flex-direction:column;
+  will-change:transform,opacity;
+}
+/* Low-power/mobile devices: heavy blur causes jank on modal open,
+   so drop it to a much cheaper level while keeping the darkened backdrop. */
+@media (max-width:768px){
+  #cv-player{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 }
 #cv-player-popup::before{
   content:'';position:absolute;top:0;left:0;right:0;height:2px;
@@ -1208,14 +1216,28 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-player-loading.show{display:flex}
 #cv-player-loading-icon{
-  width:36px;height:36px;
-  border:2.5px solid #1e1e1e;
-  border-top-color:#e50914;
+  position:relative;
+  width:40px;height:40px;
+}
+#cv-player-loading-icon::before,
+#cv-player-loading-icon::after{
+  content:'';position:absolute;inset:0;
   border-radius:50%;
-  animation:cvSpin 0.75s linear infinite;
+  border:2.5px solid transparent;
+}
+#cv-player-loading-icon::before{
+  border-top-color:#e50914;
+  border-right-color:rgba(229,9,20,0.35);
+  animation:cvSpin 0.85s cubic-bezier(0.5,0.1,0.5,0.9) infinite;
+}
+#cv-player-loading-icon::after{
+  inset:7px;
+  border-top-color:rgba(255,255,255,0.5);
+  animation:cvSpin 0.6s linear infinite reverse;
 }
 @keyframes cvSpin{to{transform:rotate(360deg)}}
-#cv-player-loading span{font-size:0.7rem;color:#333;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+#cv-player-loading span{font-size:0.7rem;color:#444;font-weight:700;letter-spacing:2px;text-transform:uppercase;animation:cvPulseText 1.4s ease-in-out infinite}
+@keyframes cvPulseText{0%,100%{opacity:0.45}50%{opacity:1}}
 /* Footer — hidden */
 #cv-player-footer,#cv-player-tip,#cv-player-quality-label{display:none!important}
 /* Mobile — centered (same as desktop) */
@@ -3297,7 +3319,7 @@ body{text-rendering:optimizeSpeed}
 
     <div id='cv-featured-bg'></div>
     <div id='cv-featured-poster-wrap'>
-      <img alt='' decoding='async' fetchpriority='high' id='cv-featured-img' src=''/>
+      <img alt='' decoding='async' fetchpriority='high' loading='eager' id='cv-featured-img' src=''/>
     </div>
     <div id='cv-featured-overlay'></div>
     <div id='cv-featured-info'>
@@ -3867,9 +3889,13 @@ function cvAdultGoogleVerify() {
 function _cvOnFirebaseReady() {
   if (!db) return;
 
-  // ── CONNECTIVITY TEST (one-time) ──
-  db.ref('.info/connected').once('value', function(snap) {
-    if (snap.val() !== true) showStatus('⏳ Connecting...', '#f59e0b');
+  // ── CONNECTIVITY TEST ──
+  // Firebase connection background mein hoti rehti hai, lekin ab user ko
+  // koi bhi "Connecting..." badge/message kabhi nahi dikhaya jayega —
+  // site turant apni normal UI dikhata hai, connection status silently
+  // background mein hi track hoti hai.
+  db.ref('.info/connected').on('value', function(snap) {
+    // Intentionally no UI shown — sirf internal tracking.
   });
 
   // Website Settings — Featured Banner + Custom Banner Images
@@ -4161,26 +4187,49 @@ function loadMoviesFirstPage() {
   });
 }
 
-function fetchFirebasePage(isFirst) {
+function fetchFirebasePage(isFirst, _retryCount) {
   if (isLoadingMore || (allLoaded && !isFirst)) return;
+  // PERF/CRASH FIX: agar Firebase abhi load hi nahi hui (slow/blocked
+  // network — bilkul wahi users jinke liye site "nahi chalti" thi), to
+  // db.ref() call karne se seedha crash ho jata tha (TypeError: Cannot
+  // read properties of null). Ab bas thodi der wait karke khud retry
+  // karta hai jab tak Firebase ready na ho jaye — koi crash nahi.
+  if (!db) {
+    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount); }, 400);
+    return;
+  }
   isLoadingMore = true;
+  _retryCount = _retryCount || 0;
 
   var query = db.ref('movies').orderByKey().limitToLast(PAGE_SIZE);
   if (!isFirst && lastFirebaseKey) {
     query = db.ref('movies').orderByKey().endAt(lastFirebaseKey).limitToLast(PAGE_SIZE + 1);
   }
 
-  // Connection timeout — 6 seconds, then show retry
+  // Connection timeout — 10 seconds (pehle 6s tha, jo normal connections pe bhi
+  // bohat jaldi trigger ho jata tha). Ab pehli baar timeout hone par khud hi ek
+  // baar background mein retry karte hain — sirf dusri baar bhi fail ho to hi
+  // user ko manual "Reload" wala dead-end dikhate hain.
   var fetchTimeout = null;
   var didRespond = false;
   if (isFirst) {
     fetchTimeout = setTimeout(function() {
-      if (!didRespond) {
-        isLoadingMore = false;
+      if (didRespond) return;
+      isLoadingMore = false;
+      var hasCachedContent = allData && allData.length > 0;
+      if (_retryCount < 1) {
+        // Cache se content pehle se dikh raha ho to grid ko touch hi mat karo —
+        // sirf background mein khamoshi se retry karo.
+        if (!hasCachedContent) {
+          var gridRetry = document.getElementById('cv-grid');
+          if (gridRetry) gridRetry.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Taking longer than usual, retrying...<br/><small style="color:#555">Please wait a moment</small></p></div>';
+        }
+        fetchFirebasePage(true, _retryCount + 1);
+      } else if (!hasCachedContent) {
         var grid = document.getElementById('cv-grid');
         if (grid) grid.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Connection is slow<br/><small style="color:#555">Check your internet connection — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
       }
-    }, 6000);
+    }, 10000);
   }
 
   query.once('value', function(snap) {
@@ -4260,10 +4309,12 @@ function fetchFirebasePage(isFirst) {
       // Auto retry once after 3 seconds
       setTimeout(function() {
         isLoadingMore = false;
-        fetchFirebasePage(true);
+        fetchFirebasePage(true, _retryCount + 1);
       }, 3000);
-      var grid = document.getElementById('cv-grid');
-      if (grid) grid.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#555">' + (err.message||'Firebase error') + '</small></p></div>';
+      if (!allData || allData.length === 0) {
+        var gridErr = document.getElementById('cv-grid');
+        if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#555">' + (err.message||'Firebase error') + '</small></p></div>';
+      }
     } else {
       showStatus('❌ Load error: ' + err.message, '#e50914');
     }
@@ -4292,12 +4343,25 @@ function watchNewMovies() {
   if (_cvWatchersAttached) return;
   _cvWatchersAttached = true;
 
-  // ── NEW MOVIE ADDED (full list, no limitToLast cap) ──
+  // ── PERF FIX: pehle yahan `db.ref('movies').on(...)` — bina kisi limit ke
+  // — laga hua tha. Iska matlab tha: har visitor ke browser mein, poore
+  // 'movies' node (aapki SAARI movies, chahe kitni bhi sau/hazar hon) ka
+  // real-time sync automatically shuru ho jata tha, sirf naye add/edit
+  // detect karne ke liye — jabke grid pe sirf 20-30 paginated movies dikhti
+  // hain. Jitni catalog badhi, utna hi zyada data/CPU/RAM har tab par
+  // consume hota gaya — isi se site "ruk ruk ke" chalti thi aur waqt ke
+  // saath aur slow hoti jati. Ab sirf recent-most movies (jo Firebase push
+  // keys ki wajah se chronological order mein hain) ke limited window par
+  // hi listen hota hai — catalog jitni bhi badi ho, sync hamesha halka
+  // rehta hai.
+  var CV_WATCH_WINDOW = 60;
+  var watchQuery = db.ref('movies').orderByKey().limitToLast(CV_WATCH_WINDOW);
+
   // We track by key so initial data events are skipped
   var initialKeys = {};
   allData.forEach(function(m) { initialKeys[m._key] = true; });
 
-  db.ref('movies').on('child_added', function(snap) {
+  watchQuery.on('child_added', function(snap) {
     var item = snap.val();
     item._key = snap.key;
     if (initialKeys[item._key]) return; // Skip already-loaded items
@@ -4320,7 +4384,7 @@ function watchNewMovies() {
   // ka wahi item silently in-place update ho jata hai, koi visible
   // re-render/reflow trigger nahi hota.
   var CV_COUNTER_ONLY_FIELDS = { downloadCount: true, views: true, rating: true, ratingCount: true };
-  db.ref('movies').on('child_changed', function(snap) {
+  watchQuery.on('child_changed', function(snap) {
     var updated = snap.val();
     updated._key = snap.key;
 
@@ -4359,7 +4423,7 @@ function watchNewMovies() {
   });
 
   // ── MOVIE DELETED ──
-  db.ref('movies').on('child_removed', function(snap) {
+  watchQuery.on('child_removed', function(snap) {
     var removedKey = snap.key;
     allData = allData.filter(function(m) { return m._key !== removedKey; });
     _cvDebouncedRefresh();
@@ -5205,7 +5269,7 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
@@ -5350,7 +5414,7 @@ function buildTrending() {
   var makeTrendCard = function(m, num) {
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<img alt="Movie Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
         '<div class="cv-slide-no-img" style="display:none">🎬</div>'
       : '<div class="cv-slide-no-img">🎬</div>';
     return '<div class="cv-slide-card" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="openModal(\'' + escJs(m._key) + '\')">' +
@@ -5595,6 +5659,7 @@ function cvRestoreFromUrl() {
       var allPill = document.querySelector('.cv-pill[data-cat="all"]');
       if (allPill) allPill.classList.add('active');
       renderGrid();
+      requestAnimationFrame(cvScrollToCatSection);
       cvRestorePageFromUrl();
       window._cvRestoringFromUrl = false;
       return;
@@ -5611,6 +5676,7 @@ function cvRestoreFromUrl() {
       var targetPill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
       if (targetPill) targetPill.classList.add('active');
       renderGrid();
+      requestAnimationFrame(cvScrollToCatSection);
       if (!allLoaded) _cvLoadAllForCategory();
     } else {
       // ✅ FIX — koi cat/genre param nahi hai, matlab ye Home hai (ya category
@@ -6143,7 +6209,7 @@ function makeCard(m) {
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
@@ -6197,6 +6263,7 @@ function openModal(key) {
   // Image with overlay
   var imgWrap = document.getElementById('cv-modal-img-wrap');
   var img = document.getElementById('cv-modal-img');
+  img.alt = (m.title || 'Movie') + ' Poster';
   if (m.thumbnail) {
     img.src = '';  // Clear first to force reload on new movie
     var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=600&output=webp&q=85';
@@ -6236,27 +6303,15 @@ function openModal(key) {
 
   // Buttons
   var btns = '';
-  var _isMob = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   var _vlcSrc = m.vlcUrl || m.vlcUrl2 || '';
-  var _mkeyW = m._key || window._cvCurrentKey || '';
-  // videoSourceUrl (naya, worker fresh-resolve karta hai — expire nahi hota)
-  // ko priority do; purana static videoUrl sirf un movies ke liye jo abhi
-  // migrate nahi hui unke liye fallback hai.
-  if (m.videoSourceUrl || m.videoUrl || (_isMob && _vlcSrc)) {
+  if (_vlcSrc || m.videoUrl) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    if (m.videoSourceUrl) {
-      // videoSourceUrl: worker /watch page → ALWAYS timer+ads pehle chalte hain
-      // (mobile ho ya desktop). Ads ke baad worker khud decide karta hai:
-      // mobile → VLC/MX player intent se khulta hai, desktop → in-page player.
-      var _watchUrl = 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW);
-      btns += '<button class="cv-dl-btn" onclick="window.open(\'' + escJs(_watchUrl) + '\', \'_blank\')">▶ Watch Now</button>';
-    } else if (_isMob && _vlcSrc) {
-      // Fallback: sirf un purani movies ke liye jinme videoSourceUrl set
-      // nahi hai — is case mein ads NAHI chalengi (worker ke paas resolve
-      // karne ke liye source hi nahi hai).
+    if (_vlcSrc) {
+      // vlcUrl admin panel se manually add hota hai — koi worker/ads/timer
+      // nahi, seedha VLC/player launch hota hai (mobile ho ya desktop).
       btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
     } else {
-      // Purana static videoUrl fallback — is case mein bhi ads nahi chalengi.
+      // Purana static videoUrl fallback — in-page player.
       btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
     }
   }
@@ -6299,15 +6354,10 @@ function openModal(key) {
     // Store episode dl data in global registry keyed by index (safe, no inline JSON)
     window._cvEpDlRegistry = {};
     var epHtml = '<div class="cv-section-title">Episodes</div>';
-    var _isMobEp = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     m.episodes.forEach(function(ep, i) {
       var epSeasonNum = ep.season || 1;
       var epNumVal = ep.episode || (i+1);
-      // videoSourceUrl hai to worker route (fresh-resolve, expire nahi hota);
-      // warna purana static url/link fallback
-      var epUrl = ep.videoSourceUrl
-        ? 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW) + '&s=' + encodeURIComponent(epSeasonNum) + '&e=' + encodeURIComponent(epNumVal)
-        : (ep.videoUrl || ep.url || ep.link || '');
+      var epUrl = ep.videoUrl || ep.url || ep.link || '';
       var epVlc = ep.vlcUrl || '';
       var epLabel = 'S' + (ep.season||1) + 'E' + (ep.episode||(i+1));
       var hasDl = ep.dl480 || ep.dl720 || ep.dl1080;
@@ -6319,13 +6369,9 @@ function openModal(key) {
         window._cvEpDlRegistry[i] = arr;
       }
       var playBtn = '';
-      if (ep.videoSourceUrl) {
-        // /watch URL new tab mein — ALWAYS timer+ads pehle (mobile ho ya
-        // desktop). Ads ke baad worker khud decide karta hai.
-        playBtn = '<button class="cv-ep-btn" onclick="window.open(\'' + escJs(epUrl) + '\', \'_blank\')">▶ Play</button>';
-      } else if (_isMobEp && epVlc) {
-        // Fallback: sirf purani episodes ke liye jinme videoSourceUrl nahi
-        // hai — is case mein ads NAHI chalengi.
+      if (epVlc) {
+        // epVlc admin panel se manually add hota hai — koi worker/ads/timer
+        // nahi, seedha VLC/player launch (mobile ho ya desktop).
         playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\')">▶ Play</button>';
       } else if (epUrl) {
         playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">▶ Play</button>';
@@ -6348,9 +6394,7 @@ function openModal(key) {
     epEl.innerHTML = epHtml;
     // Store episode urls for play function
     window._cvEpUrls = m.episodes.map(function(ep,i){
-      return ep.videoSourceUrl
-        ? 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkeyW) + '&s=' + encodeURIComponent(ep.season||1) + '&e=' + encodeURIComponent(ep.episode||(i+1))
-        : (ep.videoUrl||ep.url||ep.link||'');
+      return ep.videoUrl||ep.url||ep.link||'';
     });
     window._cvEpLabels = m.episodes.map(function(ep,i){ return (m.title||'')+ ' — S'+(ep.season||1)+'E'+(ep.episode||(i+1)); });
     cvMarkEpisodesSeen(m);
@@ -6468,8 +6512,16 @@ function closeModal() {
   if (window._cvModalLiveRef) { try { window._cvModalLiveRef.off(); } catch(e){} window._cvModalLiveRef = null; }
 }
 
-document.getElementById('cv-modal-close').onclick = function() { cvGoBack(); };
-document.getElementById('cv-modal').onclick = function(e) {
+// CRASH FIX: pehle yahan seedha document.getElementById(...).onclick = ...
+// likha hua tha. Blogger ki static pages (About Us, Contact Us wagera) pe
+// ye #cv-modal / #cv-modal-close elements exist hi nahi karte (wo pages
+// SPA template use nahi karte) — is se yahan crash ho jata tha aur is
+// se NEECHE ki SAARI JS (player, download popup, sab kuch) us page par
+// kabhi chalti hi nahi thi. Ab null-check ke sath safe hai.
+var _cvModalCloseEl = document.getElementById('cv-modal-close');
+if (_cvModalCloseEl) _cvModalCloseEl.onclick = function() { cvGoBack(); };
+var _cvModalEl = document.getElementById('cv-modal');
+if (_cvModalEl) _cvModalEl.onclick = function(e) {
   if (e.target === this) cvGoBack();
 };
 
@@ -6616,7 +6668,11 @@ function playVideo(url, title) {
   var isWorkerVideo = /download\.cinenova\.site\/video/i.test(url);
   var isDirectVideo = /\.(mp4|webm|m3u8)(\?|$)/i.test(url) || /googleusercontent\.com/i.test(url) || /googlevideo\.com/i.test(url) || /drive\.google\.com\/uc/i.test(url) || isR2Cloud || isWorkerVideo;
 
-  setTimeout(function() {
+  // Content build turant shuru — koi artificial wait nahi. Spinner
+  // sirf uss waqt tak dikhta hai jab tak asal video/iframe khud
+  // load na ho jaye (real network/buffering signal par depend karta
+  // hai, fixed timer par nahi — is se modal open feel bohot fast hota hai).
+  requestAnimationFrame(function() {
     if (loading) loading.classList.remove('show');
 
     if (isPixeldrain) {
@@ -6670,7 +6726,7 @@ function playVideo(url, title) {
       // ── Other embeds: Abyss, Dailymotion, Streamtape, etc. — direct iframe ──
       inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     }
-  }, 300);
+  });
 
   document.getElementById('cv-modal').classList.remove('open');
   document.getElementById('cv-player').classList.add('open');
@@ -6692,16 +6748,20 @@ function closePlayer() {
 }
 
 // Player close button
-document.getElementById('cv-player-close').onclick = function() { cvGoBack(); };
+var _cvPlayerCloseEl = document.getElementById('cv-player-close');
+if (_cvPlayerCloseEl) _cvPlayerCloseEl.onclick = function() { cvGoBack(); };
 
 // Click outside popup to close
-document.getElementById('cv-player').onclick = function(e) {
+var _cvPlayerEl = document.getElementById('cv-player');
+if (_cvPlayerEl) _cvPlayerEl.onclick = function(e) {
   if (e.target === this) cvGoBack();
 };
 
 // Fullscreen button
-document.getElementById('cv-player-fullscreen-btn').onclick = function() {
+var _cvPlayerFsBtn = document.getElementById('cv-player-fullscreen-btn');
+if (_cvPlayerFsBtn) _cvPlayerFsBtn.onclick = function() {
   var wrap = document.getElementById('cv-player-video-wrap');
+  if (!wrap) return;
   if (wrap.requestFullscreen) wrap.requestFullscreen();
   else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
   else if (wrap.mozRequestFullScreen) wrap.mozRequestFullScreen();
@@ -6874,8 +6934,10 @@ function cvEpDl(idx) {
   document.getElementById('cv-dl-popup').classList.add('open');
 }
 
-document.getElementById('cv-dl-popup-cancel').onclick = closeDlPopup;
-document.getElementById('cv-dl-popup').onclick = function(e) {
+var _cvDlPopupCancelEl = document.getElementById('cv-dl-popup-cancel');
+if (_cvDlPopupCancelEl) _cvDlPopupCancelEl.onclick = closeDlPopup;
+var _cvDlPopupEl = document.getElementById('cv-dl-popup');
+if (_cvDlPopupEl) _cvDlPopupEl.onclick = function(e) {
   if (e.target === this) closeDlPopup();
 };
 
@@ -6890,6 +6952,20 @@ document.getElementById('cv-dl-popup').onclick = function(e) {
   }
   cvWatchlistTryAutoSync();
 })();
+// ── Category select hone par grid section tak smooth auto-scroll —
+//    fixed nav + sticky category-pills bar ki height nikaal ke offset
+//    lagate hain, taake section theek nav ke neeche se shuru dikhe.
+//    Sabhi devices (mobile/tablet/desktop) par khud offsetHeight se
+//    kaam karta hai, isliye har screen size par sahi rehta hai. ──
+function cvScrollToCatSection() {
+  var grid = document.getElementById('cv-grid');
+  if (!grid) return;
+  var nav = document.getElementById('cv-nav');
+  var cats = document.getElementById('cv-cats');
+  var offset = (nav ? nav.offsetHeight : 0) + (cats ? cats.offsetHeight : 0);
+  var top = grid.getBoundingClientRect().top + window.pageYOffset - offset - 6;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
   pill.addEventListener('click', function() {
     var cat = pill.dataset.cat;
@@ -6915,6 +6991,10 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     }
 
     renderGrid();
+    // Category/genre select hote hi poore grid section tak smooth scroll —
+    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
+    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
+    requestAnimationFrame(cvScrollToCatSection);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
@@ -7030,7 +7110,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
     var thumbHtml = thumb
-      ? '<img alt="Movie Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
       : '<div class="cv-sug-thumb-placeholder">🎬</div>';
     html += '<div class="cv-sug-item" data-key="' + escHtml(m._key) + '">'
       + thumbHtml
@@ -7179,7 +7259,7 @@ function tmdbRender(trackId, movies) {
     var mediaType = m.media_type === 'tv' ? 'tv' : 'movie';
     html += '<div class="cv-slide-card" onclick="tmdbPlayTrailer(' + tmdbId + ',\'' + mediaType + '\',\'' + escJs(title) + '\')">'
       + (poster
-          ? '<img alt="Movie Poster" class="cv-slide-img" src="' + poster + '" alt="' + escHtml(title) + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">'
+          ? '<img class="cv-slide-img" src="' + poster + '" alt="' + escHtml(title) + ' Poster" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">'
             + '<div class="cv-slide-no-img" style="display:none">🎬</div>'
           : '<div class="cv-slide-no-img">🎬</div>')
       + (rating ? '<div class="cv-slide-badge">⭐ ' + rating + '</div>' : '')
@@ -8832,19 +8912,37 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 //<![CDATA[
 (function(){
   var _plyrLoaded = false;
+  var _plyrLoading = false;
+  var _plyrCallbacks = [];
   function loadPlyr(cb){
     if(_plyrLoaded){ if(cb) cb(); return; }
+    if(cb) _plyrCallbacks.push(cb);
+    if(_plyrLoading) return;
+    _plyrLoading = true;
     var s = document.createElement('script');
     s.src = 'https://cdn.plyr.io/3.7.8/plyr.polyfilled.js';
-    s.onload = function(){ _plyrLoaded = true; if(cb) cb(); };
+    s.onload = function(){
+      _plyrLoaded = true;
+      var cbs = _plyrCallbacks; _plyrCallbacks = [];
+      cbs.forEach(function(fn){ try { fn(); } catch(e){} });
+    };
     document.head.appendChild(s);
   }
-  // Override playVideo to lazy-load Plyr first
+  // Override playVideo to use Plyr (already warm by the time user clicks, in most cases)
   var _origPlay = window.playVideo;
   if(typeof _origPlay === 'function'){
     window.playVideo = function(url, title){
       loadPlyr(function(){ _origPlay(url, title); });
     };
+  }
+  // ── Warm up Plyr in the background as soon as the browser is idle,
+  //    so it's already cached/ready before the user taps play — this
+  //    removes the network-wait lag on the FIRST video open. ──
+  var warm = function(){ loadPlyr(); };
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(warm, { timeout: 4000 });
+  } else {
+    setTimeout(warm, 2000);
   }
 })();
 //]]>
@@ -8870,75 +8968,6 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
       }
     });
   }, {passive:true});
-})();
-//]]>
-</script>
-
-
-
-
-
-<script>
-//<![CDATA[
-// ── HOME PAGE BACKGROUND MUSIC — Firebase (settings/homeMusic) se
-//    control hota hai (admin panel se URL/volume/on-off set hote hain).
-//    Koi button ya player UI KAHIN nahi dikhta — poori tarah invisible,
-//    background mein bajta hai. Browsers bina user-interaction ke
-//    sound-wali autoplay block karte hain, isliye:
-//    - autoplayMode 'muted'   → muted hi shuru hoti hai, pehle click/
-//      scroll/keypress par khud-ba-khud unmute ho jati hai (silently).
-//    - autoplayMode 'interact' → pehli interaction ka wait karti hai,
-//      phir seedha sound ke sath bajti hai.
-//    Dono cases mein koi visible control kabhi nahi dikhta. ──
-(function(){
-  try {
-    // Pehle Blogger ka b:if 'canonicalUrl == homepageUrl' yeh check karta
-    // tha ke sirf homepage par yeh script chale. Static site mein wahi
-    // check plain JS se: sirf '/' ya '/index.html' par music chalao.
-    var _p = location.pathname.replace(/\/+$/, '') || '/';
-    if (_p !== '/' && _p !== '/index.html' && _p !== '/index') return;
-
-    fetch('https://cinenova-8987c-default-rtdb.firebaseio.com/settings/homeMusic.json', { cache: 'no-store' })
-      .then(function(r){ return r.json(); })
-      .then(function(cfg){
-        if (!cfg || !cfg.enabled || !cfg.url) return;
-
-        var vol = (typeof cfg.volume === 'number') ? Math.max(0, Math.min(1, cfg.volume)) : 0.5;
-        var mode = cfg.autoplayMode === 'interact' ? 'interact' : 'muted';
-
-        var audio = document.createElement('audio');
-        audio.src = cfg.url;
-        audio.loop = true;
-        audio.preload = 'auto';
-        audio.style.display = 'none';
-        audio.setAttribute('playsinline', '');
-        document.body.appendChild(audio);
-
-        var unlocked = false;
-        function unlockAndPlay(){
-          if (unlocked) return;
-          unlocked = true;
-          audio.volume = vol;
-          audio.muted = false;
-          audio.play().catch(function(){});
-          ['click','touchstart','keydown','scroll'].forEach(function(ev){
-            document.removeEventListener(ev, unlockAndPlay);
-          });
-        }
-
-        if (mode === 'muted') {
-          audio.muted = true;
-          audio.volume = vol;
-          audio.play().catch(function(){});
-        }
-        // Dono mode mein: pehli user-interaction par (agar abhi tak
-        // unmute/play nahi hua) sound ke sath bajana shuru karo.
-        ['click','touchstart','keydown','scroll'].forEach(function(ev){
-          document.addEventListener(ev, unlockAndPlay, { passive: true, once: false });
-        });
-      })
-      .catch(function(){});
-  } catch (e) {}
 })();
 //]]>
 </script>
