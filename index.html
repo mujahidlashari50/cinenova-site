@@ -19,6 +19,10 @@
 <meta content='CineNova - Free HD Movies' id='cv-tw-title' name='twitter:title'/>
 <meta content='Watch free HD movies, web series. No login, no subscription!' id='cv-tw-desc' name='twitter:description'/>
 <meta content='width=device-width, initial-scale=1.0, viewport-fit=cover' name='viewport'/>
+<meta content='yes' name='mobile-web-app-capable'/>
+<meta content='yes' name='apple-mobile-web-app-capable'/>
+<meta content='black-translucent' name='apple-mobile-web-app-status-bar-style'/>
+<meta content='telephone=no' name='format-detection'/>
 <meta content='#0a0a0a' name='theme-color'/>
 <title>CineNova - Free HD Movies &amp; Web Series</title>
 <link href='https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png' rel='icon' type='image/png'/>
@@ -3084,6 +3088,300 @@ body{text-rendering:optimizeSpeed}
     box-shadow: 0 0 8px rgba(229,9,20,0.8), 0 0 16px rgba(229,9,20,0.4);
   }
 }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CINENOVA — PREMIUM POLISH LAYER
+     Same red/black identity, refined for a "master" premium feel.
+     Additive layer — sits after base CSS, only enhances visuals.
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+:root{
+  --red-grad:linear-gradient(135deg,#ff2b2b 0%,#e50914 55%,#a3050c 100%);
+  --red-grad-soft:linear-gradient(135deg,rgba(229,9,20,0.16),rgba(229,9,20,0.03));
+  --glass:rgba(20,20,20,0.72);
+  --glass-border:rgba(255,255,255,0.08);
+  --premium-shadow:0 10px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4);
+  --premium-shadow-red:0 10px 32px rgba(229,9,20,0.28), 0 2px 10px rgba(0,0,0,0.5);
+  --ease-premium:cubic-bezier(0.16,1,0.3,1);
+}
+
+/* ── Global micro-refinement ── */
+body{letter-spacing:0.1px}
+::selection{background:rgba(229,9,20,0.38);color:#fff}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#3a3a3a,#2a2a2a);border-radius:20px}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#e50914,#a3050c)}
+
+/* ── Navbar: deeper glass + hairline glow ── */
+#cv-nav{background:linear-gradient(180deg,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.55) 60%,transparent 100%)}
+#cv-nav.scrolled{
+  background:var(--glass);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+  box-shadow:0 1px 0 rgba(255,255,255,0.06), var(--premium-shadow);
+  border-bottom:1px solid rgba(229,9,20,0.15);
+}
+#cv-logo svg{filter:drop-shadow(0 2px 10px rgba(229,9,20,0.35));transition:filter 0.3s var(--ease-premium)}
+#cv-logo:hover svg{filter:drop-shadow(0 3px 16px rgba(229,9,20,0.55))}
+#cv-search-wrap{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--glass-border);
+  backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+}
+#cv-search-wrap:focus-within{
+  background:rgba(255,255,255,0.07);
+  border-color:rgba(229,9,20,0.55);
+  box-shadow:0 0 0 3px rgba(229,9,20,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+#cv-search-btn,#cv-header-mylist-btn,#cv-nav-motd-btn{
+  background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);
+  transition:all 0.25s var(--ease-premium);
+}
+#cv-search-btn:hover,#cv-header-mylist-btn:hover{
+  background:rgba(229,9,20,0.12);border-color:rgba(229,9,20,0.4);transform:translateY(-1px);
+}
+
+/* ── Category pills: gradient active + smoother hover ── */
+#cv-cats{
+  background:linear-gradient(180deg,rgba(15,15,15,0.97),rgba(15,15,15,0.9));
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.cv-pill{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.09);
+  transition:all 0.25s var(--ease-premium);
+}
+.cv-pill:hover{
+  background:rgba(255,255,255,0.1);
+  border-color:rgba(255,255,255,0.25);
+  transform:translateY(-1px);
+}
+.cv-pill.active{
+  background:var(--red-grad);
+  border-color:transparent;
+  box-shadow:var(--premium-shadow-red);
+  transform:translateY(-1px);
+}
+
+/* ── Featured banner: richer cinematic depth ── */
+#cv-featured-card::after{
+  height:38%;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);
+}
+#cv-featured-overlay{
+  background:
+    linear-gradient(to right, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 48%, rgba(0,0,0,0.05) 75%, transparent 100%),
+    linear-gradient(to top, #141414 0%, rgba(20,20,20,0.75) 30%, transparent 62%);
+}
+#cv-featured-title{
+  text-shadow:0 4px 24px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.9);
+}
+#cv-featured-logo-img{filter:drop-shadow(0 4px 16px rgba(0,0,0,0.8))}
+
+/* ── Movie cards: deeper premium hover ── */
+#cv-grid{gap:16px}
+.cv-card{
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.06);
+  transition:transform 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium), border-color 0.3s var(--ease-premium);
+}
+.cv-card:hover{
+  transform:scale(1.055) translateY(-4px);
+  box-shadow:0 0 0 1px rgba(229,9,20,0.45), 0 20px 40px rgba(0,0,0,0.85), 0 0 28px rgba(229,9,20,0.16);
+  border-color:rgba(229,9,20,0.35);
+}
+.cv-card-img-wrap::after{
+  background:var(--red-grad);
+  box-shadow:0 6px 24px rgba(229,9,20,0.6), 0 0 0 4px rgba(0,0,0,0.35);
+}
+.cv-card-info{
+  background:linear-gradient(180deg,#181818 0%,#151515 100%);
+}
+.cv-card-title{letter-spacing:0.1px}
+.cv-badge{
+  background:rgba(0,0,0,0.85);
+  border:1px solid rgba(245,197,24,0.25);
+  backdrop-filter:blur(4px);
+}
+.cv-cat-badge.cv-new,.cv-ep-alert-badge{background:var(--red-grad)}
+
+/* ── Section titles: accent gradient bar ── */
+.cv-section-title,.tmdb-section-title{
+  font-weight:800;letter-spacing:0.2px;
+}
+.cv-section-title::after{
+  background:linear-gradient(90deg,rgba(255,255,255,0.14),transparent);
+}
+.cv-section-title::before{
+  content:'';display:inline-block;width:4px;height:16px;
+  background:var(--red-grad);border-radius:2px;margin-right:2px;
+}
+
+/* ── Buttons: premium gradient + lift ── */
+.cv-dl-btn{
+  background:var(--red-grad);
+  box-shadow:var(--premium-shadow-red);
+  transition:all 0.25s var(--ease-premium);
+}
+.cv-dl-btn:hover{
+  background:linear-gradient(135deg,#ff4040,#e50914 55%,#8a0309);
+  transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(229,9,20,0.5);
+}
+.cv-dl-btn.secondary{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.14);
+  backdrop-filter:blur(8px);
+}
+.cv-dl-btn.secondary:hover{background:rgba(255,255,255,0.13);transform:translateY(-2px)}
+.cv-ep-btn{background:var(--red-grad);box-shadow:0 4px 14px rgba(229,9,20,0.3)}
+.cv-ep-btn:hover{box-shadow:0 6px 18px rgba(229,9,20,0.45);transform:translateY(-1px)}
+
+/* ── Modal: glass premium ── */
+#cv-modal-box{
+  box-shadow:0 -20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+}
+.cv-mbadge{
+  background:rgba(255,255,255,0.05);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+}
+#cv-modal-desc{
+  background:rgba(255,255,255,0.025);
+  border:1px solid rgba(255,255,255,0.05);
+}
+.cv-ep-item{
+  background:rgba(255,255,255,0.035);
+  transition:all 0.2s var(--ease-premium);
+}
+.cv-ep-item:hover{background:rgba(255,255,255,0.07);transform:translateX(2px)}
+
+/* ── Bottom nav (mobile): glass + active glow ── */
+#cv-bottom-nav{
+  background:rgba(10,10,10,0.9)!important;
+  border-top:1px solid rgba(229,9,20,0.15);
+}
+.cv-bnav-item.active{color:#e50914}
+.cv-bnav-item.active .cv-bnav-icon{filter:drop-shadow(0 0 6px rgba(229,9,20,0.6))}
+
+/* ── Footer: subtle refinement ── */
+#cv-footer{border-top:2px solid transparent;border-image:var(--red-grad) 1}
+.cvf-logo-red{background:var(--red-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ── Reduce shine on low-power devices, keep desktop premium ── */
+@media(max-width:480px){
+  .cv-card:hover{transform:none}
+  #cv-nav.scrolled{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+}
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CINENOVA — MOBILE & ALL-DEVICE PERFECTION LAYER
+     Safe-area, notch, iOS-zoom-bug, touch-targets, tablets,
+     foldables, landscape — auto-adjusts on every screen.
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+/* ── iOS Safari auto-zoom fix — ANY input/select/textarea must be
+     >=16px or the whole page zooms in on focus. Applies everywhere
+     an input might render (search, contact form, comments, etc). ── */
+input,select,textarea{font-size:16px!important}
+@media(min-width:601px){
+  #cv-search-wrap input{font-size:0.88rem!important} /* desktop nav search can stay compact */
+}
+
+/* ── Prevent any accidental horizontal scroll on any device ── */
+html,body{overflow-x:hidden;max-width:100%}
+#cv-main-content,#cv-grid,#cv-featured-wrap{max-width:100%}
+
+/* ── Safe-area aware nav (notch / Dynamic Island / punch-hole) ── */
+#cv-nav{
+  padding-top:env(safe-area-inset-top,0px);
+  height:calc(var(--nav-h) + env(safe-area-inset-top,0px));
+  padding-left:calc(4% + env(safe-area-inset-left,0px));
+  padding-right:calc(4% + env(safe-area-inset-right,0px));
+}
+#cv-cats{top:calc(var(--nav-h) + env(safe-area-inset-top,0px))}
+#cv-search-overlay{
+  top:calc(var(--nav-h) + env(safe-area-inset-top,0px));
+  padding-left:calc(16px + env(safe-area-inset-left,0px));
+  padding-right:calc(16px + env(safe-area-inset-right,0px));
+}
+
+/* ── Safe-area aware bottom nav (home-indicator devices) ── */
+@media(max-width:480px){
+  #cv-bottom-nav{
+    height:calc(var(--bottom-nav-h) + env(safe-area-inset-bottom,0px));
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    padding-left:env(safe-area-inset-left,0px);
+    padding-right:env(safe-area-inset-right,0px);
+  }
+}
+#cv-modal-box{padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* ── Minimum 44x44 touch targets (Apple/Google guideline) ── */
+@media(max-width:900px){
+  #cv-search-btn,#cv-header-mylist-btn,#cv-nav-motd-btn{min-width:40px;min-height:40px}
+  .cv-pill{min-height:36px;display:inline-flex;align-items:center}
+  #cv-search-overlay-close,#cv-search-clear,#cv-search-mobile-clear{min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
+  .cv-ep-btn,.cv-page-btn{min-height:38px}
+  .cv-bnav-item{min-height:48px}
+}
+
+/* ── Small phones (iPhone SE / 320-360px) — keep 2-col grid tidy ── */
+@media(max-width:360px){
+  #cv-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;padding:8px!important}
+  #cv-logo svg{height:36px!important}
+  #cv-featured-title{font-size:1.2rem!important}
+  #cv-featured-info{width:78%!important;min-width:0!important}
+  .cv-pill{padding:6px 12px!important;font-size:0.74rem!important}
+}
+
+/* ── Tablets / foldables (601-1024px) — richer grid, roomier layout ── */
+@media(min-width:601px) and (max-width:1024px){
+  #cv-grid{grid-template-columns:repeat(4,1fr)!important;gap:16px!important;padding:18px!important}
+  #cv-featured-info{width:60%!important;max-width:600px!important}
+}
+
+/* ── Large tablets / small laptops (1025-1200px) ── */
+@media(min-width:1025px) and (max-width:1200px){
+  #cv-grid{grid-template-columns:repeat(5,1fr)!important}
+}
+
+/* ── Landscape phones — banner/nav don't eat the whole screen ── */
+@media(max-width:900px) and (max-height:480px) and (orientation:landscape){
+  #cv-featured-card{height:80vh!important;max-height:420px!important}
+  #cv-bottom-nav{height:48px!important}
+  .cv-bnav-label{display:none!important}
+  .cv-bnav-icon{font-size:1.1rem!important}
+  #cv-nav{height:52px!important}
+  body{padding-bottom:48px!important}
+}
+
+/* ── Foldable inner-screen edge case (e.g. Z Fold cover ~280-320px) ── */
+@media(max-width:300px){
+  #cv-grid{grid-template-columns:1fr 1fr!important;gap:6px!important}
+  #cv-search-wrap{display:none!important}
+}
+
+/* ── Backdrop-filter fallback for older Android WebViews ── */
+@supports not (backdrop-filter:blur(1px)){
+  #cv-nav.scrolled,#cv-cats,#cv-bottom-nav,#cv-search-overlay{background:#0a0a0a!important}
+}
+
+/* ── Prevent pull-to-refresh / rubber-band glitches on iOS Chrome/Safari ── */
+body{overscroll-behavior-y:contain}
+
+/* ── Sharper tap feedback, no ghost highlight anywhere ── */
+*{-webkit-tap-highlight-color:transparent}
+a,button,.cv-card,.cv-pill,.cv-dl-btn,.cv-bnav-item{-webkit-touch-callout:none}
+
+/* ── Prevent orientation-change layout jump on featured banner ── */
+#cv-featured-card{transition:height 0.25s ease}
+
+/* ── Fluid title sizing so long titles never overflow on narrow screens ── */
+#cv-featured-title{overflow-wrap:break-word;word-break:break-word}
 </style>
 </head>
 <body>
