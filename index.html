@@ -3462,6 +3462,7 @@ body{text-rendering:optimizeSpeed}
     </div>
   </div>
 </div>
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';document.getElementById('cv-ns-latest-wrap').style.display='none';}}catch(e){}})();</script>
 
 <!-- MOVIE OF THE DAY -->
 <div id='cv-motd-outer' style='display:none'>
@@ -5423,10 +5424,14 @@ function updateSlidersVisibility(cat) {
   var isHome = (cat === 'all');
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
+  var nsHero = document.getElementById('cv-ns-hero');
+  var nsLatest = document.getElementById('cv-ns-latest-wrap');
 
   if (isHome) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
+    if (nsHero) nsHero.style.display = '';
+    if (nsLatest) nsLatest.style.display = '';
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
       // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
@@ -5438,6 +5443,8 @@ function updateSlidersVisibility(cat) {
   } else {
     // Category pe sirf grid — sab hide
     if (trailersWrap) trailersWrap.style.display = 'none';
+    if (nsHero) nsHero.style.display = 'none';
+    if (nsLatest) nsLatest.style.display = 'none';
     if (featuredWrap) {
       if (featuredWrap._adminEnabled === undefined) featuredWrap._adminEnabled = featuredWrap.style.display !== 'none';
       featuredWrap.style.display = 'none';
@@ -6407,15 +6414,21 @@ function cvGoPage(page, fromPopstate) {
   // Page 2+ pe banners hide karo, page 1 pe wapas show
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
+  var nsHero = document.getElementById('cv-ns-hero');
+  var nsLatest = document.getElementById('cv-ns-latest-wrap');
   if (page === 1) {
     // Sirf home (all) category pe show karo
     if (selCat === 'all' && selGenre === '') {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
+      if (nsHero) nsHero.style.display = '';
+      if (nsLatest) nsLatest.style.display = '';
     }
   } else {
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (featuredWrap) featuredWrap.style.display = 'none';
+    if (nsHero) nsHero.style.display = 'none';
+    if (nsLatest) nsLatest.style.display = 'none';
   }
 
   cvRenderPage();
