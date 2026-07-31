@@ -287,114 +287,6 @@ body{text-rendering:optimizeSpeed}
 
 
 
-/* ══ NOW SHOWING HERO (posters-only, auto-rotating) ══ */
-#cv-ns-hero{
-  position:relative;width:100%;box-sizing:border-box;
-  padding:44px 4% 50px;
-  min-height:440px;
-  display:flex;align-items:center;justify-content:center;
-  background:
-    radial-gradient(ellipse 1000px 550px at 50% 0%, rgba(229,9,20,0.10) 0%, transparent 62%),
-    linear-gradient(180deg,#0a0a0a 0%,#111 70%,#141414 100%);
-  overflow:hidden;
-}
-#cv-ns-hero::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
-  background-size:42px 42px;
-  mask-image:radial-gradient(ellipse 800px 450px at 50% 30%,#000 0%,transparent 75%);
-  -webkit-mask-image:radial-gradient(ellipse 800px 450px at 50% 30%,#000 0%,transparent 75%);
-}
-#cv-ns-stack{position:relative;z-index:2;width:280px;height:400px}
-.cv-ns-poster{
-  position:absolute;top:0;left:0;width:100%;height:100%;
-  border-radius:16px;overflow:hidden;background:#1a1a1a;
-  box-shadow:0 24px 55px rgba(0,0,0,0.6);
-  border:1px solid rgba(255,255,255,0.08);
-  transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94),opacity 0.6s ease,filter 0.6s ease;
-  cursor:pointer;
-}
-.cv-ns-poster img{width:100%;height:100%;object-fit:cover;display:block}
-.cv-ns-poster.cv-ns-p0{transform:rotate(-10deg) translate(-78px,14px) scale(0.88);opacity:0.7;filter:brightness(0.6);z-index:1}
-.cv-ns-poster.cv-ns-p1{transform:rotate(9deg) translate(72px,20px) scale(0.88);opacity:0.7;filter:brightness(0.6);z-index:1}
-.cv-ns-poster.cv-ns-p2{transform:rotate(0deg) translate(0,-10px) scale(1);opacity:1;filter:brightness(1);z-index:2}
-.cv-ns-poster.cv-ns-p2::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.15) 45%,transparent 65%);
-}
-.cv-ns-p2-cap{
-  position:absolute;left:0;right:0;bottom:0;padding:14px 14px 16px;z-index:3;
-  font-size:0.76rem;font-weight:800;line-height:1.35;color:#fff;
-  text-shadow:0 2px 10px rgba(0,0,0,0.8);
-}
-/* Crossfade on auto-rotate */
-.cv-ns-poster.cv-ns-fading{opacity:0!important;transform:scale(0.94)!important}
-.cv-ns-skel{position:absolute;inset:0;border-radius:16px;background:linear-gradient(90deg,#1a1a1a 25%,#242424 37%,#1a1a1a 63%);background-size:400% 100%;animation:cv-skel-shine 1.4s ease infinite}
-@keyframes cv-skel-shine{0%{background-position:100% 0}100%{background-position:-100% 0}}
-@media(max-width:900px){
-  #cv-ns-hero{padding:34px 20px 40px;min-height:400px}
-  #cv-ns-stack{width:230px;height:330px}
-  .cv-ns-poster.cv-ns-p0{transform:rotate(-9deg) translate(-62px,12px) scale(0.88)}
-  .cv-ns-poster.cv-ns-p1{transform:rotate(8deg) translate(58px,16px) scale(0.88)}
-}
-@media(max-width:480px){
-  #cv-ns-hero{min-height:340px}
-  #cv-ns-stack{width:190px;height:270px}
-  .cv-ns-poster.cv-ns-p0{transform:rotate(-8deg) translate(-48px,8px) scale(0.88)}
-  .cv-ns-poster.cv-ns-p1{transform:rotate(7deg) translate(44px,12px) scale(0.88)}
-  .cv-ns-p2-cap{font-size:0.68rem;padding:10px 10px 12px}
-}
-
-/* ══ JUST UPLOADED STRIP (below hero) ══ */
-#cv-ns-latest-wrap{
-  position:relative;padding:24px 4% 14px;background:#141414;
-  border-bottom:1px solid rgba(255,255,255,0.05);
-}
-#cv-ns-latest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-#cv-ns-latest-title{font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:0.2px}
-#cv-ns-latest-track-wrap{
-  overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;
-  padding:16px 0 14px;margin:-16px 0 -14px;
-}
-#cv-ns-latest-track-wrap::-webkit-scrollbar{height:5px}
-#cv-ns-latest-track{display:flex;gap:16px;padding:0 2px}
-.cv-ns-lcard{
-  flex-shrink:0;width:140px;position:relative;cursor:pointer;
-  transition:transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
-}
-.cv-ns-lcard:hover,.cv-ns-lcard:focus-visible{transform:scale(1.16) translateY(-8px);z-index:20}
-.cv-ns-lcard-img-wrap{
-  position:relative;border-radius:10px;overflow:hidden;aspect-ratio:2/3;
-  background:#1a1a1a;box-shadow:0 6px 18px rgba(0,0,0,0.4);
-  border:1px solid rgba(255,255,255,0.06);transition:box-shadow 0.32s,border-color 0.32s;
-}
-.cv-ns-lcard:hover .cv-ns-lcard-img-wrap{box-shadow:0 20px 44px rgba(0,0,0,0.7);border-color:var(--red)}
-.cv-ns-lcard-img{width:100%;height:100%;object-fit:cover;display:block}
-.cv-ns-lcard-new{
-  position:absolute;top:7px;left:7px;z-index:2;
-  background:linear-gradient(135deg,#e50914,#ff4500);color:#fff;
-  font-size:0.58rem;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;
-  padding:3px 8px;border-radius:5px;box-shadow:0 2px 10px rgba(229,9,20,0.5);
-}
-.cv-ns-lcard-title{
-  margin-top:8px;font-size:0.76rem;font-weight:700;color:#ccc;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 0.3s;
-}
-.cv-ns-lcard:hover .cv-ns-lcard-title{color:#fff}
-.cv-ns-lskel{
-  flex-shrink:0;width:140px;aspect-ratio:2/3;border-radius:10px;
-  background:linear-gradient(90deg,#1a1a1a 25%,#242424 37%,#1a1a1a 63%);
-  background-size:400% 100%;animation:cv-skel-shine 1.4s ease infinite;
-}
-@media(max-width:600px){
-  #cv-ns-latest-wrap{padding:20px 16px 12px}
-  #cv-ns-latest-title{font-size:1rem}
-  .cv-ns-lcard,.cv-ns-lskel{width:108px}
-  .cv-ns-lcard:hover{transform:scale(1.1) translateY(-5px)}
-  .cv-ns-lcard-title{font-size:0.7rem}
-  .cv-ns-lcard-new{font-size:0.52rem;padding:2px 6px}
-}
-
 /* ══ UPCOMING MOVIES HERO SLIDER ══ */
 #cv-upcoming-wrap{
   position:absolute;inset:0;z-index:5;
@@ -3444,26 +3336,6 @@ body{text-rendering:optimizeSpeed}
   </div>
 </div>
 
-<!-- ══ NOW SHOWING HERO (new — posters only, auto-rotating) ══ -->
-<div id='cv-ns-hero'>
-  <div id='cv-ns-stack'>
-    <div class='cv-ns-skel'></div>
-  </div>
-</div>
-
-<!-- ══ JUST UPLOADED STRIP (below new hero) ══ -->
-<div id='cv-ns-latest-wrap'>
-  <div id='cv-ns-latest-header'>
-    <div id='cv-ns-latest-title'>Just Uploaded</div>
-  </div>
-  <div id='cv-ns-latest-track-wrap'>
-    <div id='cv-ns-latest-track'>
-      <div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div>
-    </div>
-  </div>
-</div>
-<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';document.getElementById('cv-ns-latest-wrap').style.display='none';}}catch(e){}})();</script>
-
 <!-- MOVIE OF THE DAY -->
 <div id='cv-motd-outer' style='display:none'>
   <div id='cv-motd-label'>
@@ -4048,11 +3920,6 @@ function _cvOnFirebaseReady() {
       featuredWrap.style.display = featuredWrap._adminEnabled ? 'block' : 'none';
     }
 
-    // New Hero Banner (posters hero + Just Uploaded strip) — default ON,
-    // sirf tab OFF jab admin ne panel se explicitly false kiya ho
-    window._cvNewHeroEnabled = (sl.newHero !== false);
-    cvApplyNsHeroVisibility();
-
     // Rebuild featured banner
     buildFeatured();
   });
@@ -4424,8 +4291,6 @@ function fetchFirebasePage(isFirst, _retryCount) {
       buildTrending();
       buildTsSlider();
       buildFeatured();
-      buildNsHero();
-      buildNsLatest();
       // Attach realtime watchers now that allData is populated from Firebase
       watchNewMovies();
       // URL restore — shared link pe movie/category open karo
@@ -4471,8 +4336,6 @@ function _cvDebouncedRefresh() {
     buildTrending();
     buildTsSlider();
     buildFeatured();
-    buildNsHero();
-    buildNsLatest();
   }, 300);
 }
 
@@ -5069,122 +4932,6 @@ var featuredList = [];
 var featuredIdx = 0;
 var featuredTimer = null;
 
-// ══ NEW HERO BANNER — admin on/off + home-only visibility combined ══
-window._cvNewHeroEnabled = (window._cvNewHeroEnabled !== false); // default ON until Firebase settings load
-function cvApplyNsHeroVisibility() {
-  var nsHero = document.getElementById('cv-ns-hero');
-  var nsLatest = document.getElementById('cv-ns-latest-wrap');
-  var show = (window._cvNewHeroEnabled !== false) &&
-             (typeof selCat === 'undefined' || selCat === 'all') &&
-             (typeof selGenre === 'undefined' || selGenre === '') &&
-             (typeof cvCurrentPage === 'undefined' || cvCurrentPage === 1);
-  if (nsHero) nsHero.style.display = show ? '' : 'none';
-  if (nsLatest) nsLatest.style.display = show ? '' : 'none';
-}
-
-// ══ NOW SHOWING HERO — auto-rotating poster showcase from latest Firebase movies ══
-var _cvNsPool = [];
-var _cvNsOffset = 0;
-var _cvNsTimer = null;
-
-function buildNsHero() {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack) return;
-  // allData newest-first already (see fetchFirebasePage) — non-adult, has thumbnail
-  var pool = [];
-  for (var i = 0; i < allData.length && pool.length < 12; i++) {
-    var m = allData[i];
-    if (m && m.thumbnail && !cvIsAdultItem(m)) pool.push(m);
-  }
-  if (!pool.length) return;
-  _cvNsPool = pool;
-  _cvNsOffset = 0;
-  _cvNsRender(false);
-
-  if (_cvNsTimer) clearInterval(_cvNsTimer);
-  if (_cvNsPool.length > 1) {
-    _cvNsTimer = setInterval(_cvNsRotate, 3800);
-  }
-}
-
-function _cvNsPick(offset) {
-  var pool = _cvNsPool, n = pool.length, picks = [];
-  if (!n) return picks;
-  for (var k = 0; k < 3; k++) picks.push(pool[(offset + k) % n]);
-  return picks;
-}
-
-function _cvNsRender(fadeIn) {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack) return;
-  var picks = _cvNsPick(_cvNsOffset);
-  if (!picks.length) return;
-  while (picks.length < 3) picks.push(picks[picks.length - 1]);
-
-  var classes = ['cv-ns-p0', 'cv-ns-p1', 'cv-ns-p2'];
-  var html = '';
-  for (var j = 0; j < 3; j++) {
-    var mv = picks[j];
-    var key = mv._key;
-    var thumb = cvThumb(mv.thumbnail);
-    var isFront = classes[j] === 'cv-ns-p2';
-    html += '<div class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" data-key="' + escHtml(key) + '" onclick="openModal(&quot;' + escJs(key) + '&quot;)">' +
-              '<img alt="' + escHtml(mv.title || 'Movie') + '" loading="lazy" src="' + escHtml(thumb) + '"/>' +
-              (isFront ? '<div class="cv-ns-p2-cap">' + escHtml(mv.title || '') + '</div>' : '') +
-            '</div>';
-  }
-  stack.innerHTML = html;
-
-  if (fadeIn) {
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        var posters = stack.querySelectorAll('.cv-ns-poster');
-        for (var p = 0; p < posters.length; p++) posters[p].classList.remove('cv-ns-fading');
-      });
-    });
-  }
-}
-
-function _cvNsRotate() {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack || _cvNsPool.length < 2) return;
-  var posters = stack.querySelectorAll('.cv-ns-poster');
-  for (var p = 0; p < posters.length; p++) posters[p].classList.add('cv-ns-fading');
-  setTimeout(function() {
-    _cvNsOffset = (_cvNsOffset + 1) % _cvNsPool.length;
-    _cvNsRender(true);
-  }, 380);
-}
-
-// ══ JUST UPLOADED STRIP — newest movies, NEW badge, hover-to-front ══
-function buildNsLatest() {
-  var track = document.getElementById('cv-ns-latest-track');
-  var wrap = document.getElementById('cv-ns-latest-wrap');
-  if (!track) return;
-  var picks = [];
-  for (var i = 0; i < allData.length && picks.length < 16; i++) {
-    var m = allData[i];
-    if (m && m.thumbnail && !cvIsAdultItem(m)) picks.push(m);
-  }
-  if (!picks.length) { if (wrap) wrap.style.display = 'none'; return; }
-  if (wrap) wrap.style.display = '';
-
-  var html = '';
-  for (var j = 0; j < picks.length; j++) {
-    var mv = picks[j];
-    var key = mv._key;
-    var thumb = cvThumb(mv.thumbnail);
-    html += '<div class="cv-ns-lcard" data-key="' + escHtml(key) + '" onclick="openModal(&quot;' + escJs(key) + '&quot;)" tabindex="0">' +
-              '<div class="cv-ns-lcard-img-wrap">' +
-                '<img alt="' + escHtml(mv.title || 'Movie') + '" class="cv-ns-lcard-img" loading="lazy" src="' + escHtml(thumb) + '"/>' +
-                '<span class="cv-ns-lcard-new">New</span>' +
-              '</div>' +
-              '<div class="cv-ns-lcard-title">' + escHtml(mv.title || 'Untitled') + '</div>' +
-            '</div>';
-  }
-  track.innerHTML = html;
-}
-
 function buildFeatured() {
   var wrap = document.getElementById('cv-featured-wrap');
   if (!wrap) return;
@@ -5462,7 +5209,6 @@ function updateSlidersVisibility(cat) {
       featuredWrap.style.display = 'none';
     }
   }
-  cvApplyNsHeroVisibility();
 
   // Category heading update
   var catLabels = {
@@ -6427,21 +6173,15 @@ function cvGoPage(page, fromPopstate) {
   // Page 2+ pe banners hide karo, page 1 pe wapas show
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
-  var nsHero = document.getElementById('cv-ns-hero');
-  var nsLatest = document.getElementById('cv-ns-latest-wrap');
   if (page === 1) {
     // Sirf home (all) category pe show karo
     if (selCat === 'all' && selGenre === '') {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
-      if (nsHero) nsHero.style.display = '';
-      if (nsLatest) nsLatest.style.display = '';
     }
   } else {
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (featuredWrap) featuredWrap.style.display = 'none';
-    if (nsHero) nsHero.style.display = 'none';
-    if (nsLatest) nsLatest.style.display = 'none';
   }
 
   cvRenderPage();
@@ -6569,7 +6309,7 @@ function openModal(key) {
     if (_vlcSrc) {
       // vlcUrl admin panel se manually add hota hai — koi worker/ads/timer
       // nahi, seedha VLC/player launch hota hai (mobile ho ya desktop).
-      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
     } else {
       // Purana static videoUrl fallback — in-page player.
       btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
@@ -6632,7 +6372,7 @@ function openModal(key) {
       if (epVlc) {
         // epVlc admin panel se manually add hota hai — koi worker/ads/timer
         // nahi, seedha VLC/player launch (mobile ho ya desktop).
-        playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\',\'' + escJs(epLabel) + '\')">▶ Play</button>';
+        playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\')">▶ Play</button>';
       } else if (epUrl) {
         playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">▶ Play</button>';
       }
@@ -6889,7 +6629,7 @@ if (_cvModalEl) _cvModalEl.onclick = function(e) {
 // PLAYER
 // ══════════════════════════════════
 // MX Player — video URL seedha ACTION_VIEW se open karo
-function openMxPlayer(url, title) {
+function openMxPlayer(url) {
   if (!url) return;
   var isIOS     = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
   var isAndroid = /Android/i.test(navigator.userAgent);
@@ -6900,14 +6640,17 @@ function openMxPlayer(url, title) {
       + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/any;end';
     window.location.href = intent;
   } else {
-    // Desktop (Windows/Mac/Linux) — 'vlc://' YAHAN KAAM NAHI KARTA. VLC
-    // Windows/Mac par is protocol ko by-default register hi nahi karta,
-    // isliye chahe VLC install ho ya na ho, location.href silently fail
-    // ho jati thi aur "VLC nahi khula" wala galat message har baar dikh
-    // jata tha (VLC installed hone ke bawajood). Ab desktop par seedha
-    // reliable in-page player (Plyr) mein hi khol dete hain — koi
-    // external app launch attempt nahi, isliye koi false popup bhi nahi.
-    playVideo(url, title);
+    // Desktop (Windows/Mac/Linux) — VLC install hone par 'vlc://' protocol
+    // se seedha launch ho jata hai. Agar VLC install nahi hai to ye
+    // silently fail hoti hai (koi error dikhta nahi) — isliye chhota sa
+    // helpful hint dikha dete hain taake user confuse na ho.
+    window.location.href = 'vlc://' + url.replace(/^https?:\/\//, '');
+    setTimeout(function() {
+      if (document.hidden) return; // agar VLC khul gaya to tab background mein chala jata hai
+      if (typeof showStatus === 'function') {
+        showStatus('VLC nahi khula? VLC Media Player install karein — videolan.org', '#e50914');
+      }
+    }, 1800);
   }
 }
 
