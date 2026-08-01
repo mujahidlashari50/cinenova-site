@@ -3510,6 +3510,33 @@ body{text-rendering:optimizeSpeed}
 <!-- PAGINATION -->
 <div id='cv-pagination' style='display:none'></div>
 
+<!-- SEO CONTENT BLOCK — static (JS se inject nahi hota, isliye CLS zero) —
+     homepage par H1/H2/keyword density/word-count issues fix karne ke liye -->
+<section aria-label='About CineNova' style='padding:36px 20px 28px;max-width:900px;margin:0 auto;color:var(--text2)'>
+  <h1 style='font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:12px;line-height:1.4'>
+    Watch Free HD Movies &amp; Web Series Online on CineNova
+  </h1>
+  <p style='font-size:0.88rem;line-height:1.85;margin-bottom:16px'>
+    CineNova is a <strong style='color:#ddd'>free movies</strong> and web series streaming hub where you can watch the
+    latest Hollywood, Bollywood, Tollywood, and South Indian releases in HD quality — no login and no subscription
+    required. Our library is updated daily with new movies and web series so you never run out of something great to
+    watch, whether you're into action, drama, comedy, thriller, or animated films.
+  </p>
+  <h2 style='font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px'>Why Watch Movies on CineNova?</h2>
+  <p style='font-size:0.88rem;line-height:1.85;margin-bottom:16px'>
+    Every title on CineNova is available in multiple print qualities — 480p, 720p, and 1080p — so you can pick what
+    suits your internet speed and device. Our free movies collection spans genres and languages, with new web series
+    episodes added as soon as they're released. There's no clutter, no forced sign-ups, and no hidden charges — just
+    search, click, and start watching.
+  </p>
+  <h2 style='font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px'>Fresh Content, Updated Daily</h2>
+  <p style='font-size:0.88rem;line-height:1.85'>
+    Our team curates new movies and trending web series around the clock, so the homepage always reflects what's
+    hot right now. Browse by category, search for a specific title, or check the trending row above to discover your
+    next favorite free movie on CineNova.
+  </p>
+</section>
+
 <!-- MOVIE REQUEST FORM -->
 <div id='cv-request-wrap' style='display:none'>
   <h3>📬 Request a Movie</h3>
@@ -6887,17 +6914,16 @@ function openMxPlayer(url) {
       + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/any;end';
     window.location.href = intent;
   } else {
-    // Desktop (Windows/Mac/Linux) — VLC install hone par 'vlc://' protocol
-    // se seedha launch ho jata hai. Agar VLC install nahi hai to ye
-    // silently fail hoti hai (koi error dikhta nahi) — isliye chhota sa
-    // helpful hint dikha dete hain taake user confuse na ho.
-    window.location.href = 'vlc://' + url.replace(/^https?:\/\//, '');
-    setTimeout(function() {
-      if (document.hidden) return; // agar VLC khul gaya to tab background mein chala jata hai
-      if (typeof showStatus === 'function') {
-        showStatus('VLC nahi khula? VLC Media Player install karein — videolan.org', '#e50914');
-      }
-    }, 1800);
+    // Desktop (Windows/Mac/Linux) — 'vlc://' Windows par OS-level
+    // registered protocol NAHI hota (VLC installed hone ke bawajood
+    // bhi silently fail hoti hai), isliye desktop par seedha
+    // in-page CinePlayer (Plyr) mein video play karo — koi external
+    // app dependency nahi.
+    if (typeof playVideo === 'function') {
+      playVideo(url, '');
+    } else {
+      window.open(url, '_blank');
+    }
   }
 }
 
@@ -6933,10 +6959,42 @@ function playVideo(url, title) {
     if (loading) loading.classList.remove('show');
 
     if (isPixeldrain) {
-      // ── Pixeldrain — use their embed player (supports mkv) ──
+      // ── Pixeldrain — direct <video> tag, Referer header suppress
+      // karke (referrerpolicy="no-referrer"). Pixeldrain ka hotlink
+      // block Referer header dekh kar trigger hota hai — jab browser
+      // Referer hi nahi bhejega, to yehi behavior hoga jaisa VLC
+      // (koi Referer nahi) — aur request user ke apne IP se jati hai,
+      // kisi proxy/worker ki zaroorat nahi. Isliye Cloudflare Workers
+      // wala IP-block issue bhi yahan apply nahi hota.
       var pdMatch = url.match(/pixeldrain\.com\/(?:api\/file|u)\/([a-zA-Z0-9]+)/i);
       var pdId = pdMatch ? pdMatch[1] : '';
-      inner.innerHTML = '<iframe src="https://pixeldrain.com/u/' + pdId + '#embed" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      var pdUrl = 'https://pixeldrain.com/api/file/' + pdId;
+      inner.style.position = 'relative';
+      inner.innerHTML = '<video id="cv-plyr-vid" controls playsinline webkit-playsinline referrerpolicy="no-referrer" style="width:100%;height:100%;display:block;object-fit:contain;background:#000"><source src="' + pdUrl + '" referrerpolicy="no-referrer"></video>'
+        + '<div id="cv-video-fallback" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);color:#fff;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:5;">'
+        + '<div style="font-size:0.95rem;margin-bottom:14px;max-width:320px;">⚠️ Ye video is browser mein load nahi ho raha</div>'
+        + '<button onclick="window.open(\'' + pdUrl.replace(/'/g,"\\'") + '\',\'_blank\')" style="padding:12px 24px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">▶ Direct Video Kholen</button>'
+        + '</div>';
+      if (window.Plyr) {
+        window._cvPlyrInst = new Plyr('#cv-plyr-vid', {
+          controls: ['play-large','play','rewind','fast-forward','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
+          settings: ['quality','speed','loop'],
+          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+          ratio: '16:9',
+          autoplay: !/iPad|iPhone|iPod/i.test(navigator.userAgent),
+          playsinline: true
+        });
+      }
+      (function(){
+        var vidEl = document.getElementById('cv-plyr-vid');
+        var fbEl = document.getElementById('cv-video-fallback');
+        vidEl && (vidEl.referrerPolicy = 'no-referrer'); // JS se bhi set — kuch browsers attribute ko late read karte hain
+        var stallTimer = setTimeout(function(){ if (fbEl) fbEl.style.display = 'flex'; }, 12000);
+        if (vidEl) {
+          vidEl.addEventListener('playing', function(){ clearTimeout(stallTimer); if (fbEl) fbEl.style.display = 'none'; });
+          vidEl.addEventListener('error', function(){ clearTimeout(stallTimer); if (fbEl) fbEl.style.display = 'flex'; });
+        }
+      })();
     } else if (isDirectVideo) {
       // ── Direct MP4/WebM/MKV(r2.dev)/Worker-video — Plyr native video player ──
       // Safety-net: agar video 12 second mein play/stall na ho (jaisa
@@ -8726,7 +8784,15 @@ function cvUpdateSEO(m, slug) {
     'description': desc,
     'image': image
   };
-  if (m.year)     jsonld['dateCreated'] = m.year;
+  if (m.year) {
+    jsonld['dateCreated']  = String(m.year);
+    // Publish/modified dates — Ooty "no date markup" warning fix.
+    // Firebase se addedDate/updatedDate ho to wahi use karo, warna
+    // year ke January 1 ko fallback publish date maan lo (behtar
+    // hai date bilkul na hone se).
+    jsonld['datePublished'] = m.addedDate   ? new Date(m.addedDate).toISOString()   : (m.year + '-01-01');
+    jsonld['dateModified']  = m.updatedDate ? new Date(m.updatedDate).toISOString() : jsonld['datePublished'];
+  }
   // Rating scale fix: ratingValue ko number mein convert + 0-10 range mein clamp karo,
   // warna Google "Couldn't determine the rating scale" error deta hai jab value
   // string ho, NaN ho, ya bestRating se bahar ho. worstRating bhi zaroori hai.
@@ -8747,6 +8813,30 @@ function cvUpdateSEO(m, slug) {
   if (m.genre)    jsonld['genre'] = m.genre;
   if (m.language) jsonld['inLanguage'] = m.language;
   if (m.seoKeywords) jsonld['keywords'] = m.seoKeywords;
+  // Extra recommended Movie schema fields — Schema score badhane ke liye
+  if (m.duration) {
+    // Minutes ko ISO 8601 duration format mein convert karo (e.g. 142 -> PT142M)
+    var _durMin = parseInt(m.duration, 10);
+    if (!isNaN(_durMin) && _durMin > 0) jsonld['duration'] = 'PT' + _durMin + 'M';
+  }
+  if (m.director) {
+    jsonld['director'] = String(m.director).split(',').map(function(n){
+      return { '@type': 'Person', 'name': n.trim() };
+    });
+  }
+  if (m.cast) {
+    jsonld['actor'] = String(m.cast).split(',').slice(0, 10).map(function(n){
+      return { '@type': 'Person', 'name': n.trim() };
+    });
+  }
+  if (m.contentRating) {
+    jsonld['contentRating'] = m.contentRating;
+  }
+  jsonld['publisher'] = {
+    '@type': 'Organization',
+    'name': 'CineNova',
+    'logo': { '@type': 'ImageObject', 'url': 'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' }
+  };
 
   var ldEl = document.getElementById('cv-jsonld-movie');
   if (ldEl) ldEl.textContent = JSON.stringify(jsonld);
