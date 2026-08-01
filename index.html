@@ -314,8 +314,7 @@ body{text-rendering:optimizeSpeed}
   transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94),opacity 0.6s ease,filter 0.6s ease;
   cursor:pointer;
 }
-.cv-ns-poster img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.28s ease}
-.cv-ns-poster img.cv-ns-img-hidden{opacity:0}
+.cv-ns-poster img{width:100%;height:100%;object-fit:cover;display:block}
 .cv-ns-poster.cv-ns-p0{transform:rotate(-10deg) translate(-78px,14px) scale(0.88);opacity:0.7;filter:brightness(0.6);z-index:1}
 .cv-ns-poster.cv-ns-p1{transform:rotate(9deg) translate(72px,20px) scale(0.88);opacity:0.7;filter:brightness(0.6);z-index:1}
 .cv-ns-poster.cv-ns-p2{transform:rotate(0deg) translate(0,-10px) scale(1);opacity:1;filter:brightness(1);z-index:2}
@@ -5183,8 +5182,6 @@ var featuredTimer = null;
 var _cvNsPool = [];
 var _cvNsOffset = 0;
 var _cvNsTimer = null;
-var _cvNsEls = [];        // 3 persistent DOM elements (never destroyed)
-var _cvNsSlotOrder = [0, 1, 2]; // _cvNsEls index currently holding [p0, p1, p2]
 
 function buildNsHero() {
   var stack = document.getElementById('cv-ns-stack');
@@ -5208,7 +5205,7 @@ function buildNsHero() {
   if (!pool.length) return;
   _cvNsPool = pool;
   _cvNsOffset = 0;
-  _cvNsInitStack();
+  _cvNsRender(false);
 
   if (_cvNsTimer) clearInterval(_cvNsTimer);
   if (_cvNsPool.length > 1) {
@@ -5223,84 +5220,46 @@ function _cvNsPick(offset) {
   return picks;
 }
 
-// ══ 3D CARD SHUFFLE — 3 poster elements banaye jaate hain SIRF EK BAAR.
-// Rotate pe DOM destroy/rebuild nahi hota — sirf class (p0/p1/p2) elements
-// ke beech "shuffle" hoti hai, jisse existing CSS transition (transform/
-// opacity/filter) khud-ba-khud smooth card-deck jaisi motion de deta hai.
-// Sirf jo card center se bahar nikal ke wapas peeche naye poster ke sath
-// aata hai, uski image thodi si fade karke swap hoti hai.
-function _cvNsInitStack() {
+function _cvNsRender(fadeIn) {
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
-  stack.innerHTML = '';
-  _cvNsEls = [];
-  _cvNsSlotOrder = [0, 1, 2];
-  var picks = _cvNsPick(0);
+  var picks = _cvNsPick(_cvNsOffset);
+  if (!picks.length) return;
+  while (picks.length < 3) picks.push(picks[picks.length - 1]);
+
   var classes = ['cv-ns-p0', 'cv-ns-p1', 'cv-ns-p2'];
+  var html = '';
   for (var j = 0; j < 3; j++) {
     var mv = picks[j];
-    var el = document.createElement('div');
-    el.className = 'cv-ns-poster ' + classes[j];
-    el.dataset.key = mv._key;
-    (function(elRef) {
-      elRef.addEventListener('click', function() { openModal(elRef.dataset.key); });
-    })(el);
-    var img = document.createElement('img');
-    img.loading = 'lazy';
-    img.alt = mv.title || 'Movie';
-    img.src = cvThumb(mv.thumbnail);
-    el.appendChild(img);
-    if (classes[j] === 'cv-ns-p2') {
-      var cap = document.createElement('div');
-      cap.className = 'cv-ns-p2-cap';
-      cap.textContent = mv.title || '';
-      el.appendChild(cap);
-    }
-    stack.appendChild(el);
-    _cvNsEls.push(el);
+    var key = mv._key;
+    var thumb = cvThumb(mv.thumbnail);
+    var isFront = classes[j] === 'cv-ns-p2';
+    html += '<div class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" data-key="' + escHtml(key) + '" onclick="openModal(&quot;' + escJs(key) + '&quot;)">' +
+              '<img alt="' + escHtml(mv.title || 'Movie') + '" loading="lazy" src="' + escHtml(thumb) + '"/>' +
+              (isFront ? '<div class="cv-ns-p2-cap">' + escHtml(mv.title || '') + '</div>' : '') +
+            '</div>';
+  }
+  stack.innerHTML = html;
+
+  if (fadeIn) {
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        var posters = stack.querySelectorAll('.cv-ns-poster');
+        for (var p = 0; p < posters.length; p++) posters[p].classList.remove('cv-ns-fading');
+      });
+    });
   }
 }
 
 function _cvNsRotate() {
-  if (_cvNsEls.length < 3 || _cvNsPool.length < 2) return;
-  var elP0 = _cvNsEls[_cvNsSlotOrder[0]];
-  var elP1 = _cvNsEls[_cvNsSlotOrder[1]];
-  var elP2 = _cvNsEls[_cvNsSlotOrder[2]];
-
-  _cvNsOffset = (_cvNsOffset + 1) % _cvNsPool.length;
-  var newFront = _cvNsPool[(_cvNsOffset + 2) % _cvNsPool.length];
-
-  // Sabse purana card (elP0, left/dim) recycle ho ke naya center card banega
-  elP0.classList.remove('cv-ns-p0');
-  elP0.classList.add('cv-ns-p2');
-  elP0.dataset.key = newFront._key;
-  var img = elP0.querySelector('img');
-  img.classList.add('cv-ns-img-hidden');
+  var stack = document.getElementById('cv-ns-stack');
+  if (!stack || _cvNsPool.length < 2) return;
+  var posters = stack.querySelectorAll('.cv-ns-poster');
+  for (var p = 0; p < posters.length; p++) posters[p].classList.add('cv-ns-fading');
   setTimeout(function() {
-    img.src = cvThumb(newFront.thumbnail);
-    img.alt = newFront.title || 'Movie';
-    img.classList.remove('cv-ns-img-hidden');
-  }, 280);
-  var cap = elP0.querySelector('.cv-ns-p2-cap');
-  if (!cap) {
-    cap = document.createElement('div');
-    cap.className = 'cv-ns-p2-cap';
-    elP0.appendChild(cap);
-  }
-  cap.textContent = newFront.title || '';
-
-  // Purana center card (elP2) right/dim side pe shift ho jata hai
-  elP2.classList.remove('cv-ns-p2');
-  elP2.classList.add('cv-ns-p1');
-  var oldCap = elP2.querySelector('.cv-ns-p2-cap');
-  if (oldCap) oldCap.remove();
-
-  // Purana right card (elP1) left/dim side pe shift ho jata hai
-  elP1.classList.remove('cv-ns-p1');
-  elP1.classList.add('cv-ns-p0');
-
-  // Slot order ko ek position aage shift karo (ring rotate)
-  _cvNsSlotOrder = [_cvNsSlotOrder[1], _cvNsSlotOrder[2], _cvNsSlotOrder[0]];
+    _cvNsOffset = (_cvNsOffset + 1) % _cvNsPool.length;
+    _cvNsRender(true);
+  }, 380);
 }
 
 // ══ JUST UPLOADED STRIP — newest movies, NEW badge, hover-to-front ══
