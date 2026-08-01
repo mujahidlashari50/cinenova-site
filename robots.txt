@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Search result query URLs — duplicate/low-value, crawl budget waste
+Disallow: /*?q=
+Disallow: /*&q=
+
+Sitemap: https://www.cinenova.site/sitemap.xml
