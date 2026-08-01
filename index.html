@@ -3809,6 +3809,39 @@ function cvFlushErrorQueue() {
   window._cvErrorQueue = [];
 }
 
+// ══════════════════════════════════
+// 🛟 STUCK-ON-LOADING FIX
+// Agar Firebase SDK hi load na ho (blocked/slow network, corporate/mobile
+// firewall jo gstatic.com aur jsdelivr.net dono block kar de) to pehle
+// _cvOnFirebaseReady() KABHI call hi nahi hoti thi — matlab poori site
+// skeleton (grey boxes) pe hamesha ke liye atki reh jati thi, koi error
+// ya Reload option kabhi nahi dikhta tha. Ab agar 12 second ke andar
+// Firebase load na ho, ya CDN attempts pehle hi fail ho jayein, to turant
+// user ko clear "Reload" message dikha dete hain — skeleton par atakna
+// band.
+// ══════════════════════════════════
+window._cvLoadFailureShown = false;
+function cvShowLoadFailure() {
+  if (window._cvLoadFailureShown) return;
+  if (window._cvFirebaseLoaded) return; // load ho chuka, kuch mat karo
+  window._cvLoadFailureShown = true;
+  var msg = '<div class="cv-empty"><p>⚡</p><p>Site load nahi ho saka<br/><small style="color:#555">Apna internet connection check karein — <a href="javascript:location.reload()" style="color:#e50914">Reload karein</a></small></p></div>';
+  try {
+    var grid = document.getElementById('cv-grid');
+    if (grid && !grid.children.length) grid.innerHTML = msg;
+  } catch(e) {}
+  try {
+    var uhSkel = document.querySelector('.cv-uh-skel');
+    if (uhSkel && uhSkel.parentElement) uhSkel.parentElement.innerHTML = '<div style="padding:16px;color:#777;font-size:0.8rem;text-align:center;width:100%">Load nahi hua — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></div>';
+  } catch(e) {}
+  try { var nsHero = document.getElementById('cv-ns-hero'); if (nsHero) nsHero.style.display = 'none'; } catch(e) {}
+  try { var latestWrap = document.getElementById('cv-ns-latest-wrap'); if (latestWrap) latestWrap.style.display = 'none'; } catch(e) {}
+  try { var featuredWrap = document.getElementById('cv-featured-wrap'); if (featuredWrap) featuredWrap.style.display = 'none'; } catch(e) {}
+}
+setTimeout(function() {
+  if (!window._cvFirebaseLoaded) cvShowLoadFailure();
+}, 12000);
+
 // Load Firebase scripts dynamically (non-render-blocking)
 (function() {
   function _cvLoadScript(src, cb) {
@@ -3850,16 +3883,19 @@ function cvFlushErrorQueue() {
     try {
       if (typeof firebase !== 'undefined' && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
     } catch(e) {}
+    if (typeof firebase === 'undefined') { cvShowLoadFailure(); return; } // dono CDN fail — turant bata do
     // Database SDK only — earning/auth system removed
     _cvLoadFirebaseWithFallback('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.min.js', function() {
       try {
-        if (typeof firebase !== 'undefined') {
+        if (typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
           db = firebase.database();
           _cvFirebaseLoaded = true;
           cvFlushErrorQueue();
           if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady();
+        } else {
+          cvShowLoadFailure();
         }
-      } catch(e) {}
+      } catch(e) { cvShowLoadFailure(); }
     });
   });
 })();
@@ -5099,6 +5135,16 @@ var _cvNsTimer = null;
 function buildNsHero() {
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
+  // Agar watchdog ne pehle load-failure state dikha ke ye section chhupa
+  // diya tha, aur ab data der se hi sahi aa gaya, to section wapas dikhao
+  // (lekin cat/genre view me jaan-boojh kar chhupaya gaya ho to waisa hi rehne do).
+  if (window._cvLoadFailureShown) {
+    try {
+      var heroWrap = document.getElementById('cv-ns-hero');
+      var p = new URLSearchParams(location.search);
+      if (heroWrap && !(p.get('cat') || p.get('genre'))) heroWrap.style.display = '';
+    } catch(e) {}
+  }
   // allData newest-first already (see fetchFirebasePage) — non-adult, has thumbnail
   var pool = [];
   for (var i = 0; i < allData.length && pool.length < 12; i++) {
