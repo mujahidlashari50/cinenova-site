@@ -308,6 +308,7 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-ns-stack{position:relative;z-index:2;width:280px;height:400px}
 .cv-ns-poster{
+  display:block;color:inherit;text-decoration:none;
   position:absolute;top:0;left:0;width:100%;height:100%;
   border-radius:16px;overflow:hidden;background:#1a1a1a;
   box-shadow:0 24px 55px rgba(0,0,0,0.6);
@@ -360,6 +361,7 @@ body{text-rendering:optimizeSpeed}
 #cv-ns-latest-track-wrap::-webkit-scrollbar{height:5px}
 #cv-ns-latest-track{display:flex;gap:16px;padding:0 2px}
 .cv-ns-lcard{
+  display:block;color:inherit;text-decoration:none;
   flex-shrink:0;width:140px;position:relative;cursor:pointer;
   transition:transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
 }
@@ -996,6 +998,7 @@ body{text-rendering:optimizeSpeed}
 @media(min-width:400px){.cv-related-grid{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:600px){.cv-related-grid{grid-template-columns:repeat(5,1fr)}}
 .cv-rel-card{
+  display:block;color:inherit;text-decoration:none;
   border-radius:8px;overflow:hidden;cursor:pointer;
   background:var(--card);border:1px solid #1e1e1e;
   transition:transform 0.2s,border-color 0.2s;
@@ -2135,7 +2138,7 @@ body{text-rendering:optimizeSpeed}
 @keyframes cvMotdPulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(250,204,21,0.7)}50%{opacity:0.35;box-shadow:0 0 0 6px rgba(250,204,21,0)}}
 #cv-motd-wrap{margin:0 0 2px;padding:0 16px}
 @media(max-width:600px){#cv-motd-wrap{padding:0}#cv-motd-card{border-radius:0}}
-#cv-motd-card{position:relative;width:100%;min-height:150px;overflow:hidden;background:#141414;cursor:pointer;display:flex;align-items:flex-end;border-radius:12px;animation:cvMotdGlow 2.8s ease-in-out infinite}
+#cv-motd-card{display:flex;color:inherit;text-decoration:none;position:relative;width:100%;min-height:150px;overflow:hidden;background:#141414;cursor:pointer;align-items:flex-end;border-radius:12px;animation:cvMotdGlow 2.8s ease-in-out infinite}
 @keyframes cvMotdGlow{0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,0),0 6px 20px rgba(0,0,0,0.4)}50%{box-shadow:0 0 26px 3px rgba(250,204,21,0.4),0 6px 20px rgba(0,0,0,0.4)}}
 #cv-motd-bg{position:absolute;inset:0;background-size:cover;background-position:center 20%;width:100%;height:100%;transform:scale(1.03)}
 #cv-motd-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(10,10,10,0.92) 0%,rgba(10,10,10,0.62) 45%,rgba(10,10,10,0.25) 100%),linear-gradient(to top,rgba(10,10,10,0.9) 0%,transparent 60%)}
@@ -2176,6 +2179,7 @@ body{text-rendering:optimizeSpeed}
 
 /* ══ SLIDE CARD — Trending + TMDB sliders ══ */
 .cv-slide-card{
+  display:block;color:inherit;text-decoration:none;
   flex-shrink:0;
   border-radius:10px;overflow:hidden;
   background:#1a1a1a;
@@ -5235,10 +5239,11 @@ function _cvNsRender(fadeIn) {
     var key = mv._key;
     var thumb = cvThumb(mv.thumbnail);
     var isFront = classes[j] === 'cv-ns-p2';
-    html += '<div class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" data-key="' + escHtml(key) + '" onclick="openModal(&quot;' + escJs(key) + '&quot;)">' +
+    var heroSlug = mv.seoSlug || cvSlug(mv.title) || encodeURIComponent(key);
+    html += '<a class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" href="/movie/' + escHtml(heroSlug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(&quot;' + escJs(key) + '&quot;)">' +
               '<img alt="' + escHtml(mv.title || 'Movie') + '" loading="lazy" src="' + escHtml(thumb) + '"/>' +
               (isFront ? '<div class="cv-ns-p2-cap">' + escHtml(mv.title || '') + '</div>' : '') +
-            '</div>';
+            '</a>';
   }
   stack.innerHTML = html;
 
@@ -5281,13 +5286,14 @@ function buildNsLatest() {
     var mv = picks[j];
     var key = mv._key;
     var thumb = cvThumb(mv.thumbnail);
-    html += '<div class="cv-ns-lcard" data-key="' + escHtml(key) + '" onclick="openModal(&quot;' + escJs(key) + '&quot;)" tabindex="0">' +
+    var slug = mv.seoSlug || cvSlug(mv.title) || encodeURIComponent(key);
+    html += '<a class="cv-ns-lcard" href="/movie/' + escHtml(slug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(&quot;' + escJs(key) + '&quot;)" tabindex="0">' +
               '<div class="cv-ns-lcard-img-wrap">' +
                 '<img alt="' + escHtml(mv.title || 'Movie') + '" class="cv-ns-lcard-img" loading="lazy" src="' + escHtml(thumb) + '"/>' +
                 '<span class="cv-ns-lcard-new">New</span>' +
               '</div>' +
               '<div class="cv-ns-lcard-title">' + escHtml(mv.title || 'Untitled') + '</div>' +
-            '</div>';
+            '</a>';
   }
   track.innerHTML = html;
 }
@@ -5639,11 +5645,12 @@ function buildTsSlider() {
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
-    return '<div class="cv-card" style="flex-shrink:0;width:' + cvTsCardW + 'px;" data-key="' + escHtml(m._key) + '">'
+    var tsSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
+    return '<a class="cv-card" href="/movie/' + escHtml(tsSlug) + '" style="flex-shrink:0;width:' + cvTsCardW + 'px;" data-key="' + escHtml(m._key) + '">'
       + imgHtml + ratingBadge + catBadge
       + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
       + '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + escHtml(m.quality) : '') + '</div></div>'
-      + '</div>';
+      + '</a>';
   }
 
   var html = '';
@@ -5655,7 +5662,7 @@ function buildTsSlider() {
   // Attach click handlers via data-key (avoids inline onclick escaping)
   track.querySelectorAll('.cv-card[data-key]').forEach(function(el) {
     var key = el.getAttribute('data-key');
-    el.addEventListener('click', function() { openModal(key); });
+    el.addEventListener('click', function(e) { e.preventDefault(); openModal(key); });
   });
   cvTsIndex = cvTsClones;
   track.style.transition = 'none';
@@ -5729,8 +5736,9 @@ function cvBuildMotd() {
 
     var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
     var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(x); }).join(' · ');
+    var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
     wrap.innerHTML =
-      '<div id="cv-motd-card" onclick="openModal(\'' + escJs(m._key) + '\')">' +
+      '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
         (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
         '<div id="cv-motd-overlay"></div>' +
         '<div id="cv-motd-content">' +
@@ -5742,7 +5750,7 @@ function cvBuildMotd() {
           '</div>' +
           '<div id="cv-motd-btn">▶ Watch</div>' +
         '</div>' +
-      '</div>';
+      '</a>';
     wrap.style.display = 'block';
     if (outerEl) outerEl.style.display = 'block';
     if (navBtnEl) navBtnEl.style.display = 'flex';
@@ -5783,7 +5791,8 @@ function buildTrending() {
       ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-slide-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="120" height="180" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
         '<div class="cv-slide-no-img" style="display:none">🎬</div>'
       : '<div class="cv-slide-no-img">🎬</div>';
-    return '<div class="cv-slide-card" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="openModal(\'' + escJs(m._key) + '\')">' +
+    var slug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
+    return '<a class="cv-slide-card" href="/movie/' + escHtml(slug) + '" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
       imgHtml +
       (m.rating ? '<div class="cv-slide-badge">⭐ ' + m.rating + '</div>' : '') +
       (num > 0 ? '<div class="cv-trend-num">' + num + '</div>' : '') +
@@ -5791,7 +5800,7 @@ function buildTrending() {
         '<div class="cv-slide-title">' + escHtml(m.title || 'Untitled') + '</div>' +
         '<div class="cv-slide-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + '</div>' +
       '</div>' +
-    '</div>';
+    '</a>';
   };
 
   var items = trendingItems.slice(0, 20);
@@ -8502,7 +8511,8 @@ function loadRelatedMovies(currentKey, m) {
   html += '<div class="cv-related-grid">';
   related.forEach(function(rx) {
     var rKey = rx._key;
-    html += '<div class="cv-rel-card" onclick="openModal(\'' + escJs(rKey) + '\')">';
+    var rSlug = rx.seoSlug || cvSlug(rx.title) || encodeURIComponent(rKey);
+    html += '<a class="cv-rel-card" href="/movie/' + escHtml(rSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(rKey) + '\')">';
     if (rx.thumbnail) {
       html += '<img src="' + escHtml(rx.thumbnail) + '" loading="lazy" alt="' + escHtml(rx.title||'') + '" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">';
       html += '<div class="cv-rel-card-no-img" style="display:none">🎬</div>';
@@ -8514,7 +8524,7 @@ function loadRelatedMovies(currentKey, m) {
       + '<div class="cv-rel-title">' + escHtml(rx.title || 'Untitled') + '</div>'
       + '<div class="cv-rel-meta">' + (rx.year ? escHtml(String(rx.year)) : '') + (rx.quality ? ' · ' + escHtml(rx.quality) : '') + '</div>'
       + '</div>';
-    html += '</div>';
+    html += '</a>';
   });
   html += '</div>';
 
