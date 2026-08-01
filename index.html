@@ -6577,17 +6577,20 @@ function openModal(key) {
 
   // Buttons
   var btns = '';
-  // Priority: vlcUrl2 (Direct VLC Link — admin panel mein isko explicitly
-  // "Pixeldrain ke bagair" override ke liye banaya gaya hai, jaisa
-  // embed4me.com links) pehle check hota hai. Sirf agar wo khali ho
-  // to hi auto-built Pixeldrain link (vlcUrl) fallback ke taur pe use hota hai.
-  var _vlcSrc = m.vlcUrl2 || m.vlcUrl || '';
+  // Mobile (VLC intent/protocol) hamesha Pixeldrain/original vlcUrl use
+  // karta hai — ye pehle se reliably kaam kar raha tha, ise chhera nahi.
+  // Desktop (in-page iframe/player) Direct VLC Link (vlcUrl2 — jaisa
+  // embed4me.com) ko prefer karta hai kyunki wo browser mein turant
+  // chalta hai; agar khali ho to Pixeldrain link hi fallback hai.
+  var _mobileSrc  = m.vlcUrl || m.vlcUrl2 || '';
+  var _desktopSrc = m.vlcUrl2 || m.vlcUrl || '';
+  var _vlcSrc = _mobileSrc; // backward-compat naam, "koi link maujood hai?" check ke liye
   if (_vlcSrc || m.videoUrl) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
     if (_vlcSrc) {
       // vlcUrl admin panel se manually add hota hai — koi worker/ads/timer
       // nahi, seedha VLC/player launch hota hai (mobile ho ya desktop).
-      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_vlcSrc) + '\')">▶ Watch Now</button>';
+      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_mobileSrc) + '\',\'' + escJs(_desktopSrc) + '\')">▶ Watch Now</button>';
     } else {
       // Purana static videoUrl fallback — in-page player.
       btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
@@ -6907,7 +6910,7 @@ if (_cvModalEl) _cvModalEl.onclick = function(e) {
 // PLAYER
 // ══════════════════════════════════
 // MX Player — video URL seedha ACTION_VIEW se open karo
-function openMxPlayer(url) {
+function openMxPlayer(url, desktopUrl) {
   if (!url) return;
   var isIOS     = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
   var isAndroid = /Android/i.test(navigator.userAgent);
@@ -6922,11 +6925,13 @@ function openMxPlayer(url) {
     // registered protocol NAHI hota (VLC installed hone ke bawajood
     // bhi silently fail hoti hai), isliye desktop par seedha
     // in-page CinePlayer (Plyr) mein video play karo — koi external
-    // app dependency nahi.
+    // app dependency nahi. Desktop-specific link (embed4me/direct)
+    // agar diya gaya ho to wahi prefer karo, warna mobile wala hi use karo.
+    var urlForDesktop = desktopUrl || url;
     if (typeof playVideo === 'function') {
-      playVideo(url, '');
+      playVideo(urlForDesktop, '');
     } else {
-      window.open(url, '_blank');
+      window.open(urlForDesktop, '_blank');
     }
   }
 }
