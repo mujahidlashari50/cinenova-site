@@ -2328,6 +2328,43 @@ body{text-rendering:optimizeSpeed}
   border:1px solid #2a2a2a;border-radius:14px;padding:18px;
 }
 #cv-request-wrap h3{font-size:0.82rem;font-weight:800;color:#fff;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* ══ SEO ABOUT CARD (homepage bottom) ══ */
+#cv-seo-wrap{margin:8px 16px 16px}
+.cv-seo-card{
+  background:var(--card);border:1px solid #1e1e1e;border-radius:16px;
+  padding:24px;position:relative;overflow:hidden;
+}
+.cv-seo-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+}
+.cv-seo-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cv-seo-icon{
+  width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);
+  border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;flex-shrink:0;
+}
+.cv-seo-card h1{font-size:1.15rem;font-weight:900;color:var(--text);line-height:1.4;margin:0}
+.cv-seo-card>p{font-size:0.86rem;line-height:1.85;color:#bbb;margin-bottom:18px}
+.cv-seo-card>p strong{color:#fff}
+.cv-seo-divider{height:1px;background:#222;margin:18px 0}
+.cv-seo-block{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.cv-seo-block:last-child{margin-bottom:0}
+.cv-seo-subicon{
+  width:36px;height:36px;border-radius:10px;background:var(--card2);
+  border:1px solid #1e1e1e;display:flex;align-items:center;justify-content:center;
+  font-size:1.05rem;flex-shrink:0;
+}
+.cv-seo-block h2{font-size:0.92rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.cv-seo-block p{font-size:0.84rem;line-height:1.8;color:#aaa;margin:0}
+@media(min-width:769px){
+  #cv-seo-wrap{margin:8px 24px 20px}
+  .cv-seo-card{padding:28px}
+}
+@media(min-width:1025px){
+  #cv-seo-wrap{margin:8px 40px 24px;max-width:900px;margin-left:auto;margin-right:auto}
+}
 .cv-req-inp{
   width:100%;padding:11px 13px;background:#0d0d0d;
   border:1px solid #2a2a2a;border-radius:8px;color:#fff;
@@ -3512,30 +3549,44 @@ body{text-rendering:optimizeSpeed}
 
 <!-- SEO CONTENT BLOCK — static (JS se inject nahi hota, isliye CLS zero) —
      homepage par H1/H2/keyword density/word-count issues fix karne ke liye -->
-<section aria-label='About CineNova' style='padding:36px 20px 28px;max-width:900px;margin:0 auto;color:var(--text2)'>
-  <h1 style='font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:12px;line-height:1.4'>
-    Watch Free HD Movies &amp; Web Series Online on CineNova
-  </h1>
-  <p style='font-size:0.88rem;line-height:1.85;margin-bottom:16px'>
-    CineNova is a <strong style='color:#ddd'>free movies</strong> and web series streaming hub where you can watch the
-    latest Hollywood, Bollywood, Tollywood, and South Indian releases in HD quality — no login and no subscription
-    required. Our library is updated daily with new movies and web series so you never run out of something great to
-    watch, whether you're into action, drama, comedy, thriller, or animated films.
-  </p>
-  <h2 style='font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px'>Why Watch Movies on CineNova?</h2>
-  <p style='font-size:0.88rem;line-height:1.85;margin-bottom:16px'>
-    Every title on CineNova is available in multiple print qualities — 480p, 720p, and 1080p — so you can pick what
-    suits your internet speed and device. Our free movies collection spans genres and languages, with new web series
-    episodes added as soon as they're released. There's no clutter, no forced sign-ups, and no hidden charges — just
-    search, click, and start watching.
-  </p>
-  <h2 style='font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px'>Fresh Content, Updated Daily</h2>
-  <p style='font-size:0.88rem;line-height:1.85'>
-    Our team curates new movies and trending web series around the clock, so the homepage always reflects what's
-    hot right now. Browse by category, search for a specific title, or check the trending row above to discover your
-    next favorite free movie on CineNova.
-  </p>
-</section>
+<div id='cv-seo-wrap'>
+  <section aria-label='About CineNova' class='cv-seo-card'>
+    <div class='cv-seo-head'>
+      <span class='cv-seo-icon'>🎬</span>
+      <h1>Watch Free HD Movies &amp; Web Series Online on CineNova</h1>
+    </div>
+    <p>
+      CineNova is a <strong>free movies</strong> and web series streaming hub where you can watch the
+      latest Hollywood, Bollywood, Tollywood, and South Indian releases in HD quality — no login and no subscription
+      required. Our library is updated daily with new movies and web series so you never run out of something great to
+      watch, whether you're into action, drama, comedy, thriller, or animated films.
+    </p>
+    <div class='cv-seo-divider'></div>
+    <div class='cv-seo-block'>
+      <span class='cv-seo-subicon'>⚡</span>
+      <div>
+        <h2>Why Watch Movies on CineNova?</h2>
+        <p>
+          Every title on CineNova is available in multiple print qualities — 480p, 720p, and 1080p — so you can pick what
+          suits your internet speed and device. Our free movies collection spans genres and languages, with new web series
+          episodes added as soon as they're released. There's no clutter, no forced sign-ups, and no hidden charges — just
+          search, click, and start watching.
+        </p>
+      </div>
+    </div>
+    <div class='cv-seo-block'>
+      <span class='cv-seo-subicon'>🔄</span>
+      <div>
+        <h2>Fresh Content, Updated Daily</h2>
+        <p>
+          Our team curates new movies and trending web series around the clock, so the homepage always reflects what's
+          hot right now. Browse by category, search for a specific title, or check the trending row above to discover your
+          next favorite free movie on CineNova.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
 
 <!-- MOVIE REQUEST FORM -->
 <div id='cv-request-wrap' style='display:none'>
