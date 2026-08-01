@@ -6946,6 +6946,7 @@ function playVideo(url, title) {
   inner.innerHTML = '';
   if (loading) loading.classList.add('show');
 
+  var isEmbed4me = /embed4me\.com/i.test(url);
   var isPixeldrain = /pixeldrain\.com\/(?:u|api\/file)\/([a-zA-Z0-9]+)/i.test(url);
   var isR2Cloud = /\.r2\.dev\//i.test(url);
   var isWorkerVideo = /download\.cinenova\.site\/video/i.test(url);
@@ -6958,43 +6959,31 @@ function playVideo(url, title) {
   requestAnimationFrame(function() {
     if (loading) loading.classList.remove('show');
 
-    if (isPixeldrain) {
-      // ── Pixeldrain — direct <video> tag, Referer header suppress
-      // karke (referrerpolicy="no-referrer"). Pixeldrain ka hotlink
-      // block Referer header dekh kar trigger hota hai — jab browser
-      // Referer hi nahi bhejega, to yehi behavior hoga jaisa VLC
-      // (koi Referer nahi) — aur request user ke apne IP se jati hai,
-      // kisi proxy/worker ki zaroorat nahi. Isliye Cloudflare Workers
-      // wala IP-block issue bhi yahan apply nahi hota.
+    if (isEmbed4me) {
+      // ── Player4Me (embed4me.com) — hotlink-friendly embed service,
+      // Pixeldrain jaisa restriction nahi hai isliye iframe seedha
+      // kaam karta hai. Sirf desktop path (openMxPlayer) se yahan
+      // aata hai — mobile ka VLC/intent flow alag hi rehta hai. ──
+      inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+    } else if (isPixeldrain) {
+      // ── Pixeldrain browser mein KABHI play nahi hogi (confirmed):
+      // raw link = hotlink_detected error, iframe embed = X-Frame-Options
+      // se refused. Free account pe Pixeldrain ye dono hi block karta
+      // hai — sirf standalone media player (VLC) hi kaam karta hai.
+      // Isliye seedha copy-link + VLC instructions dikha dete hain,
+      // koi fake "loading" wait nahi karwate.
       var pdMatch = url.match(/pixeldrain\.com\/(?:api\/file|u)\/([a-zA-Z0-9]+)/i);
       var pdId = pdMatch ? pdMatch[1] : '';
-      var pdUrl = 'https://pixeldrain.com/api/file/' + pdId;
-      inner.style.position = 'relative';
-      inner.innerHTML = '<video id="cv-plyr-vid" controls playsinline webkit-playsinline referrerpolicy="no-referrer" style="width:100%;height:100%;display:block;object-fit:contain;background:#000"><source src="' + pdUrl + '" referrerpolicy="no-referrer"></video>'
-        + '<div id="cv-video-fallback" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);color:#fff;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:5;">'
-        + '<div style="font-size:0.95rem;margin-bottom:14px;max-width:320px;">⚠️ Ye video is browser mein load nahi ho raha</div>'
-        + '<button onclick="window.open(\'' + pdUrl.replace(/'/g,"\\'") + '\',\'_blank\')" style="padding:12px 24px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">▶ Direct Video Kholen</button>'
+      var pdRawUrl = 'https://pixeldrain.com/api/file/' + pdId;
+      inner.innerHTML =
+        '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:#0d0d0d;color:#fff;">'
+        + '<div style="font-size:2.2rem;margin-bottom:10px;">🎬</div>'
+        + '<div style="font-size:1rem;font-weight:800;margin-bottom:8px;">Ye video browser mein direct play nahi hoti</div>'
+        + '<div style="font-size:0.85rem;color:#aaa;max-width:380px;line-height:1.7;margin-bottom:20px;">Is source ko sirf VLC Media Player mein khola ja sakta hai. Neeche wala link copy karo, VLC kholo, <b>Ctrl+N</b> dabao (ya Media &rarr; Open Network Stream), link paste karo aur Play karo.</div>'
+        + '<input id="cv-pd-link" readonly value="' + pdRawUrl + '" style="width:100%;max-width:420px;padding:10px 12px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#ddd;font-size:0.78rem;margin-bottom:14px;text-align:center;" onclick="this.select()"/>'
+        + '<button onclick="navigator.clipboard.writeText(\'' + pdRawUrl.replace(/'/g,"\\'") + '\').then(function(){var b=document.getElementById(\'cv-pd-copybtn\');if(b){b.textContent=\'✔ Copied!\';setTimeout(function(){b.textContent=\'📋 Copy VLC Link\';},2000);}})" id="cv-pd-copybtn" style="padding:12px 26px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;margin-bottom:10px;">📋 Copy VLC Link</button>'
+        + '<a href="' + pdRawUrl + '" target="_blank" rel="noopener" style="color:#888;font-size:0.78rem;text-decoration:underline;">Ya seedha download/open karne ki koshish karo</a>'
         + '</div>';
-      if (window.Plyr) {
-        window._cvPlyrInst = new Plyr('#cv-plyr-vid', {
-          controls: ['play-large','play','rewind','fast-forward','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
-          settings: ['quality','speed','loop'],
-          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-          ratio: '16:9',
-          autoplay: !/iPad|iPhone|iPod/i.test(navigator.userAgent),
-          playsinline: true
-        });
-      }
-      (function(){
-        var vidEl = document.getElementById('cv-plyr-vid');
-        var fbEl = document.getElementById('cv-video-fallback');
-        vidEl && (vidEl.referrerPolicy = 'no-referrer'); // JS se bhi set — kuch browsers attribute ko late read karte hain
-        var stallTimer = setTimeout(function(){ if (fbEl) fbEl.style.display = 'flex'; }, 12000);
-        if (vidEl) {
-          vidEl.addEventListener('playing', function(){ clearTimeout(stallTimer); if (fbEl) fbEl.style.display = 'none'; });
-          vidEl.addEventListener('error', function(){ clearTimeout(stallTimer); if (fbEl) fbEl.style.display = 'flex'; });
-        }
-      })();
     } else if (isDirectVideo) {
       // ── Direct MP4/WebM/MKV(r2.dev)/Worker-video — Plyr native video player ──
       // Safety-net: agar video 12 second mein play/stall na ho (jaisa
