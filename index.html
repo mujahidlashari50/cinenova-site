@@ -6577,7 +6577,11 @@ function openModal(key) {
 
   // Buttons
   var btns = '';
-  var _vlcSrc = m.vlcUrl || m.vlcUrl2 || '';
+  // Priority: vlcUrl2 (Direct VLC Link — admin panel mein isko explicitly
+  // "Pixeldrain ke bagair" override ke liye banaya gaya hai, jaisa
+  // embed4me.com links) pehle check hota hai. Sirf agar wo khali ho
+  // to hi auto-built Pixeldrain link (vlcUrl) fallback ke taur pe use hota hai.
+  var _vlcSrc = m.vlcUrl2 || m.vlcUrl || '';
   if (_vlcSrc || m.videoUrl) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
     if (_vlcSrc) {
