@@ -7494,7 +7494,21 @@ function cvBuildSuggestions(q, dropdownEl) {
       cvCloseSugDropdowns();
       openModal(key);
     });
+    // Mobile: sirf real "tap" pe select karo, scroll pe nahi.
+    // Pehle touchend pe har baar select ho jata tha — chahe user scroll
+    // hi kyun na kar raha ho aur finger kisi item ke upar se utha ho.
+    // Ab touchstart/touchend ke beech finger ka movement measure karte
+    // hain — thodi si bhi drag (scroll) ho to select cancel.
+    var _sugTX = 0, _sugTY = 0;
+    el.addEventListener('touchstart', function(e) {
+      _sugTX = e.touches[0].clientX;
+      _sugTY = e.touches[0].clientY;
+    }, { passive: true });
     el.addEventListener('touchend', function(e) {
+      var t = e.changedTouches[0];
+      var dx = Math.abs(t.clientX - _sugTX);
+      var dy = Math.abs(t.clientY - _sugTY);
+      if (dx > 10 || dy > 10) return; // scroll thi, tap nahi — ignore
       e.preventDefault();
       var key = el.getAttribute('data-key');
       cvCloseSugDropdowns();
