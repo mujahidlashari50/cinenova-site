@@ -3403,7 +3403,7 @@ body{text-rendering:optimizeSpeed}
 </div>
 
 <!-- FEATURED BANNER -->
-<div id='cv-featured-wrap'>
+<div id='cv-featured-wrap' style='display:none'>
   <script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';}}catch(e){}})();</script>
   <div id='cv-featured-card'>
 
@@ -3494,7 +3494,7 @@ body{text-rendering:optimizeSpeed}
 </div>
 
 <!-- ══ NOW SHOWING HERO (new — posters only, auto-rotating) ══ -->
-<div id='cv-ns-hero'>
+<div id='cv-ns-hero' style='display:none'>
   <div id='cv-ns-hero-title'>🎬 Now Showing</div>
   <div id='cv-ns-stack'>
     <div class='cv-ns-skel'></div>
@@ -4197,8 +4197,15 @@ function _cvOnFirebaseReady() {
       var nsHeroEl = document.getElementById('cv-ns-hero');
       if (nsHeroEl) nsHeroEl.style.display = 'none';
       if (_cvNsTimer) { clearInterval(_cvNsTimer); _cvNsTimer = null; }
-    } else if (typeof buildNsHero === 'function' && allData && allData.length && selCat === 'all' && selGenre === '') {
-      buildNsHero();
+    } else {
+      var nsHeroElOn = document.getElementById('cv-ns-hero');
+      try {
+        var pNs = new URLSearchParams(location.search);
+        if (nsHeroElOn && !(pNs.get('cat') || pNs.get('genre'))) nsHeroElOn.style.display = '';
+      } catch(e) { if (nsHeroElOn) nsHeroElOn.style.display = ''; }
+      if (typeof buildNsHero === 'function' && allData && allData.length && selCat === 'all' && selGenre === '') {
+        buildNsHero();
+      }
     }
 
     // Rebuild featured banner (ON hone par turant content ke saath show hoga,
@@ -5342,9 +5349,11 @@ function buildFeatured() {
   var wrap = document.getElementById('cv-featured-wrap');
   if (!wrap) return;
 
-  // ── ADMIN TOGGLE — sabse pehle respect karo, warna dobara build hote hi
-  // (real-time update, adult toggle, home-return) banner wapis on ho jata hai
-  if (wrap._adminEnabled === false) { wrap.style.display = 'none'; return; }
+  // ── ADMIN TOGGLE — sabse pehle respect karo. Jab tak settings se explicit
+  // "true" na mile (abhi undefined ho sakta hai agar movies cache se settings
+  // se pehle hi load ho gayi), tab tak kuch bhi show mat karo — warna OFF
+  // hone ke bawajood reload par banner ek pal ke liye flash ho jata tha.
+  if (wrap._adminEnabled !== true) { wrap.style.display = 'none'; return; }
 
   // ── CUSTOM BANNER MODE: admin panel se images ──
   if (window._customBannerImages && window._customBannerImages.length > 0) {
