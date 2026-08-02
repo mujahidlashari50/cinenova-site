@@ -5332,6 +5332,10 @@ function buildFeatured() {
   var wrap = document.getElementById('cv-featured-wrap');
   if (!wrap) return;
 
+  // ── ADMIN TOGGLE — sabse pehle respect karo, warna dobara build hote hi
+  // (real-time update, adult toggle, home-return) banner wapis on ho jata hai
+  if (wrap._adminEnabled === false) { wrap.style.display = 'none'; return; }
+
   // ── CUSTOM BANNER MODE: admin panel se images ──
   if (window._customBannerImages && window._customBannerImages.length > 0) {
     wrap.style.display = 'block';
@@ -5591,7 +5595,7 @@ function updateSlidersVisibility(cat) {
   if (isHome) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
-    if (nsHero) nsHero.style.display = '';
+    if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled !== false) ? '' : 'none';
     if (nsLatest) nsLatest.style.display = '';
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
@@ -6591,7 +6595,7 @@ function cvGoPage(page, fromPopstate) {
     if (selCat === 'all' && selGenre === '') {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
-      if (nsHero) nsHero.style.display = '';
+      if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled !== false) ? '' : 'none';
       if (nsLatest) nsLatest.style.display = '';
     }
   } else {
