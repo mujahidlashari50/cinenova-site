@@ -4154,7 +4154,10 @@ function _cvOnFirebaseReady() {
   });
 
   // Website Settings — Featured Banner + Custom Banner Images
-  db.ref('settings').once('value', function(snap) {
+  // ✅ LIVE LISTENER — pehle .once() tha jo sirf page-load par ek baar
+  // settings padhta tha. Ab .on() se panel me toggle badalte hi (ON/OFF)
+  // site turant update ho jayega, refresh ki zaroorat nahi.
+  db.ref('settings').on('value', function(snap) {
     if (!snap.exists()) return;
     var s = snap.val();
     var sl = s.sliders || {};
@@ -4167,32 +4170,39 @@ function _cvOnFirebaseReady() {
       window._customBannerImages = null;
     }
 
-    // Featured Banner toggle — sirf tab apply hoga jab custom images NAHI hain
+    // Featured Banner toggle — robust check (true/"true"/1 sab enabled maane)
+    var fbVal = sl.featuredBanner;
+    var fbEnabled = (fbVal === true || fbVal === 'true' || fbVal === 1 || fbVal === '1');
     var featuredWrap = document.getElementById('cv-featured-wrap');
     if (featuredWrap) {
-      featuredWrap._adminEnabled = (sl.featuredBanner === true);
+      featuredWrap._adminEnabled = fbEnabled;
       // Admin toggle hamesha respect karo — custom images hon ya movie posters
-      featuredWrap.style.display = featuredWrap._adminEnabled ? 'block' : 'none';
+      featuredWrap.style.display = fbEnabled ? 'block' : 'none';
     }
 
     // Movie of the Day toggle — default ON agar admin ne kabhi set nahi kiya (undefined)
-    window._cvMotdEnabled = (sl.movieOfTheDay !== false);
+    window._cvMotdEnabled = (sl.movieOfTheDay !== false && sl.movieOfTheDay !== 'false');
     if (!window._cvMotdEnabled) {
       var motdOuterEl = document.getElementById('cv-motd-outer');
       if (motdOuterEl) motdOuterEl.style.display = 'none';
       var motdNavBtn = document.getElementById('cv-nav-motd-btn');
       if (motdNavBtn) motdNavBtn.style.display = 'none';
+    } else if (typeof cvBuildMotd === 'function' && allData && allData.length) {
+      cvBuildMotd();
     }
 
     // Now Showing (hero poster stack) toggle — default ON agar admin ne set nahi kiya
-    window._cvNsHeroEnabled = (sl.nowShowing !== false);
+    window._cvNsHeroEnabled = (sl.nowShowing !== false && sl.nowShowing !== 'false');
     if (!window._cvNsHeroEnabled) {
       var nsHeroEl = document.getElementById('cv-ns-hero');
       if (nsHeroEl) nsHeroEl.style.display = 'none';
       if (_cvNsTimer) { clearInterval(_cvNsTimer); _cvNsTimer = null; }
+    } else if (typeof buildNsHero === 'function' && allData && allData.length && selCat === 'all' && selGenre === '') {
+      buildNsHero();
     }
 
-    // Rebuild featured banner
+    // Rebuild featured banner (ON hone par turant content ke saath show hoga,
+    // OFF hone par upar wali line already hide kar chuki hai)
     buildFeatured();
   });
 
