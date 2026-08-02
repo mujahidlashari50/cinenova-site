@@ -7951,17 +7951,10 @@ function cvUhLoadData() {
   var p3 = fetch(url3).then(function(r){return r.json();}).catch(function(){return {results:[]};});
   var p4 = fetch(url4).then(function(r){return r.json();}).catch(function(){return {results:[]};});
   Promise.all([p1, p2, p3, p4]).then(function(res) {
-    var lists = [res[0].results || [], res[2].results || [], res[3].results || [], res[1].results || []]; // Hollywood, Bollywood, Tollywood, India-region
     var seen = {}, merged = [];
-    var maxLen = Math.max.apply(null, lists.map(function(l){ return l.length; }));
-    // Round-robin: har list se ek-ek movie bari-bari lo, taake koi bhi
-    // ek language (Hollywood) pura 12-item cap na le jaye.
-    for (var i = 0; i < maxLen && merged.length < 24; i++) {
-      for (var j = 0; j < lists.length; j++) {
-        var m = lists[j][i];
-        if (m && !seen[m.id] && m.backdrop_path) { seen[m.id] = true; merged.push(m); }
-      }
-    }
+    [].concat(res[0].results || [], res[2].results || [], res[1].results || [], res[3].results || []).forEach(function(m) {
+      if (!seen[m.id] && m.backdrop_path) { seen[m.id] = true; merged.push(m); }
+    });
     if (merged.length) cvUhRender(merged.slice(0, 12));
     else wrap.style.display = 'none';
   });
