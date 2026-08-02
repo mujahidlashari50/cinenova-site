@@ -255,6 +255,7 @@ body{text-rendering:optimizeSpeed}
   overscroll-behavior-x:contain;
   -webkit-overflow-scrolling:touch;
   backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
 }
 #cv-cats::-webkit-scrollbar{display:none}
 .cv-pill{
@@ -460,6 +461,7 @@ body{text-rendering:optimizeSpeed}
   letter-spacing:1.2px;text-transform:uppercase;
   padding:4px 10px;border-radius:20px;margin-bottom:10px;
   backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
 }
 .cv-uh-badge::before{
   content:'';width:6px;height:6px;border-radius:50%;
@@ -522,6 +524,7 @@ body{text-rendering:optimizeSpeed}
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;z-index:5;font-size:1rem;
   transition:all 0.2s;backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
 }
 .cv-uh-arrow:hover{
   background:rgba(229,9,20,0.8);
@@ -916,6 +919,7 @@ body{text-rendering:optimizeSpeed}
   display:flex;align-items:center;justify-content:center;
   transition:all 0.2s;z-index:10;flex-shrink:0;
   backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
 }
 #cv-modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 0 16px rgba(229,9,20,0.5)}
 #cv-modal-bookmark{
@@ -926,6 +930,7 @@ body{text-rendering:optimizeSpeed}
   display:flex;align-items:center;justify-content:center;
   transition:all 0.2s;z-index:10;flex-shrink:0;
   backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
 }
 #cv-modal-bookmark:hover{border-color:#facc15;color:#facc15}
 #cv-modal-bookmark.cv-bookmarked{background:#facc15;border-color:#facc15;color:#1a1a00}
@@ -949,6 +954,7 @@ body{text-rendering:optimizeSpeed}
   padding:5px 12px;border-radius:20px;font-size:0.73rem;color:#ccc;
   display:flex;align-items:center;gap:4px;
   backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
 }
 #cv-modal-desc{
   font-size:0.85rem;color:#888;line-height:1.7;margin-bottom:18px;
@@ -1099,6 +1105,7 @@ body{text-rendering:optimizeSpeed}
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity 0.25s ease,visibility 0.25s ease;
   backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
 }
 #cv-adult-gate.open{opacity:1;visibility:visible;pointer-events:all}
 #cv-adult-gate-box{
@@ -1161,6 +1168,7 @@ body{text-rendering:optimizeSpeed}
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity 0.25s ease,visibility 0.25s ease;
   backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
 }
 #cv-mylist-modal.open{opacity:1;visibility:visible;pointer-events:all}
 #cv-mylist-modal-box{
@@ -1200,6 +1208,7 @@ body{text-rendering:optimizeSpeed}
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity 0.25s ease,visibility 0.25s ease;
   backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
 }
 #cv-report-modal.open{opacity:1;visibility:visible;pointer-events:all}
 #cv-report-modal-box{
@@ -1444,6 +1453,27 @@ body{text-rendering:optimizeSpeed}
 .cv-maint-time{background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.3);border-radius:8px;padding:10px 20px;color:#e5e5e5;font-size:0.88rem;}
 
 /* ══ ANNOUNCEMENT BAR — APP UPDATE NOTICE UPGRADE ══ */
+/* ══ FB/IG IN-APP BROWSER BANNER ══ */
+#cv-iab-banner{
+  display:none;align-items:center;gap:8px;
+  position:relative;z-index:9999;
+  background:linear-gradient(90deg,#e50914,#b5060f);
+  color:#fff;padding:9px 12px;font-size:0.78rem;
+  box-shadow:0 2px 10px rgba(0,0,0,0.4);
+}
+#cv-iab-text{flex:1;min-width:0;font-weight:600;line-height:1.3}
+#cv-iab-btn{
+  flex-shrink:0;background:#fff;color:#b5060f;border:none;border-radius:6px;
+  padding:7px 12px;font-size:0.76rem;font-weight:800;cursor:pointer;white-space:nowrap;
+}
+#cv-iab-close{
+  flex-shrink:0;background:transparent;border:none;color:#fff;
+  font-size:1rem;cursor:pointer;padding:2px 6px;opacity:0.85;
+}
+@media(min-width:600px){
+  #cv-iab-text{font-size:0.85rem}
+}
+
 #cv-ann-bar{
   display:none;width:100%;
   padding:10px 4%;
@@ -1603,6 +1633,7 @@ body{text-rendering:optimizeSpeed}
   color:#bbb;font-size:0.8rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:all 0.2s;backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
   line-height:1;
 }
 .cv-nc-close:hover{background:rgba(229,9,20,0.85);border-color:#e50914;color:#fff;}
@@ -1866,6 +1897,7 @@ body{text-rendering:optimizeSpeed}
   color:#fff;padding:0 20px;height:44px;border-radius:5px;
   font-size:0.92rem;font-weight:700;cursor:pointer;
   transition:background 0.15s ease;backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
   letter-spacing:0.1px;white-space:nowrap;
   font-family:inherit;
 }
@@ -2910,6 +2942,7 @@ body{text-rendering:optimizeSpeed}
   background:rgba(255,255,255,0.05) !important;
   border:1px solid var(--border2) !important;
   backdrop-filter:blur(4px) !important;
+  -webkit-backdrop-filter:blur(4px) !important;
 }
 
 
@@ -2918,6 +2951,7 @@ body{text-rendering:optimizeSpeed}
 #cv-lightbox{
   background:rgba(0,0,0,0.97) !important;
   backdrop-filter:blur(10px) !important;
+  -webkit-backdrop-filter:blur(10px) !important;
 }
 
 /* ── PLAYER POPUP ── */
@@ -2935,6 +2969,7 @@ body{text-rendering:optimizeSpeed}
 #cv-search-overlay{
   background:rgba(4,4,6,0.99) !important;
   backdrop-filter:blur(10px) !important;
+  -webkit-backdrop-filter:blur(10px) !important;
   border-bottom:1px solid var(--border) !important;
 }
 
@@ -3246,6 +3281,58 @@ body{text-rendering:optimizeSpeed}
 <body>
 
 <!-- BLOGGER WIDGETS (hidden) -->
+
+<!-- ══ FB/INSTAGRAM IN-APP BROWSER WARNING ══
+     Facebook/Instagram ka apna webview (in-app browser) Google Sign-In block
+     karta hai, localStorage/cookies restrict karta hai, aur JS engine slower
+     hota hai — isi wajah se FB se aane wale users kaafi jaldi bounce ho jate
+     hain (site "kharab" lagti hai unhe, jabke asal browser mein sab theek
+     chalta hai). Ye banner unhe ek tap mein real browser (Chrome/Safari) mein
+     bhej deta hai. -->
+<div id='cv-iab-banner'>
+  <div id='cv-iab-text'>⚠️ Behtar experience ke liye <b>browser</b> mein kholein</div>
+  <button id='cv-iab-btn' onclick='cvOpenInBrowser()'>Open in Browser</button>
+  <button id='cv-iab-close' onclick='cvDismissIabBanner()' aria-label='Close'>✕</button>
+</div>
+<script>
+(function() {
+  try {
+    var ua = navigator.userAgent || '';
+    var isIab = /FBAN|FBAV|FB_IAB|Instagram|Line\//i.test(ua);
+    if (!isIab) return;
+    if (sessionStorage.getItem('cv_iab_dismissed') === '1') return;
+    document.addEventListener('DOMContentLoaded', function() {
+      var b = document.getElementById('cv-iab-banner');
+      if (b) b.style.display = 'flex';
+    });
+  } catch (e) {}
+})();
+function cvDismissIabBanner() {
+  var b = document.getElementById('cv-iab-banner');
+  if (b) b.style.display = 'none';
+  try { sessionStorage.setItem('cv_iab_dismissed', '1'); } catch (e) {}
+}
+function cvOpenInBrowser() {
+  var url = location.href;
+  var ua = navigator.userAgent || '';
+  var copied = false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { navigator.clipboard.writeText(url); copied = true; } catch (e) {}
+  }
+  if (/android/i.test(ua)) {
+    // Android — Chrome mein force-open karne ka reliable tareeka
+    var scheme = url.replace(/^https?:\/\//, '');
+    location.href = 'intent://' + scheme + '#Intent;scheme=https;package=com.android.chrome;end';
+    // Fallback agar Chrome install nahi hai
+    setTimeout(function() {
+      alert(copied ? 'Link copy ho gaya hai — apne browser app mein paste karke kholein.' : 'Apne browser app mein ye link paste karein:\n' + url);
+    }, 1200);
+  } else {
+    // iOS mein reliable force-open possible nahi — link copy karke instructions dikhao
+    alert('Upar right corner mein " ⋮ " ya "..." pe tap karke "Open in Safari/Browser" chunein.' + (copied ? '\n\nLink bhi copy ho gaya hai agar zarurat pade.' : '\n\nLink: ' + url));
+  }
+}
+</script>
 
 <!-- &#9552;&#9552; MAINTENANCE SCREEN &#9552;&#9552; -->
 <div id='cv-maintenance-screen'>
@@ -6015,7 +6102,8 @@ var NEW_THRESHOLD = 7 * 24 * 60 * 60 * 1000;
 function cvEpSeenKey(key) { return 'cv_ep_seen_' + key; }
 function cvHasNewEpisode(m) {
   if (!m.episodes || !m.episodes.length || !m._key) return false;
-  var seen = parseInt(localStorage.getItem(cvEpSeenKey(m._key)) || '0', 10);
+  var seen = 0;
+  try { seen = parseInt(localStorage.getItem(cvEpSeenKey(m._key)) || '0', 10); } catch (e) {}
   return seen > 0 && m.episodes.length > seen;
 }
 function cvMarkEpisodesSeen(m) {
@@ -6816,7 +6904,8 @@ function openModal(key) {
   if (m.episodes && m.episodes.length) {
     // Naye episodes ka pata lagane ke liye purana seen-count save karo
     // rendering se pehle (warna mark-as-seen ke baad "new" tag hi nahi milega)
-    var _prevSeenCount = parseInt(localStorage.getItem(cvEpSeenKey(m._key || '')) || '0', 10);
+    var _prevSeenCount = 0;
+    try { _prevSeenCount = parseInt(localStorage.getItem(cvEpSeenKey(m._key || '')) || '0', 10); } catch (e) {}
     // Store episode dl data in global registry keyed by index (safe, no inline JSON)
     window._cvEpDlRegistry = {};
     var epHtml = '<div class="cv-section-title">Episodes</div>';
@@ -7175,7 +7264,7 @@ function playVideo(url, title) {
         + '<div style="font-size:1rem;font-weight:800;margin-bottom:8px;">Ye video browser mein direct play nahi hoti</div>'
         + '<div style="font-size:0.85rem;color:#aaa;max-width:380px;line-height:1.7;margin-bottom:20px;">Is source ko sirf VLC Media Player mein khola ja sakta hai. Neeche wala link copy karo, VLC kholo, <b>Ctrl+N</b> dabao (ya Media &rarr; Open Network Stream), link paste karo aur Play karo.</div>'
         + '<input id="cv-pd-link" readonly value="' + pdRawUrl + '" style="width:100%;max-width:420px;padding:10px 12px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#ddd;font-size:0.78rem;margin-bottom:14px;text-align:center;" onclick="this.select()"/>'
-        + '<button onclick="navigator.clipboard.writeText(\'' + pdRawUrl.replace(/'/g,"\\'") + '\').then(function(){var b=document.getElementById(\'cv-pd-copybtn\');if(b){b.textContent=\'✔ Copied!\';setTimeout(function(){b.textContent=\'📋 Copy VLC Link\';},2000);}})" id="cv-pd-copybtn" style="padding:12px 26px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;margin-bottom:10px;">📋 Copy VLC Link</button>'
+        + '<button onclick="cvCopyVlcLink(\'' + pdRawUrl.replace(/'/g,"\\'") + '\',\'cv-pd-copybtn\')" id="cv-pd-copybtn" style="padding:12px 26px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;margin-bottom:10px;">📋 Copy VLC Link</button>'
         + '<a href="' + pdRawUrl + '" target="_blank" rel="noopener" style="color:#888;font-size:0.78rem;text-decoration:underline;">Ya seedha download/open karne ki koshish karo</a>'
         + '</div>';
     } else if (isDirectVideo) {
@@ -8701,6 +8790,20 @@ if (cvMobileInp) {
 // ══════════════════════════════════
 var _cvShareUrl = '';
 var _cvShareTitle = '';
+
+// PixelDrain "Copy VLC Link" button — safe clipboard with fallback for
+// browsers/in-app-browsers that don't support the Clipboard API.
+function cvCopyVlcLink(url, btnId) {
+  var btn = document.getElementById(btnId);
+  function done() {
+    if (btn) { btn.textContent = '✔ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy VLC Link'; }, 2000); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(function(){ cvFallbackCopy(url); done(); });
+  } else {
+    cvFallbackCopy(url); done();
+  }
+}
 
 function cvCopyMovieLink() {
   var key = window._cvCurrentKey;
