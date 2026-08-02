@@ -5357,6 +5357,16 @@ function buildFeatured() {
     // ── NORMAL MODE: featured movies ──
     wrap._customMode = false;
     featuredList = allData.filter(function(m) { return m.featured && !cvIsAdultItem(m); });
+    if (!featuredList.length) {
+      // ✅ FALLBACK — admin ne toggle ON kiya hai lekin koi movie manually
+      // "Featured" mark nahi ki (aur custom images bhi nahi hain). Pehle
+      // yahan section khaali content ki wajah se hide ho jata tha, chahe
+      // admin toggle ON ho. Ab MOTD jaisa hi fallback: top downloads wali
+      // (ya nayi) non-adult movies khud-ba-khud dikha do.
+      var fbPool = allData.filter(function(m) { return !cvIsAdultItem(m); });
+      fbPool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
+      featuredList = fbPool.slice(0, 5);
+    }
     if (!featuredList.length) { wrap.style.display = 'none'; return; }
     wrap.style.display = 'block';
   }
@@ -5768,6 +5778,15 @@ function cvBuildMotd() {
     return;
   }
   db.ref('motd').once('value').then(function(snap) {
+    // ✅ RACE FIX — ye fetch async hai; agar isi ke chalte hue admin ne
+    // MOTD OFF kar diya (flag change ho gaya), to yahan dobara check karo
+    // warna purani fetch complete hote hi section wapas show ho jata tha.
+    if (window._cvMotdEnabled === false) {
+      wrap.style.display = 'none';
+      var oElX = document.getElementById('cv-motd-outer'); if (oElX) oElX.style.display = 'none';
+      var nElX = document.getElementById('cv-nav-motd-btn'); if (nElX) nElX.style.display = 'none';
+      return;
+    }
     var d = snap.val() || {};
     var today = new Date().toISOString().substring(0, 10);
     var isManual = d.manualDate === today && d.manualKey;
