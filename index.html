@@ -7941,18 +7941,11 @@ function cvUhLoadData() {
   var future = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   var url1 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1';
   var url2 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=IN&page=1';
-  // Bollywood (Hindi) aur Tollywood (Telugu) upcoming — TMDB ka /movie/upcoming endpoint
-  // region-based hai, isliye Hindi/Telugu movies usme reliably nahi aatin. Discover endpoint
-  // ko original-language + future release date filter ke sath use karke unhe explicitly fetch karte hain.
-  var url3 = 'https://api.themoviedb.org/3/discover/movie?api_key=' + TMDB_KEY + '&with_original_language=hi&sort_by=primary_release_date.asc&primary_release_date.gte=' + today + '&primary_release_date.lte=' + future + '&page=1';
-  var url4 = 'https://api.themoviedb.org/3/discover/movie?api_key=' + TMDB_KEY + '&with_original_language=te&sort_by=primary_release_date.asc&primary_release_date.gte=' + today + '&primary_release_date.lte=' + future + '&page=1';
   var p1 = fetch(url1).then(function(r){return r.json();}).catch(function(){return {results:[]};});
   var p2 = fetch(url2).then(function(r){return r.json();}).catch(function(){return {results:[]};});
-  var p3 = fetch(url3).then(function(r){return r.json();}).catch(function(){return {results:[]};});
-  var p4 = fetch(url4).then(function(r){return r.json();}).catch(function(){return {results:[]};});
-  Promise.all([p1, p2, p3, p4]).then(function(res) {
+  Promise.all([p1, p2]).then(function(res) {
     var seen = {}, merged = [];
-    [].concat(res[0].results || [], res[2].results || [], res[1].results || [], res[3].results || []).forEach(function(m) {
+    [].concat(res[0].results || [], res[1].results || []).forEach(function(m) {
       if (!seen[m.id] && m.backdrop_path) { seen[m.id] = true; merged.push(m); }
     });
     if (merged.length) cvUhRender(merged.slice(0, 12));
