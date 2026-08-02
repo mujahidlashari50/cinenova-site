@@ -76,11 +76,11 @@
 <link href='https://i.ibb.co' rel='dns-prefetch'/>
 <link crossorigin='' href='https://fonts.googleapis.com' rel='preconnect'/>
 
-<!-- Plyr.io Player &#8212; non-blocking -->
+<!-- Plyr.io Player — non-blocking. Preconnect hata diya (video player sirf
+     tab chahiye jab user movie khole, initial load ke liye zaroori nahi —
+     "too many preconnects" warning kam karne ke liye) -->
 <link as='style' href='https://cdn.plyr.io/3.7.8/plyr.css' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://cdn.plyr.io/3.7.8/plyr.css' rel='stylesheet'/></noscript>
-<link href='https://cdn.plyr.io' rel='dns-prefetch'/>
-<link crossorigin='' href='https://cdn.plyr.io' rel='preconnect'/>
 
 <!-- Fonts async load &#8212; non-blocking with font-display:swap -->
 <link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
@@ -224,7 +224,7 @@ body{text-rendering:optimizeSpeed}
 #cv-search-wrap input::placeholder{color:rgba(255,255,255,0.45)}
 
 /* MOBILE SEARCH BUTTON */
-#cv-search-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem}
+#cv-search-btn{display:none;align-items:center;justify-content:center;width:44px;height:44px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem}
 
 /* MOBILE SEARCH OVERLAY */
 #cv-search-overlay{
@@ -235,7 +235,7 @@ body{text-rendering:optimizeSpeed}
 #cv-search-overlay.open{display:block}
 #cv-search-overlay-wrap{display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px}
 #cv-search-overlay-wrap input{background:none;border:none;outline:none;color:#fff;font-size:1rem;width:100%;min-width:0}
-#cv-search-overlay-wrap input::placeholder{color:#555}
+#cv-search-overlay-wrap input::placeholder{color:#7d7d7d}
 #cv-search-overlay-close{color:#888;cursor:pointer;font-size:0.9rem;flex-shrink:0;white-space:nowrap}
 #cv-search-clear,#cv-search-mobile-clear{align-items:center;justify-content:center}
 
@@ -542,7 +542,7 @@ body{text-rendering:optimizeSpeed}
 .cv-upcoming-label{display:flex;align-items:center;gap:8px}
 .cv-upcoming-label-icon{font-size:1rem}
 .cv-upcoming-label-title{font-size:1rem;font-weight:800;color:#e5e5e5}
-.cv-upcoming-label-sub{font-size:0.68rem;color:#555;margin-top:1px}
+.cv-upcoming-label-sub{font-size:0.68rem;color:#7d7d7d;margin-top:1px}
 /* Skeleton */
 .cv-uh-skel{
   width:100%;height:100%;
@@ -598,7 +598,7 @@ body{text-rendering:optimizeSpeed}
   flex-shrink:0;
 }
 .cv-trailers-title{font-size:0.88rem;font-weight:800;color:#fff;letter-spacing:0.5px;text-transform:uppercase}
-.cv-trailers-sub{font-size:0.68rem;color:#555;margin-top:1px}
+.cv-trailers-sub{font-size:0.68rem;color:#7d7d7d;margin-top:1px}
 .cv-trailers-live{
   background:linear-gradient(135deg,#e50914,#c0000f);
   color:#fff;font-size:0.58rem;
@@ -610,7 +610,7 @@ body{text-rendering:optimizeSpeed}
   0%,100%{box-shadow:0 0 8px rgba(229,9,20,0.5)}
   50%{box-shadow:0 0 18px rgba(229,9,20,0.9)}
 }
-.cv-trailers-count{font-size:0.68rem;color:#444;font-weight:600}
+.cv-trailers-count{font-size:0.68rem;color:#6b6b6b;font-weight:600}
 .cv-trailers-track-wrap{overflow:hidden;padding-left:16px;position:relative;z-index:1;touch-action:pan-y}
 .cv-trailers-track{display:flex;gap:12px;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;transform:translateZ(0)}
 .cv-tr-card{
@@ -677,7 +677,7 @@ body{text-rendering:optimizeSpeed}
 }
 .cv-tr-meta{display:flex;align-items:center;gap:4px;margin-top:2px}
 .cv-tr-year{font-size:0.65rem;color:var(--grey)}
-.cv-tr-dot{font-size:0.45rem;color:#444}
+.cv-tr-dot{font-size:0.45rem;color:#6b6b6b}
 .cv-tr-hd{
   font-size:0.52rem;font-weight:800;color:#1a8cff;
   border:1px solid rgba(26,140,255,0.3);
@@ -714,7 +714,7 @@ body{text-rendering:optimizeSpeed}
 .cv-page-btn:hover:not(:disabled){background:#2a2a2a;border-color:#3a3a3a;color:#fff}
 .cv-page-btn.active{background:#e50914;border-color:#e50914;color:#fff;pointer-events:none}
 .cv-page-btn:disabled{opacity:0.35;cursor:not-allowed}
-.cv-page-info{font-size:0.8rem;color:#555;white-space:nowrap;padding:0 4px}
+.cv-page-info{font-size:0.8rem;color:#7d7d7d;white-space:nowrap;padding:0 4px}
 @media(max-width:400px){.cv-page-btn{min-width:36px;height:36px;padding:0 10px;font-size:0.82rem}}
 
 /* ══ GRID — MASTER PRO ══ */
@@ -1152,7 +1152,7 @@ body{text-rendering:optimizeSpeed}
 #cv-adult-gate-google-btn:active{transform:scale(0.97)}
 #cv-adult-gate-google-btn.loading{opacity:0.7;pointer-events:none}
 #cv-adult-gate-error{color:#ff6b6b;font-size:0.78rem;margin-top:12px;min-height:1em}
-#cv-adult-gate-footer{font-size:0.68rem;color:#555;margin-top:16px;line-height:1.5}
+#cv-adult-gate-footer{font-size:0.68rem;color:#7d7d7d;margin-top:16px;line-height:1.5}
 
 /* ══ MY LIST — apna alag popup, adult gate se koi lena dena nahi ══ */
 #cv-header-mylist-btn{
@@ -1364,7 +1364,7 @@ body{text-rendering:optimizeSpeed}
   animation:cvSpin 0.6s linear infinite reverse;
 }
 @keyframes cvSpin{to{transform:rotate(360deg)}}
-#cv-player-loading span{font-size:0.7rem;color:#444;font-weight:700;letter-spacing:2px;text-transform:uppercase;animation:cvPulseText 1.4s ease-in-out infinite}
+#cv-player-loading span{font-size:0.7rem;color:#6b6b6b;font-weight:700;letter-spacing:2px;text-transform:uppercase;animation:cvPulseText 1.4s ease-in-out infinite}
 @keyframes cvPulseText{0%,100%{opacity:0.45}50%{opacity:1}}
 /* Footer — hidden */
 #cv-player-footer,#cv-player-tip,#cv-player-quality-label{display:none!important}
@@ -2416,7 +2416,7 @@ body{text-rendering:optimizeSpeed}
   transition:border-color 0.2s;
 }
 .cv-req-inp:focus{border-color:var(--red)}
-.cv-req-inp::placeholder{color:#444}
+.cv-req-inp::placeholder{color:#6b6b6b}
 .cv-req-btn{
   width:100%;padding:11px;background:var(--red);color:#fff;border:none;
   border-radius:8px;font-size:0.9rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;
@@ -2442,7 +2442,7 @@ body{text-rendering:optimizeSpeed}
 .cv-comment-item:hover{border-color:var(--border2)}
 .cv-comment-author{font-size:0.75rem;font-weight:700;color:var(--red);margin-bottom:4px}
 .cv-comment-text{font-size:0.82rem;color:#ccc;line-height:1.5}
-.cv-comment-time{font-size:0.65rem;color:#444;margin-top:4px}
+.cv-comment-time{font-size:0.65rem;color:#6b6b6b;margin-top:4px}
 .cv-comment-inp{
   width:100%;padding:10px 13px;background:#0d0d0d;
   border:1px solid #2a2a2a;border-radius:8px;color:#fff;
@@ -2812,10 +2812,10 @@ body{text-rendering:optimizeSpeed}
   background:rgba(229,9,20,0.12);color:#ff6b6b;
   font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:3px;
 }
-.cv-sug-empty{padding:20px;text-align:center;color:#444;font-size:0.82rem}
+.cv-sug-empty{padding:20px;text-align:center;color:#6b6b6b;font-size:0.82rem}
 .cv-sug-header{
   padding:7px 12px 5px;font-size:0.65rem;font-weight:800;
-  color:#444;text-transform:uppercase;letter-spacing:1px;background:#111;
+  color:#6b6b6b;text-transform:uppercase;letter-spacing:1px;background:#111;
 }
 #cv-search-wrap{position:relative}
 #cv-mobile-search-dropdown{
@@ -3278,7 +3278,6 @@ body{text-rendering:optimizeSpeed}
 }
 </style>
 </head>
-  <meta name="msvalidate.01" content="082167CD2E5DB47E0C8C47821C9F8DF6" />
 <body>
 
 <!-- BLOGGER WIDGETS (hidden) -->
@@ -3425,12 +3424,12 @@ function cvOpenInBrowser() {
   </a>
   <div style='display:flex;align-items:center;gap:8px;flex-shrink:1'>
     <div id='cv-search-wrap'>
-      <span style='color:#555;font-size:0.9rem'>🔍</span>
+      <span style='color:#7d7d7d;font-size:0.9rem'>🔍</span>
       <input autocomplete='off' id='cv-search' placeholder='Search movies...' type='text'/>
       <span id='cv-search-clear' onclick='cvClearSearch(&quot;cv-search&quot;)' style='display:none;color:#888;cursor:pointer;font-size:0.95rem;padding:0 2px;flex-shrink:0;line-height:1'>&#10005;</span>
       <div id='cv-search-dropdown'></div>
     </div>
-    <div id='cv-search-btn' onclick='cvOpenSearch()'>🔍</div>
+    <div id='cv-search-btn' onclick='cvOpenSearch()' role='button' aria-label='Search' tabindex='0'>🔍</div>
     <div id='cv-nav-motd-btn' onclick='cvScrollToMotd()' style='display:none' title='Today&apos;s Pick'>🔥</div>
     <div id='cv-header-mylist-btn' onclick='cvMyListHeaderClick()' title='My List'>🔖</div>
   </div>
@@ -3464,7 +3463,7 @@ function cvOpenInBrowser() {
 <!-- MOBILE SEARCH OVERLAY -->
 <div id='cv-search-overlay'>
   <div id='cv-search-overlay-wrap'>
-    <span style='color:#555;font-size:1rem'>🔍</span>
+    <span style='color:#7d7d7d;font-size:1rem'>🔍</span>
     <input autocomplete='off' id='cv-search-mobile' placeholder='Search movies...' type='text'/>
     <span id='cv-search-mobile-clear' onclick='cvClearSearch(&quot;cv-search-mobile&quot;)' style='display:none;color:#888;cursor:pointer;font-size:1rem;padding:0 4px;flex-shrink:0;line-height:1'>&#10005;</span>
     <span id='cv-search-overlay-close' onclick='cvCloseSearch()'>Cancel</span>
@@ -3550,14 +3549,17 @@ function cvOpenInBrowser() {
     </div>
     <!-- &#9552;&#9552;&#9552; END CINENOVA BANNER INTRO &#9552;&#9552;&#9552; -->
 
-    <!-- UPCOMING MOVIES HERO SLIDER (shows after intro) -->
-    <div id='cv-upcoming-wrap' style='display:none'>
+    <!-- UPCOMING MOVIES HERO SLIDER — display:none nahi rakhte ab, taake ye
+         intro ke sath PARALLEL load/render ho (intro opaque hai, upar se dhak
+         deta hai) — isse LCP/CLS dono behtar hote hain, real content ko
+         intro khatam hone ka wait nahi karna padta -->
+    <div id='cv-upcoming-wrap'>
       <div id='cv-upcoming-hero'>
         <div id='cv-upcoming-track'>
           <div class='cv-uh-skel'></div>
         </div>
-        <button class='cv-uh-arrow' id='cv-uh-prev'>&#10094;</button>
-        <button class='cv-uh-arrow' id='cv-uh-next'>&#10095;</button>
+        <button class='cv-uh-arrow' id='cv-uh-prev' aria-label='Previous movie'>&#10094;</button>
+        <button class='cv-uh-arrow' id='cv-uh-next' aria-label='Next movie'>&#10095;</button>
         <div id='cv-upcoming-dots'></div>
       </div>
     </div>
@@ -3739,7 +3741,7 @@ function cvOpenInBrowser() {
     </div>
     <!-- URL bar -->
     <div style='margin:4px 16px 0;display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px'>
-      <div id='cv-share-url-text' style='flex:1;font-size:0.75rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'></div>
+      <div id='cv-share-url-text' style='flex:1;font-size:0.75rem;color:#7d7d7d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'></div>
       <button onclick='cvShareTo(&quot;copy&quot;)' style='flex-shrink:0;background:#e50914;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer'>Copy</button>
     </div>
     <button onclick='cvCloseShare()' style='display:block;width:calc(100% - 32px);margin:12px 16px 0;padding:13px;background:rgba(255,255,255,0.05);border:1px solid #2a2a2a;border-radius:12px;color:#888;font-size:0.9rem;font-weight:600;cursor:pointer'>Cancel</button>
@@ -3750,7 +3752,7 @@ function cvOpenInBrowser() {
 <div id='cv-modal'>
   <div id='cv-modal-box' style='position:relative'>
     <span id='cv-modal-handle'></span>
-    <button id='cv-modal-close'>&#10005;</button>
+    <button id='cv-modal-close' aria-label='Close'>&#10005;</button>
     <button id='cv-modal-bookmark' onclick='cvToggleWatchlist(event)' title='Add to My List'>🔖</button>
     <div id='cv-modal-img-wrap' style='display:none'>
       <img alt='Movie Poster' id='cv-modal-img' src=''/>
@@ -3799,7 +3801,7 @@ function cvOpenInBrowser() {
     </div>
     <div id='cv-player-footer'>
       <div id='cv-player-tip'>💡 Landscape mode provides a better experience on mobile</div>
-      <div id='cv-player-quality-label' style='font-size:0.72rem;color:#555'></div>
+      <div id='cv-player-quality-label' style='font-size:0.72rem;color:#7d7d7d'></div>
     </div>
   </div>
 </div>
@@ -3977,7 +3979,7 @@ function cvShowLoadFailure() {
   if (window._cvLoadFailureShown) return;
   if (window._cvFirebaseLoaded) return; // load ho chuka, kuch mat karo
   window._cvLoadFailureShown = true;
-  var msg = '<div class="cv-empty"><p>⚡</p><p>Site load nahi ho saka<br/><small style="color:#555">Apna internet connection check karein — <a href="javascript:location.reload()" style="color:#e50914">Reload karein</a></small></p></div>';
+  var msg = '<div class="cv-empty"><p>⚡</p><p>Site load nahi ho saka<br/><small style="color:#7d7d7d">Apna internet connection check karein — <a href="javascript:location.reload()" style="color:#e50914">Reload karein</a></small></p></div>';
   try {
     var grid = document.getElementById('cv-grid');
     if (grid && !grid.children.length) grid.innerHTML = msg;
@@ -4599,12 +4601,12 @@ function fetchFirebasePage(isFirst, _retryCount) {
         // sirf background mein khamoshi se retry karo.
         if (!hasCachedContent) {
           var gridRetry = document.getElementById('cv-grid');
-          if (gridRetry) gridRetry.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Taking longer than usual, retrying...<br/><small style="color:#555">Please wait a moment</small></p></div>';
+          if (gridRetry) gridRetry.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Taking longer than usual, retrying...<br/><small style="color:#7d7d7d">Please wait a moment</small></p></div>';
         }
         fetchFirebasePage(true, _retryCount + 1);
       } else if (!hasCachedContent) {
         var grid = document.getElementById('cv-grid');
-        if (grid) grid.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Connection is slow<br/><small style="color:#555">Check your internet connection — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
+        if (grid) grid.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Connection is slow<br/><small style="color:#7d7d7d">Check your internet connection — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
       }
     }, 10000);
   }
@@ -4618,7 +4620,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
       allLoaded = true;
       if (isFirst && allData.length === 0) {
         document.getElementById('cv-grid').innerHTML =
-          '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#555">Add data in Firebase or check your connection</small></p></div>';
+          '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>';
       }
       return;
     }
@@ -4692,7 +4694,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
       }, 3000);
       if (!allData || allData.length === 0) {
         var gridErr = document.getElementById('cv-grid');
-        if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#555">' + (err.message||'Firebase error') + '</small></p></div>';
+        if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#7d7d7d">' + (err.message||'Firebase error') + '</small></p></div>';
       }
     } else {
       showStatus('❌ Load error: ' + err.message, '#e50914');
@@ -4927,9 +4929,6 @@ function setupInfiniteScroll() {
     setTimeout(function() {
       intro.classList.add('cv-intro-fadeout');
       wrap.classList.add('cv-intro-done');
-      // Show upcoming slider after intro
-      var upcomingWrap = document.getElementById('cv-upcoming-wrap');
-      if (upcomingWrap) upcomingWrap.style.display = '';
       setTimeout(function() { intro.classList.add('cv-intro-gone'); }, 900);
     }, 250);
   }
@@ -6593,9 +6592,9 @@ function cvRenderPage() {
 
   if (!cvFilteredList.length) {
     grid.innerHTML = selCat === 'watchlist'
-      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#555">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
+      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
       : allData.length === 0
-      ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#555">Add data in Firebase or check your connection</small></p></div>'
+      ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
       : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
     cvRenderPagination(0);
     return;
@@ -7872,7 +7871,7 @@ function tmdbRender(trackId, movies) {
     + '</div>';
   });
   var track = document.getElementById(trackId);
-  track.innerHTML = html || '<div style="color:#444;padding:20px;">Failed to load</div>';
+  track.innerHTML = html || '<div style="color:#6b6b6b;padding:20px;">Failed to load</div>';
 
   // Auto slide setup
   tmdbIndexes[trackId] = 0;
@@ -7942,7 +7941,7 @@ function tmdbFetch(url, trackId) {
   fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) { tmdbRender(trackId, (data.results || []).slice(0, 20)); })
-    .catch(function() { var el = document.getElementById(trackId); if (el) el.innerHTML = '<div style="color:#444;padding:20px;font-size:0.8rem;">Failed to load</div>'; });
+    .catch(function() { var el = document.getElementById(trackId); if (el) el.innerHTML = '<div style="color:#6b6b6b;padding:20px;font-size:0.8rem;">Failed to load</div>'; });
 }
 
 // TMDB Trailer Player
@@ -7980,7 +7979,7 @@ function tmdbPlayTrailer(tmdbId, mediaType, title) {
     })
     .catch(function() {
       if (loading) loading.classList.remove('show');
-      inner.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;">Error loading trailer</div>';
+      inner.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#7d7d7d;">Error loading trailer</div>';
     });
 }
 
@@ -7997,10 +7996,10 @@ function cvUhRender(movies) {
   var dotsEl = document.getElementById('cv-upcoming-dots');
   if (!track) return;
   var html = '';
-  movies.forEach(function(m) {
+  movies.forEach(function(m, idx) {
     var bg = m.backdrop_path
-      ? 'https://image.tmdb.org/t/p/w780' + m.backdrop_path
-      : (m.poster_path ? 'https://image.tmdb.org/t/p/w780' + m.poster_path : '');
+      ? 'https://image.tmdb.org/t/p/w500' + m.backdrop_path
+      : (m.poster_path ? 'https://image.tmdb.org/t/p/w500' + m.poster_path : '');
     var title = m.title || m.name || 'Untitled';
     var year = (m.release_date || m.first_air_date || '').substring(0, 4);
     var rating = m.vote_average ? '★ ' + m.vote_average.toFixed(1) : '';
@@ -8008,8 +8007,11 @@ function cvUhRender(movies) {
     var langLabel = lang === 'HI' ? '🇮🇳 Hindi' : lang === 'EN' ? '🇺🇸 English' : lang;
     var mediaType = m.media_type === 'tv' ? 'tv' : 'movie';
     var tmdbId = m.id;
+    // Pehli slide hi visible hoti hai load ke waqt (LCP candidate) — usko
+    // turant/high-priority load karo. Baaki lazy rahengi (off-screen).
+    var imgAttrs = idx === 0 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
     html += '<div class="cv-uh-slide" onclick="tmdbPlayTrailer(' + tmdbId + ',\'' + mediaType + '\',\'' + escJs(title) + '\')">'
-      + (bg ? '<img class="cv-uh-bg" src="' + bg + '" alt="' + escHtml(title) + '" loading="lazy">' : '<div class="cv-uh-bg" style="background:#111"></div>')
+      + (bg ? '<img class="cv-uh-bg" src="' + bg + '" alt="' + escHtml(title) + '" ' + imgAttrs + '>' : '<div class="cv-uh-bg" style="background:#111"></div>')
       + '<div class="cv-uh-overlay"></div>'
       + '<div class="cv-uh-info">'
         + '<div class="cv-uh-badge">Coming Soon</div>'
@@ -8111,9 +8113,11 @@ function cvUhLoadData() {
   }
 })();
 
-// TMDB — delayed 3.5s so main Firebase content loads first
+// TMDB — pehle sirf Coming Soon hero turant load karo (intro overlay ke
+// peeche parallel), baaki secondary sections (Now Playing rows waghera)
+// thodi der baad taake Firebase/main content pehle priority pae
+cvUhLoadData();
 setTimeout(function() {
-  cvUhLoadData();
   // Hollywood — Now Playing (English)
   tmdbFetch(
     'https://api.themoviedb.org/3/movie/now_playing?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1',
@@ -8609,13 +8613,13 @@ function loadComments(key) {
   html += '<textarea class="cv-comment-inp" id="cv-cmt-text" placeholder="Write your comment..."></textarea>';
   html += '<button class="cv-comment-btn" onclick="submitComment()">📤 Post Comment</button>';
   html += '<div id="cv-comment-msg"></div>';
-  html += '<div id="cv-comments-list" style="margin-top:12px"><div style="color:#444;font-size:0.8rem;text-align:center;padding:10px">Loading...</div></div>';
+  html += '<div id="cv-comments-list" style="margin-top:12px"><div style="color:#6b6b6b;font-size:0.8rem;text-align:center;padding:10px">Loading...</div></div>';
   wrap.innerHTML = html;
 
   db.ref('comments/' + key).orderByChild('ts').limitToLast(20).once('value', function(snap) {
     var list = document.getElementById('cv-comments-list');
     if (!list) return;
-    if (!snap.exists()) { list.innerHTML = '<div style="color:#444;font-size:0.78rem;text-align:center;padding:10px">No comments yet — be the first!</div>'; return; }
+    if (!snap.exists()) { list.innerHTML = '<div style="color:#6b6b6b;font-size:0.78rem;text-align:center;padding:10px">No comments yet — be the first!</div>'; return; }
     var cmts = [];
     snap.forEach(function(c) { cmts.unshift(c.val()); });
     list.innerHTML = cmts.map(function(c) {
@@ -9442,7 +9446,7 @@ function cvResetSEO() {
   box-sizing:border-box;
 }
 .cvf-ticket::before,.cvf-ticket::after{display:none}
-.cvf-copy{font-size:0.78rem;color:#555;}
+.cvf-copy{font-size:0.78rem;color:#7d7d7d;}
 .cvf-badges{display:flex;gap:6px;flex-wrap:wrap;}
 .cvf-badge{
   font-size:0.68rem;color:#666;
