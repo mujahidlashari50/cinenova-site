@@ -4175,6 +4175,23 @@ function _cvOnFirebaseReady() {
       featuredWrap.style.display = featuredWrap._adminEnabled ? 'block' : 'none';
     }
 
+    // Movie of the Day toggle — default ON agar admin ne kabhi set nahi kiya (undefined)
+    window._cvMotdEnabled = (sl.movieOfTheDay !== false);
+    if (!window._cvMotdEnabled) {
+      var motdOuterEl = document.getElementById('cv-motd-outer');
+      if (motdOuterEl) motdOuterEl.style.display = 'none';
+      var motdNavBtn = document.getElementById('cv-nav-motd-btn');
+      if (motdNavBtn) motdNavBtn.style.display = 'none';
+    }
+
+    // Now Showing (hero poster stack) toggle — default ON agar admin ne set nahi kiya
+    window._cvNsHeroEnabled = (sl.nowShowing !== false);
+    if (!window._cvNsHeroEnabled) {
+      var nsHeroEl = document.getElementById('cv-ns-hero');
+      if (nsHeroEl) nsHeroEl.style.display = 'none';
+      if (_cvNsTimer) { clearInterval(_cvNsTimer); _cvNsTimer = null; }
+    }
+
     // Rebuild featured banner
     buildFeatured();
   });
@@ -5199,6 +5216,11 @@ var _cvNsTimer = null;
 function buildNsHero() {
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
+  if (window._cvNsHeroEnabled === false) {
+    var heroWrapOff = document.getElementById('cv-ns-hero');
+    if (heroWrapOff) heroWrapOff.style.display = 'none';
+    return;
+  }
   // Agar watchdog ne pehle load-failure state dikha ke ye section chhupa
   // diya tha, aur ab data der se hi sahi aa gaya, to section wapas dikhao
   // (lekin cat/genre view me jaan-boojh kar chhupaya gaya ho to waisa hi rehne do).
@@ -5725,6 +5747,12 @@ function cvTsSetupDrag(track, cardStep) {
 function cvBuildMotd() {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !db) return;
+  if (window._cvMotdEnabled === false) {
+    wrap.style.display = 'none';
+    var oEl0 = document.getElementById('cv-motd-outer'); if (oEl0) oEl0.style.display = 'none';
+    var nEl0 = document.getElementById('cv-nav-motd-btn'); if (nEl0) nEl0.style.display = 'none';
+    return;
+  }
   db.ref('motd').once('value').then(function(snap) {
     var d = snap.val() || {};
     var today = new Date().toISOString().substring(0, 10);
