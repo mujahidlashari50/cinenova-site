@@ -291,13 +291,17 @@ body{text-rendering:optimizeSpeed}
 /* ══ NOW SHOWING HERO (posters-only, auto-rotating) ══ */
 #cv-ns-hero{
   position:relative;width:100%;box-sizing:border-box;
-  padding:44px 4% 50px;
+  padding:64px 4% 50px;
   min-height:440px;
   display:flex;align-items:center;justify-content:center;
   background:
     radial-gradient(ellipse 1000px 550px at 50% 0%, rgba(229,9,20,0.10) 0%, transparent 62%),
     linear-gradient(180deg,#0a0a0a 0%,#111 70%,#141414 100%);
   overflow:hidden;
+}
+#cv-ns-hero-title{
+  position:absolute;top:20px;left:4%;z-index:3;
+  font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:0.2px;
 }
 #cv-ns-hero::before{
   content:'';position:absolute;inset:0;pointer-events:none;
@@ -334,7 +338,8 @@ body{text-rendering:optimizeSpeed}
 .cv-ns-skel{position:absolute;inset:0;border-radius:16px;background:linear-gradient(90deg,#1a1a1a 25%,#242424 37%,#1a1a1a 63%);background-size:400% 100%;animation:cv-skel-shine 1.4s ease infinite}
 @keyframes cv-skel-shine{0%{background-position:100% 0}100%{background-position:-100% 0}}
 @media(max-width:900px){
-  #cv-ns-hero{padding:34px 20px 40px;min-height:400px}
+  #cv-ns-hero{padding:56px 20px 40px;min-height:400px}
+  #cv-ns-hero-title{font-size:1rem;top:18px;left:20px}
   #cv-ns-stack{width:230px;height:330px}
   .cv-ns-poster.cv-ns-p0{transform:rotate(-9deg) translate(-62px,12px) scale(0.88)}
   .cv-ns-poster.cv-ns-p1{transform:rotate(8deg) translate(58px,16px) scale(0.88)}
@@ -365,7 +370,10 @@ body{text-rendering:optimizeSpeed}
   flex-shrink:0;width:140px;position:relative;cursor:pointer;
   transition:transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
 }
-.cv-ns-lcard:hover,.cv-ns-lcard:focus-visible{transform:scale(1.16) translateY(-8px);z-index:20}
+@media(hover:hover){
+  .cv-ns-lcard:hover,.cv-ns-lcard:focus-visible{transform:scale(1.16) translateY(-8px);z-index:20}
+}
+.cv-ns-lcard:active{transform:scale(0.96)}
 .cv-ns-lcard-img-wrap{
   position:relative;border-radius:10px;overflow:hidden;aspect-ratio:2/3;
   background:#1a1a1a;box-shadow:0 6px 18px rgba(0,0,0,0.4);
@@ -393,7 +401,6 @@ body{text-rendering:optimizeSpeed}
   #cv-ns-latest-wrap{padding:20px 16px 12px}
   #cv-ns-latest-title{font-size:1rem}
   .cv-ns-lcard,.cv-ns-lskel{width:108px}
-  .cv-ns-lcard:hover{transform:scale(1.1) translateY(-5px)}
   .cv-ns-lcard-title{font-size:0.7rem}
   .cv-ns-lcard-new{font-size:0.52rem;padding:2px 6px}
 }
@@ -3488,6 +3495,7 @@ body{text-rendering:optimizeSpeed}
 
 <!-- ══ NOW SHOWING HERO (new — posters only, auto-rotating) ══ -->
 <div id='cv-ns-hero'>
+  <div id='cv-ns-hero-title'>🎬 Now Showing</div>
   <div id='cv-ns-stack'>
     <div class='cv-ns-skel'></div>
   </div>
