@@ -506,8 +506,7 @@ body{text-rendering:optimizeSpeed}
 .cv-uh-play svg{width:14px;height:14px;fill:#fff}
 /* Nav dots */
 #cv-upcoming-dots{
-  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
-  display:flex;gap:6px;z-index:5;
+  display:none;
 }
 .cv-uh-dot{
   width:5px;height:5px;border-radius:50%;
@@ -3490,8 +3489,16 @@ function cvOpenInBrowser() {
 </div>
 
 <!-- FEATURED BANNER -->
-<div id='cv-featured-wrap' style='display:none'>
-  <script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';}}catch(e){}})();</script>
+<div id='cv-featured-wrap'>
+  <script>(function(){try{
+    var p=new URLSearchParams(location.search);
+    if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';return;}
+    // Pichli baar ka pata hua state turant apply karo (Firebase ka wait
+    // nahi karna) — taake na CLS ho (banner ON case) na flash ho (OFF case).
+    // Firebase settings load hone ke baad, agar zarurat pade to silently
+    // correct + cache update ho jata hai.
+    if(localStorage.getItem('cv_fb_off')==='1'){document.getElementById('cv-featured-wrap').style.display='none';}
+  }catch(e){}})();</script>
   <div id='cv-featured-card'>
 
     <!-- &#9552;&#9552;&#9552; CINENOVA CINEMATIC BANNER INTRO &#9552;&#9552;&#9552; -->
@@ -4269,6 +4276,7 @@ function _cvOnFirebaseReady() {
       // Admin toggle hamesha respect karo — custom images hon ya movie posters
       featuredWrap.style.display = fbEnabled ? 'block' : 'none';
     }
+    try { localStorage.setItem('cv_fb_off', fbEnabled ? '0' : '1'); } catch (e) {}
 
     // Movie of the Day toggle — default ON agar admin ne kabhi set nahi kiya (undefined)
     window._cvMotdEnabled = (sl.movieOfTheDay !== false && sl.movieOfTheDay !== 'false');
