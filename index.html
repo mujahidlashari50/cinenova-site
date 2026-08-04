@@ -3275,6 +3275,130 @@ body{text-rendering:optimizeSpeed}
     box-shadow: 0 0 8px rgba(229,9,20,0.8), 0 0 16px rgba(229,9,20,0.4);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CINENOVA — EMBER UPGRADE (visual refresh, no structure/JS touched)
+   Signature: the poster-flame gradient from the favicon (#ff4d40 → #e50914 → #6e0309)
+   becomes a recurring "ember" accent — glowing rims on hover, gradient
+   headings, a warm vignette instead of flat black.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --ember:linear-gradient(135deg,#ff4d40 0%,#e50914 55%,#6e0309 100%);
+  --ember-line:linear-gradient(90deg,#ff4d40,#e50914 60%,transparent);
+  --ember-ring:0 0 0 1px rgba(255,77,64,0.35),0 14px 34px rgba(0,0,0,0.85),0 0 26px rgba(229,9,20,0.22);
+  --glass:rgba(20,20,20,0.55);
+}
+
+/* Warm cinematic vignette instead of flat black canvas */
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 50% -10%, rgba(229,9,20,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 900px 600px at 100% 20%, rgba(245,197,24,0.03) 0%, transparent 55%),
+    #0f0f10;
+}
+
+/* Gradient scrollbar */
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#e50914,#7a0509);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#ff4d40,#e50914)}
+
+/* ── NAV — always glassy, ember hairline ── */
+#cv-nav{
+  background:linear-gradient(180deg,rgba(8,8,8,0.75) 0%,rgba(8,8,8,0.15) 80%,transparent 100%);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+#cv-nav.scrolled{
+  background:rgba(9,9,10,0.86);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 1px 0 rgba(255,255,255,0.06),0 8px 30px rgba(0,0,0,0.7);
+  border-bottom:1px solid rgba(229,9,20,0.15);
+}
+#cv-logo span{
+  background:var(--ember);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:#e50914;
+  filter:drop-shadow(0 0 14px rgba(229,9,20,0.35));
+  letter-spacing:2.5px;
+}
+#cv-search-wrap{border-radius:8px;border-color:rgba(255,255,255,0.14)}
+#cv-search-wrap:focus-within{border-color:#ff4d40;box-shadow:0 0 0 3px rgba(229,9,20,0.12)}
+
+/* ── CATEGORY PILLS — glass + ember active state ── */
+#cv-cats{background:rgba(15,15,15,0.7)}
+.cv-pill{
+  border-radius:24px;background:rgba(255,255,255,0.04);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.cv-pill:hover{transform:translateY(-1px)}
+.cv-pill.active{
+  background:var(--ember);border-color:transparent;
+  box-shadow:0 4px 18px rgba(229,9,20,0.45),0 0 0 1px rgba(255,255,255,0.08) inset;
+}
+
+/* ── SECTION TITLES — ember accent bar, no more plain grey line ── */
+.cv-section-title,.tmdb-section-title,#cv-ns-hero-title,#cv-ns-latest-title{
+  letter-spacing:0.3px;
+}
+.cv-section-title{position:relative;padding-left:12px}
+.cv-section-title::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:4px;height:16px;border-radius:3px;background:var(--ember);
+}
+.cv-section-title::after{background:linear-gradient(90deg,rgba(255,255,255,0.14),transparent)}
+.tmdb-section-title{position:relative;padding-left:12px}
+.tmdb-section-title::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:4px;height:16px;border-radius:3px;background:var(--ember);
+}
+
+/* ── MOVIE CARDS — rounder, ember glow ring, smoother motion ── */
+.cv-card{
+  border-radius:14px;
+  background:#161616;
+  transition:transform 0.28s cubic-bezier(0.22,1,0.36,1),box-shadow 0.28s ease,border-color 0.28s ease;
+}
+.cv-card:hover{
+  transform:scale(1.06) translateY(-4px);
+  box-shadow:var(--ember-ring);
+  border-color:rgba(255,77,64,0.4);
+}
+.cv-card-img-wrap{border-radius:14px 14px 0 0}
+.cv-card-img-wrap::after{background:var(--ember);box-shadow:0 6px 22px rgba(229,9,20,0.55)}
+.cv-card-info{background:#161616}
+.cv-card:hover .cv-card-info{background:#181818}
+
+/* ── BUTTONS — ember gradient + lift ── */
+.cv-dl-btn{
+  border-radius:14px;
+  background:var(--ember);
+  box-shadow:0 6px 22px rgba(229,9,20,0.28);
+  position:relative;overflow:hidden;
+}
+.cv-dl-btn:hover{
+  background:linear-gradient(135deg,#ff6a5c,#e50914 55%,#8a0a0c);
+  transform:translateY(-2px);
+  box-shadow:0 10px 30px rgba(229,9,20,0.5);
+}
+.cv-dl-btn.secondary{border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14)}
+.cv-page-btn{border-radius:8px}
+.cv-page-btn.active{background:var(--ember);border-color:transparent;box-shadow:0 4px 16px rgba(229,9,20,0.4)}
+
+/* ── HERO POSTER STACK — deeper ember-tinted shadow ── */
+.cv-ns-poster{border-radius:18px;box-shadow:0 28px 60px rgba(0,0,0,0.7),0 0 40px rgba(229,9,20,0.06)}
+.cv-ns-poster.cv-ns-p2{box-shadow:0 30px 70px rgba(0,0,0,0.75),0 0 50px rgba(229,9,20,0.12)}
+
+/* ── MODAL — glass top accent ── */
+#cv-modal-box{border-radius:24px 24px 0 0;position:relative}
+#cv-modal-box::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:44px;height:4px;border-radius:4px;background:var(--ember);margin-top:10px;
+}
+
+/* ── Badges — refined gradient ── */
+.cv-new{background:var(--ember)}
+.cv-ep-alert-badge{background:var(--ember)}
+
+@media(prefers-reduced-motion:reduce){
+  .cv-card,.cv-pill,.cv-dl-btn{transition:none!important}
+}
 </style>
 </head>
 <body>
@@ -9492,6 +9616,14 @@ function cvResetSEO() {
   .cvf-genre-list{gap:6px;}
   .cvf-genre-tag{font-size:0.74rem;padding:5px 11px;}
 }
+/* ── FOOTER — ember accent to match Ember Upgrade ── */
+#cv-footer{
+  border-top:1px solid rgba(229,9,20,0.35);
+  background:
+    radial-gradient(ellipse 700px 260px at 50% 0%, rgba(229,9,20,0.06) 0%, transparent 70%),
+    #0d0d0d;
+}
+.cvf-genre-tag:hover{border-color:#ff4d40;background:rgba(229,9,20,0.14)}
 </style>
 
 <!-- GLOW BAR -->
