@@ -5862,7 +5862,7 @@ function updateSlidersVisibility(cat) {
   if (isHome) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
-    if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled !== false) ? '' : 'none';
+    if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (nsLatest) nsLatest.style.display = '';
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
@@ -6872,7 +6872,7 @@ function cvGoPage(page, fromPopstate) {
     if (selCat === 'all' && selGenre === '') {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
-      if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled !== false) ? '' : 'none';
+      if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
       if (nsLatest) nsLatest.style.display = '';
     }
   } else {
