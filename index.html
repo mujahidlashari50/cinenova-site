@@ -224,7 +224,7 @@ body{text-rendering:optimizeSpeed}
 #cv-search-wrap input::placeholder{color:rgba(255,255,255,0.45)}
 
 /* MOBILE SEARCH BUTTON */
-#cv-search-btn{display:none;align-items:center;justify-content:center;width:44px;height:44px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem}
+#cv-search-btn{display:none;align-items:center;justify-content:center;width:40px;height:40px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem}
 
 /* MOBILE SEARCH OVERLAY */
 #cv-search-overlay{
@@ -902,9 +902,15 @@ body{text-rendering:optimizeSpeed}
   overflow-y:auto;padding:0 0 30px;
   animation:slideup 0.28s cubic-bezier(0.22,1,0.36,1);
   scrollbar-width:thin;scrollbar-color:#333 transparent;
-  will-change:transform;
   transform:translateZ(0);
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  contain:layout paint style;
 }
+/* will-change only during the open/close animation, not permanently — a
+   permanent GPU layer here is what was making modal scroll feel sluggish */
+#cv-modal.open #cv-modal-box{will-change:auto}
+#cv-modal:not(.open) #cv-modal-box,#cv-modal.closing #cv-modal-box{will-change:transform}
 #cv-modal-box::-webkit-scrollbar{width:4px}
 #cv-modal-box::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
 @keyframes slideup{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -1156,7 +1162,7 @@ body{text-rendering:optimizeSpeed}
 /* ══ MY LIST — apna alag popup, adult gate se koi lena dena nahi ══ */
 #cv-header-mylist-btn{
   display:flex;align-items:center;justify-content:center;
-  width:36px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a;
+  width:40px;height:40px;background:#1a1a1a;border:1px solid #2a2a2a;
   border-radius:8px;cursor:pointer;flex-shrink:0;font-size:1rem;
 }
 #cv-header-mylist-btn:hover{border-color:#3b82f6}
@@ -2164,7 +2170,7 @@ body{text-rendering:optimizeSpeed}
   opacity:1;
 }
 
-#cv-nav-motd-btn{position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;font-size:1rem;cursor:pointer;flex-shrink:0}
+#cv-nav-motd-btn{position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;font-size:1rem;cursor:pointer;flex-shrink:0}
 #cv-nav-motd-btn::after{content:'';position:absolute;inset:-2px;border-radius:8px;box-shadow:0 0 0 0 rgba(250,204,21,0.55);animation:cvNavMotdPulse 1.8s ease-out infinite}
 @keyframes cvNavMotdPulse{0%{box-shadow:0 0 0 0 rgba(250,204,21,0.55)}70%{box-shadow:0 0 0 6px rgba(250,204,21,0)}100%{box-shadow:0 0 0 0 rgba(250,204,21,0)}}
 @keyframes cvMotdFlash{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
@@ -3175,6 +3181,16 @@ body{text-rendering:optimizeSpeed}
     border: 1px solid rgba(255,255,255,0.1) !important;
   }
   #cv-nav-motd-btn::after{ border-radius: 50% !important; }
+  #cv-search-btn,#cv-nav-motd-btn,#cv-header-mylist-btn{
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 0.95rem !important;
+  }
+  #cv-header-mylist-btn{
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
 
   /* ── CATEGORY PILLS — rounded Netflix style ── */
   .cv-pill{
@@ -3285,7 +3301,7 @@ body{text-rendering:optimizeSpeed}
 :root{
   --ember:linear-gradient(135deg,#ff4d40 0%,#e50914 55%,#6e0309 100%);
   --ember-line:linear-gradient(90deg,#ff4d40,#e50914 60%,transparent);
-  --ember-ring:0 0 0 1px rgba(255,77,64,0.35),0 14px 34px rgba(0,0,0,0.85),0 0 26px rgba(229,9,20,0.22);
+  --ember-ring:0 0 0 1px rgba(255,77,64,0.35),0 10px 24px rgba(0,0,0,0.8),0 0 14px rgba(229,9,20,0.2);
   --glass:rgba(20,20,20,0.55);
 }
 
@@ -3304,13 +3320,16 @@ body{
 /* ── NAV — always glassy, ember hairline ── */
 #cv-nav{
   background:linear-gradient(180deg,rgba(8,8,8,0.75) 0%,rgba(8,8,8,0.15) 80%,transparent 100%);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 #cv-nav.scrolled{
-  background:rgba(9,9,10,0.86);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  background:rgba(9,9,10,0.9);
   box-shadow:0 1px 0 rgba(255,255,255,0.06),0 8px 30px rgba(0,0,0,0.7);
   border-bottom:1px solid rgba(229,9,20,0.15);
+}
+/* backdrop-filter blur on a fixed nav repaints every scroll frame — costly
+   on mid/low-end phones. Keep it only on larger screens once scrolled. */
+@media(min-width:769px){
+  #cv-nav.scrolled{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 }
 #cv-logo span{
   background:var(--ember);-webkit-background-clip:text;background-clip:text;
