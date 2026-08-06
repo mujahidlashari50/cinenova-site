@@ -916,24 +916,26 @@ body{text-rendering:optimizeSpeed}
 @keyframes slideup{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes slidedown{from{transform:translateY(0);opacity:1}to{transform:translateY(100%);opacity:0}}
 #cv-modal-handle{width:40px;height:4px;background:#333;border-radius:2px;margin:12px auto 0;display:block;cursor:grab}
-#cv-modal-close{
+#cv-modal-top-actions{
   position:sticky;top:10px;float:right;margin:10px 16px 0 0;
+  display:flex;align-items:center;gap:8px;z-index:10;
+}
+#cv-modal-close{
   background:rgba(20,20,20,0.9);border:1px solid rgba(255,255,255,0.1);
   color:#888;font-size:1rem;cursor:pointer;
   width:32px;height:32px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s;z-index:10;flex-shrink:0;
+  transition:all 0.2s;flex-shrink:0;
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
 }
 #cv-modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 0 16px rgba(229,9,20,0.5)}
 #cv-modal-bookmark{
-  position:sticky;top:10px;float:right;margin:10px 8px 0 0;
   background:rgba(20,20,20,0.9);border:1px solid rgba(255,255,255,0.1);
   color:#888;font-size:1rem;cursor:pointer;
   width:32px;height:32px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s;z-index:10;flex-shrink:0;
+  transition:all 0.2s;flex-shrink:0;
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
 }
@@ -1047,7 +1049,9 @@ body{text-rendering:optimizeSpeed}
   #cv-modal-img-wrap{height:420px}
   #cv-modal-img{height:420px}
   #cv-modal-content{max-width:900px;margin:0 auto;padding:0 32px}
-  #cv-modal-close{top:16px;right:20px;width:38px;height:38px;font-size:1.2rem}
+  #cv-modal-top-actions{top:16px;margin-right:20px}
+  #cv-modal-close{width:38px;height:38px;font-size:1.2rem}
+  #cv-modal-bookmark{width:38px;height:38px;font-size:1.2rem}
   #cv-modal-handle{display:none}
 }
 @keyframes cvModalDesktopIn{
@@ -3902,8 +3906,10 @@ function cvOpenInBrowser() {
 <div id='cv-modal'>
   <div id='cv-modal-box' style='position:relative'>
     <span id='cv-modal-handle'></span>
-    <button id='cv-modal-close' aria-label='Close'>&#10005;</button>
-    <button id='cv-modal-bookmark' onclick='cvToggleWatchlist(event)' title='Add to My List'>🔖</button>
+    <div id='cv-modal-top-actions'>
+      <button id='cv-modal-bookmark' onclick='cvToggleWatchlist(event)' title='Add to My List'>🔖</button>
+      <button id='cv-modal-close' aria-label='Close'>&#10005;</button>
+    </div>
     <div id='cv-modal-img-wrap' style='display:none'>
       <img alt='Movie Poster' id='cv-modal-img' src=''/>
       <div id='cv-modal-img-overlay'></div>
