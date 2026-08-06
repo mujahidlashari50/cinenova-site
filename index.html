@@ -6301,10 +6301,19 @@ function cvRestoreFromUrl() {
     }
     cvInitialUrlLoadDone = true;
 
-    // ✅ Filter pages (cat/genre/search) pe noindex lagao — duplicate content se bacho
-    if ((cat || genre || params.get('q')) && !movieKey) {
-      cvSetMeta('cv-robots', 'content', 'noindex, follow');
-      cvSetMeta('cv-googlebot', 'content', 'noindex, follow');
+    // ✅ Genre/search filter pages pe noindex lagao — inka Worker mein
+    // dedicated SEO nahi hai (bohot zyada combinations), duplicate content
+    // se bachne ke liye. Lekin known CATEGORIES (Hollywood/Bollywood/
+    // Tollywood/Animation/Web Series) ko index-worthy rakho — Worker unhe
+    // already unique SSR content deta hai, isliye client-side bhi consistent
+    // rehna chahiye (seedha shared link se aane par bhi).
+    if (!movieKey) {
+      if (cat && CV_CAT_SEO[cat]) {
+        cvUpdateCategorySEO(cat, false);
+      } else if (genre || params.get('q') || (cat && !CV_CAT_SEO[cat])) {
+        cvSetMeta('cv-robots', 'content', 'noindex, follow');
+        cvSetMeta('cv-googlebot', 'content', 'noindex, follow');
+      }
     }
 
     if (movieKey) {
@@ -7749,6 +7758,7 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     }
 
     renderGrid();
+    cvUpdateCategorySEO(cat, isGenre);
     // Category/genre select hote hi poore grid section tak smooth scroll —
     // is se user ko turant pata chal jata hai ke filter apply ho gaya,
     // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
@@ -9351,6 +9361,34 @@ function cvUpdateSEO(m, slug) {
   };
   var bcEl = document.getElementById('cv-jsonld-breadcrumb');
   if (bcEl) bcEl.textContent = JSON.stringify(breadcrumbLd);
+}
+
+// Category pages ke liye — Worker (bots ke liye) already unique SEO deta
+// hai in 5 categories ko; ye function real users/JS-rendering crawlers ke
+// liye bhi client-side pe wahi consistency maintain karta hai (title,
+// canonical, meta description) jab user pill click kare.
+var CV_CAT_SEO = {
+  hollywood: 'Hollywood', bollywood: 'Bollywood', tollywood: 'Tollywood',
+  animation: 'Animation', webseries: 'Web Series'
+};
+function cvUpdateCategorySEO(cat, isGenre) {
+  if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
+  var label = CV_CAT_SEO[cat];
+  var pageUrl = 'https://www.cinenova.site/?cat=' + cat;
+  var richTitle = label + ' Movies - Free HD Download | CineNova';
+  var desc = 'Watch and download the latest ' + label + ' movies in HD for free on CineNova. New releases added daily, no login or subscription required.';
+  document.title = richTitle;
+  cvSetMeta('cv-meta-desc', 'content', desc);
+  cvSetMeta('cv-og-type',  'content', 'website');
+  cvSetMeta('cv-og-url',   'content', pageUrl);
+  cvSetMeta('cv-og-title', 'content', richTitle);
+  cvSetMeta('cv-og-desc',  'content', desc);
+  cvSetMeta('cv-tw-title', 'content', richTitle);
+  cvSetMeta('cv-tw-desc',  'content', desc);
+  var canonEl = document.getElementById('cv-canonical');
+  if (canonEl) canonEl.setAttribute('href', pageUrl);
+  cvSetMeta('cv-robots', 'content', 'index, follow');
+  cvSetMeta('cv-googlebot', 'content', 'index, follow');
 }
 
 function cvResetSEO() {
