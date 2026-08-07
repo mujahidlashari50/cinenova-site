@@ -7036,42 +7036,38 @@ function openModal(key) {
 
   // Buttons
   var btns = '';
-  var _mkey = m._key || window._cvCurrentKey || '';
-  // Worker se watch: videoSourceUrl / dlSourceUrl / quality links maujood hon
-  // to /watch?id=KEY use karo (mobile pe VLC intent, desktop pe in-page player).
-  // Legacy: sirf vlcUrl / videoUrl ho to purana direct path.
-  var _hasWorkerWatch = !!(m.videoSourceUrl || m.dlSourceUrl || m.download480p || m.download720p || m.download1080p || m.download4k);
+  // Mobile (VLC intent/protocol) hamesha Pixeldrain/original vlcUrl use
+  // karta hai — ye pehle se reliably kaam kar raha tha, ise chhera nahi.
+  // Desktop (in-page iframe/player) Direct VLC Link (vlcUrl2 — jaisa
+  // embed4me.com) ko prefer karta hai kyunki wo browser mein turant
+  // chalta hai; agar khali ho to Pixeldrain link hi fallback hai.
   var _mobileSrc  = m.vlcUrl || m.vlcUrl2 || '';
   var _desktopSrc = m.vlcUrl2 || m.vlcUrl || '';
-  var _vlcSrc = _mobileSrc;
-  if (_hasWorkerWatch || _vlcSrc || m.videoUrl) {
+  var _vlcSrc = _mobileSrc; // backward-compat naam, "koi link maujood hai?" check ke liye
+  if (_vlcSrc || m.videoUrl) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    if (_hasWorkerWatch && _mkey) {
-      // Cloudflare Worker /watch — fresh link + mobile VLC / desktop player
-      btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
-    } else if (_vlcSrc) {
-      // Legacy manual vlcUrl — seedha MX/VLC
+    if (_vlcSrc) {
+      // vlcUrl admin panel se manually add hota hai — koi worker/ads/timer
+      // nahi, seedha VLC/player launch hota hai (mobile ho ya desktop).
       btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_mobileSrc) + '\',\'' + escJs(_desktopSrc) + '\')">▶ Watch Now</button>';
     } else {
+      // Purana static videoUrl fallback — in-page player.
       btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
     }
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
   }
-  var hasDownload = m.download480p || m.download720p || m.download1080p || m.download4k || m.dlSourceUrl;
+  var hasDownload = m.download480p || m.download720p || m.download1080p || m.download4k;
   if (hasDownload) {
     var dlData = [];
+    var _mkey = m._key || window._cvCurrentKey || '';
     // Worker URL use karo — fresh token har baar milega
     var _wBase = 'https://download.cinenova.site/get?id=' + encodeURIComponent(_mkey) + '&q=';
     if (m.download480p)  dlData.push({q:'480p',  url: _wBase + '480p',  size:m.size480||''});
     if (m.download720p)  dlData.push({q:'720p',  url: _wBase + '720p',  size:m.size720||''});
     if (m.download1080p) dlData.push({q:'1080p', url: _wBase + '1080p', size:m.size1080||''});
     if (m.download4k)    dlData.push({q:'4K',    url: _wBase + '4k',    size:m.size4k||''});
-    // Sirf dlSourceUrl ho (quality fields empty) — default 1080p
-    if (!dlData.length && m.dlSourceUrl) {
-      dlData.push({q:'1080p', url: _wBase + '1080p', size:''});
-    }
     window._cvDlData = dlData;
     btns += '<button class="cv-dl-btn secondary" onclick="openDlPopup()">⬇ Download</button>';
   }
@@ -7645,16 +7641,6 @@ function cnGoToDownloadWorker(movieKey, quality) {
   params.set('id', movieKey);
   params.set('q', quality || '480p');
   window.location.href = WORKER_DL_BASE + '?' + params.toString();
-}
-
-// Watch Now → Cloudflare Worker /watch (fresh link + mobile VLC / desktop player)
-function cnGoToWatchWorker(movieKey, quality) {
-  var WORKER_WATCH_BASE = 'https://download.cinenova.site/watch';
-  if (!movieKey) return;
-  var params = new URLSearchParams();
-  params.set('id', movieKey);
-  if (quality) params.set('q', quality);
-  window.location.href = WORKER_WATCH_BASE + '?' + params.toString();
 }
 
 // ══════════════════════════════════
