@@ -916,26 +916,24 @@ body{text-rendering:optimizeSpeed}
 @keyframes slideup{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes slidedown{from{transform:translateY(0);opacity:1}to{transform:translateY(100%);opacity:0}}
 #cv-modal-handle{width:40px;height:4px;background:#333;border-radius:2px;margin:12px auto 0;display:block;cursor:grab}
-#cv-modal-top-actions{
-  position:sticky;top:10px;float:right;margin:10px 16px 0 0;
-  display:flex;align-items:center;gap:8px;z-index:10;
-}
 #cv-modal-close{
+  position:sticky;top:10px;float:right;margin:10px 16px 0 0;
   background:rgba(20,20,20,0.9);border:1px solid rgba(255,255,255,0.1);
   color:#888;font-size:1rem;cursor:pointer;
   width:32px;height:32px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s;flex-shrink:0;
+  transition:all 0.2s;z-index:10;flex-shrink:0;
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
 }
 #cv-modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 0 16px rgba(229,9,20,0.5)}
 #cv-modal-bookmark{
+  position:sticky;top:10px;float:right;margin:10px 8px 0 0;
   background:rgba(20,20,20,0.9);border:1px solid rgba(255,255,255,0.1);
   color:#888;font-size:1rem;cursor:pointer;
   width:32px;height:32px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s;flex-shrink:0;
+  transition:all 0.2s;z-index:10;flex-shrink:0;
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
 }
@@ -1049,9 +1047,7 @@ body{text-rendering:optimizeSpeed}
   #cv-modal-img-wrap{height:420px}
   #cv-modal-img{height:420px}
   #cv-modal-content{max-width:900px;margin:0 auto;padding:0 32px}
-  #cv-modal-top-actions{top:16px;margin-right:20px}
-  #cv-modal-close{width:38px;height:38px;font-size:1.2rem}
-  #cv-modal-bookmark{width:38px;height:38px;font-size:1.2rem}
+  #cv-modal-close{top:16px;right:20px;width:38px;height:38px;font-size:1.2rem}
   #cv-modal-handle{display:none}
 }
 @keyframes cvModalDesktopIn{
@@ -3906,10 +3902,8 @@ function cvOpenInBrowser() {
 <div id='cv-modal'>
   <div id='cv-modal-box' style='position:relative'>
     <span id='cv-modal-handle'></span>
-    <div id='cv-modal-top-actions'>
-      <button id='cv-modal-bookmark' onclick='cvToggleWatchlist(event)' title='Add to My List'>🔖</button>
-      <button id='cv-modal-close' aria-label='Close'>&#10005;</button>
-    </div>
+    <button id='cv-modal-close' aria-label='Close'>&#10005;</button>
+    <button id='cv-modal-bookmark' onclick='cvToggleWatchlist(event)' title='Add to My List'>🔖</button>
     <div id='cv-modal-img-wrap' style='display:none'>
       <img alt='Movie Poster' id='cv-modal-img' src=''/>
       <div id='cv-modal-img-overlay'></div>
@@ -6307,19 +6301,10 @@ function cvRestoreFromUrl() {
     }
     cvInitialUrlLoadDone = true;
 
-    // ✅ Genre/search filter pages pe noindex lagao — inka Worker mein
-    // dedicated SEO nahi hai (bohot zyada combinations), duplicate content
-    // se bachne ke liye. Lekin known CATEGORIES (Hollywood/Bollywood/
-    // Tollywood/Animation/Web Series) ko index-worthy rakho — Worker unhe
-    // already unique SSR content deta hai, isliye client-side bhi consistent
-    // rehna chahiye (seedha shared link se aane par bhi).
-    if (!movieKey) {
-      if (cat && CV_CAT_SEO[cat]) {
-        cvUpdateCategorySEO(cat, false);
-      } else if (genre || params.get('q') || (cat && !CV_CAT_SEO[cat])) {
-        cvSetMeta('cv-robots', 'content', 'noindex, follow');
-        cvSetMeta('cv-googlebot', 'content', 'noindex, follow');
-      }
+    // ✅ Filter pages (cat/genre/search) pe noindex lagao — duplicate content se bacho
+    if ((cat || genre || params.get('q')) && !movieKey) {
+      cvSetMeta('cv-robots', 'content', 'noindex, follow');
+      cvSetMeta('cv-googlebot', 'content', 'noindex, follow');
     }
 
     if (movieKey) {
@@ -6425,26 +6410,6 @@ function renderGrid(resetPage) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
   cvRenderPage();
-  cvUpdateFooterStats();
-}
-
-// Footer "live stats" badge — total movies vs series seen so far in allData.
-// Series = has episodes array; rest counted as movies. Runs cheaply (just a
-// count loop) each renderGrid call so it stays in sync as more data loads.
-function cvUpdateFooterStats(){
-  try{
-    if(!allData || !allData.length) return;
-    var movies = 0, series = 0;
-    for(var i=0;i<allData.length;i++){
-      var m = allData[i];
-      if(m && m.episodes && m.episodes.length) series++;
-      else movies++;
-    }
-    var mEl = document.getElementById('cvf-stat-movies');
-    var sEl = document.getElementById('cvf-stat-series');
-    if(mEl) mEl.textContent = movies >= 1000 ? (movies/1000).toFixed(1)+'K+' : movies+'+';
-    if(sEl) sEl.textContent = series >= 1000 ? (series/1000).toFixed(1)+'K+' : series+'+';
-  }catch(e){}
 }
 
 // ══════════════════════════════════
@@ -7764,7 +7729,6 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     }
 
     renderGrid();
-    cvUpdateCategorySEO(cat, isGenre);
     // Category/genre select hote hi poore grid section tak smooth scroll —
     // is se user ko turant pata chal jata hai ke filter apply ho gaya,
     // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
@@ -9369,34 +9333,6 @@ function cvUpdateSEO(m, slug) {
   if (bcEl) bcEl.textContent = JSON.stringify(breadcrumbLd);
 }
 
-// Category pages ke liye — Worker (bots ke liye) already unique SEO deta
-// hai in 5 categories ko; ye function real users/JS-rendering crawlers ke
-// liye bhi client-side pe wahi consistency maintain karta hai (title,
-// canonical, meta description) jab user pill click kare.
-var CV_CAT_SEO = {
-  hollywood: 'Hollywood', bollywood: 'Bollywood', tollywood: 'Tollywood',
-  animation: 'Animation', webseries: 'Web Series'
-};
-function cvUpdateCategorySEO(cat, isGenre) {
-  if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
-  var label = CV_CAT_SEO[cat];
-  var pageUrl = 'https://www.cinenova.site/?cat=' + cat;
-  var richTitle = label + ' Movies - Free HD Download | CineNova';
-  var desc = 'Watch and download the latest ' + label + ' movies in HD for free on CineNova. New releases added daily, no login or subscription required.';
-  document.title = richTitle;
-  cvSetMeta('cv-meta-desc', 'content', desc);
-  cvSetMeta('cv-og-type',  'content', 'website');
-  cvSetMeta('cv-og-url',   'content', pageUrl);
-  cvSetMeta('cv-og-title', 'content', richTitle);
-  cvSetMeta('cv-og-desc',  'content', desc);
-  cvSetMeta('cv-tw-title', 'content', richTitle);
-  cvSetMeta('cv-tw-desc',  'content', desc);
-  var canonEl = document.getElementById('cv-canonical');
-  if (canonEl) canonEl.setAttribute('href', pageUrl);
-  cvSetMeta('cv-robots', 'content', 'index, follow');
-  cvSetMeta('cv-googlebot', 'content', 'index, follow');
-}
-
 function cvResetSEO() {
   document.title = _cvDefaultSEO.title;
   cvSetMeta('cv-meta-desc', 'content', _cvDefaultSEO.desc);
@@ -9621,12 +9557,6 @@ function cvResetSEO() {
 }
 @keyframes cvfblink{0%,100%{opacity:1;}50%{opacity:0.15;}}
 .cvf-live-text{font-size:0.72rem;color:#e50914;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
-.cvf-stats{
-  display:flex;align-items:center;gap:8px;
-  font-size:0.78rem;color:#888;margin-bottom:14px;
-}
-.cvf-stat b{color:#e5e5e5;font-weight:800}
-.cvf-stat-dot{color:#3a3a3a}
 .cvf-desc{font-size:0.84rem;color:#666;line-height:1.9;max-width:320px;}
 @media(max-width:540px){.cvf-desc{font-size:0.8rem;max-width:100%;}}
 
@@ -9700,17 +9630,12 @@ function cvResetSEO() {
   text-decoration:none;transition:all 0.2s;
   white-space:nowrap;
 }
-.cvf-whatsapp-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  background:rgba(37,211,102,0.1);
-  border:1px solid rgba(37,211,102,0.35);
-  color:#25d366;font-size:0.82rem;font-weight:700;
-  padding:8px 16px;border-radius:20px;
-  text-decoration:none;transition:all 0.2s;width:fit-content;
+.cvf-genre-tag:hover{color:#fff;border-color:#e50914;background:rgba(229,9,20,0.1);}
+@media(max-width:540px){
+  .cvf-genre-list{gap:6px;}
+  .cvf-genre-tag{font-size:0.74rem;padding:5px 11px;}
 }
-.cvf-whatsapp-btn:hover{background:rgba(37,211,102,0.18);border-color:#25d366;transform:translateY(-1px)}
-.cvf-whatsapp-btn svg{flex-shrink:0}
-@media(max-width:540px){.cvf-whatsapp-btn{font-size:0.78rem;padding:7px 14px}}
+/* ── FOOTER — ember accent to match Ember Upgrade ── */
 #cv-footer{
   border-top:1px solid rgba(229,9,20,0.35);
   background:
@@ -9751,16 +9676,7 @@ function cvResetSEO() {
       <div class='cvf-live-dot'></div>
       <span class='cvf-live-text'>Live &amp; Updated Daily</span>
     </div>
-    <div class='cvf-stats' id='cvf-stats'>
-      <span class='cvf-stat'><b id='cvf-stat-movies'>&#8212;</b> Movies</span>
-      <span class='cvf-stat-dot'>&#8226;</span>
-      <span class='cvf-stat'><b id='cvf-stat-series'>&#8212;</b> Series</span>
-    </div>
     <p class='cvf-desc'>Free HD Movies, Adult, Web Series Download &amp; Entertainment. No Subscription, No Login &#8212; Just Watch. Updated Every Day With Latest Releases.</p>
-    <a class='cvf-whatsapp-btn' href='https://whatsapp.com/channel/0029VbCtOwrJ3juqgYoeNQ2d' rel='noopener' target='_blank'>
-      <svg fill='currentColor' height='18' viewBox='0 0 24 24' width='18'><path d='M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.78 14.09c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.73-2.09.99-2.38c.26-.29.56-.36.75-.36s.38 0 .54.01c.18.01.41-.07.64.49.24.58.81 2 .88 2.15.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.92 1.06.94 1.95 1.23 2.23 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.07.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.31z'/></svg>
-      <span>Join WhatsApp Channel</span>
-    </a>
   </div>
 
   <!-- Quick Links -->
@@ -9789,25 +9705,6 @@ function cvResetSEO() {
     </ul>
   </div>
 
-</div>
-
-<!-- GENRES -->
-<div class='cvf-genres'>
-  <div class='cvf-genre-title'>Browse by Genre</div>
-  <div class='cvf-genre-list'>
-    <a class='cvf-genre-tag' href='/?genre=action'>🎬 Action</a>
-    <a class='cvf-genre-tag' href='/?genre=comedy'>😂 Comedy</a>
-    <a class='cvf-genre-tag' href='/?genre=horror'>👻 Horror</a>
-    <a class='cvf-genre-tag' href='/?genre=thriller'>🔪 Thriller</a>
-    <a class='cvf-genre-tag' href='/?genre=romance'>❤️ Romance</a>
-    <a class='cvf-genre-tag' href='/?genre=drama'>🎭 Drama</a>
-    <a class='cvf-genre-tag' href='/?genre=sci-fi'>🚀 Sci-Fi</a>
-    <a class='cvf-genre-tag' href='/?genre=crime'>🕵️ Crime</a>
-    <a class='cvf-genre-tag' href='/?genre=adventure'>🗺️ Adventure</a>
-    <a class='cvf-genre-tag' href='/?genre=fantasy'>🧙 Fantasy</a>
-    <a class='cvf-genre-tag' href='/?genre=mystery'>🔍 Mystery</a>
-    <a class='cvf-genre-tag' href='/?genre=animation'>🎨 Animation</a>
-  </div>
 </div>
 
 <!-- TICKET BOTTOM -->
@@ -9894,44 +9791,6 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 //]]>
 </script>
 
-<!-- BACK TO TOP -->
-<button aria-label='Back to top' id='cv-back-top' onclick='window.scrollTo({top:0,behavior:"smooth"})'>
-  <svg fill='none' height='22' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.4' viewBox='0 0 24 24' width='22'><line x1='12' x2='12' y1='19' y2='5'/><polyline points='5 12 12 5 19 12'/></svg>
-</button>
-<style>
-#cv-back-top{
-  position:fixed;right:18px;bottom:24px;z-index:960;
-  width:44px;height:44px;border-radius:50%;
-  background:var(--ember,linear-gradient(135deg,#ff4d40,#e50914 60%,#6e0309));
-  border:none;color:#fff;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 20px rgba(229,9,20,0.4);
-  opacity:0;visibility:hidden;transform:translateY(12px);
-  transition:opacity 0.25s ease,transform 0.25s ease,visibility 0.25s;
-}
-#cv-back-top.show{opacity:1;visibility:visible;transform:translateY(0)}
-#cv-back-top:hover{box-shadow:0 8px 26px rgba(229,9,20,0.55);transform:translateY(-2px)}
-@media(max-width:768px){
-  #cv-back-top{bottom:calc(var(--bottom-nav-h,62px) + 16px);right:14px;width:42px;height:42px}
-}
-@media(prefers-reduced-motion:reduce){#cv-back-top{transition:opacity 0.1s}}
-</style>
-<script>
-(function(){
-  var btn = document.getElementById('cv-back-top');
-  if(!btn) return;
-  var raf = false;
-  window.addEventListener('scroll', function(){
-    if(raf) return;
-    raf = true;
-    requestAnimationFrame(function(){
-      raf = false;
-      if(window.scrollY > 700) btn.classList.add('show');
-      else btn.classList.remove('show');
-    });
-  }, {passive:true});
-})();
-</script>
 
 </body>
 </html>
