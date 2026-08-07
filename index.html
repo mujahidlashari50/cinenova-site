@@ -4635,7 +4635,7 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 80;         // 80 at a time — faster initial load
+var PAGE_SIZE = 100;        // 100 at a time — adult-heavy newest batch ke baad bhi content mile
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -4818,6 +4818,17 @@ function fetchFirebasePage(isFirst, _retryCount) {
     if('requestIdleCallback' in window){requestIdleCallback(function(){idbSaveAll(allData);});}else{setTimeout(function(){idbSaveAll(allData);},50);}
     renderGrid(isFirst);
     showLoadingMore(false);
+    // Agar first/next page ke baad bhi grid empty hai (adult filter) to
+    // ensure-visible loop already renderGrid se trigger ho chuka hoga.
+    // Hero empty ho to non-adult aate hi rebuild.
+    if (!isFirst) {
+      try {
+        var heroStack = document.getElementById('cv-ns-stack');
+        var heroEmpty = !heroStack || !heroStack.querySelector('.cv-ns-poster');
+        if (heroEmpty && typeof buildNsHero === 'function') buildNsHero();
+        if (typeof buildNsLatest === 'function') buildNsLatest();
+      } catch (e) {}
+    }
     if (!isFirst && cvPendingGoToPage) {
       var _cvTargetPage = cvPendingGoToPage;
       cvPendingGoToPage = null;
@@ -6421,11 +6432,55 @@ var CV_PAGE_SIZE = 24;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
+// Home/category pe agar newest batch sirf adult hai to filter empty ho jati hai
+// ("No results found") jabke purani non-adult movies Firebase mein maujood hoti hain.
+// Ye helper automatically next pages load karta hai jab tak visible content na mil jaye.
+var _cvEnsureBusy = false;
+function _cvEnsureVisibleContent() {
+  if (_cvEnsureBusy) return;
+  if (allLoaded || isLoadingMore) return;
+  if (selCat === 'adult' || selCat === 'watchlist') return;
+  // Search active + empty — search loader already handles full load
+  if (searchQ && String(searchQ).trim()) return;
+  if (cvFilteredList && cvFilteredList.length > 0) return;
+  if (!allData || !allData.length) return;
+  _cvEnsureBusy = true;
+  showLoadingMore(true);
+  // fetchFirebasePage(false) ke baad renderGrid dubara call hoga → filter refill
+  fetchFirebasePage(false);
+  // Safety: busy flag release after page returns (isLoadingMore false)
+  var tries = 0;
+  var t = setInterval(function() {
+    tries++;
+    if (!isLoadingMore || tries > 40) {
+      clearInterval(t);
+      _cvEnsureBusy = false;
+      // Agar abhi bhi empty + more pages — loop continue
+      if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded) {
+        setTimeout(_cvEnsureVisibleContent, 120);
+      } else {
+        // Hero/trending rebuild jab non-adult data aa jaye
+        try {
+          if (typeof buildNsHero === 'function') buildNsHero();
+          if (typeof buildNsLatest === 'function') buildNsLatest();
+          if (typeof buildTrending === 'function') buildTrending();
+          if (typeof buildFeatured === 'function') buildFeatured();
+          if (typeof buildTsSlider === 'function') buildTsSlider();
+        } catch (e) {}
+      }
+    }
+  }, 250);
+}
+
 function renderGrid(resetPage) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
   cvRenderPage();
   cvUpdateFooterStats();
+  // Empty grid + more Firebase pages left → auto-load (adult-heavy newest fix)
+  if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded) {
+    setTimeout(_cvEnsureVisibleContent, 30);
+  }
 }
 
 // Footer "live stats" badge — total movies vs series seen so far in allData.
@@ -6777,11 +6832,18 @@ function cvRenderPage() {
   if (!grid) return;
 
   if (!cvFilteredList.length) {
-    grid.innerHTML = selCat === 'watchlist'
-      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
-      : allData.length === 0
-      ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
-      : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+    if (selCat === 'watchlist') {
+      grid.innerHTML = '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>';
+    } else if (allData.length === 0) {
+      grid.innerHTML = allLoaded
+        ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
+        : '<div class="cv-empty"><p>🔄</p><p>Loading movies...<br/><small style="color:#7d7d7d">Please wait a moment</small></p></div>';
+    } else if (!allLoaded) {
+      // Newest batch mostly adult / wrong cat — more pages loading
+      grid.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Loading movies...<br/><small style="color:#7d7d7d">Finding content for this category</small></p></div>';
+    } else {
+      grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+    }
     cvRenderPagination(0);
     return;
   }
