@@ -6432,34 +6432,31 @@ var CV_PAGE_SIZE = 24;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
-// Home/category pe agar newest batch sirf adult hai to filter empty ho jati hai
-// ("No results found") jabke purani non-adult movies Firebase mein maujood hoti hain.
-// Ye helper automatically next pages load karta hai jab tak visible content na mil jaye.
+// Home pe newest batch mostly adult ho to grid empty lagti hai.
+// Category pe bhi pehle sirf loaded batch filter hota hai — baaki pages
+// background mein load karni padti hain. Ye helpers dono cases cover karte hain.
 var _cvEnsureBusy = false;
 function _cvEnsureVisibleContent() {
   if (_cvEnsureBusy) return;
   if (allLoaded || isLoadingMore) return;
   if (selCat === 'adult' || selCat === 'watchlist') return;
-  // Search active + empty — search loader already handles full load
   if (searchQ && String(searchQ).trim()) return;
+  // Home: jab tak kam-az-kam 1 non-adult movie na dikhe, load karte raho
+  // Category: _cvLoadAllForCategory handle karta hai — yahan sirf empty case
   if (cvFilteredList && cvFilteredList.length > 0) return;
   if (!allData || !allData.length) return;
   _cvEnsureBusy = true;
   showLoadingMore(true);
-  // fetchFirebasePage(false) ke baad renderGrid dubara call hoga → filter refill
   fetchFirebasePage(false);
-  // Safety: busy flag release after page returns (isLoadingMore false)
   var tries = 0;
   var t = setInterval(function() {
     tries++;
-    if (!isLoadingMore || tries > 40) {
+    if (!isLoadingMore || tries > 50) {
       clearInterval(t);
       _cvEnsureBusy = false;
-      // Agar abhi bhi empty + more pages — loop continue
       if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded) {
-        setTimeout(_cvEnsureVisibleContent, 120);
+        setTimeout(_cvEnsureVisibleContent, 150);
       } else {
-        // Hero/trending rebuild jab non-adult data aa jaye
         try {
           if (typeof buildNsHero === 'function') buildNsHero();
           if (typeof buildNsLatest === 'function') buildNsLatest();
@@ -6469,7 +6466,7 @@ function _cvEnsureVisibleContent() {
         } catch (e) {}
       }
     }
-  }, 250);
+  }, 200);
 }
 
 function renderGrid(resetPage) {
@@ -6477,9 +6474,9 @@ function renderGrid(resetPage) {
   cvBuildFilteredList();
   cvRenderPage();
   cvUpdateFooterStats();
-  // Empty grid + more Firebase pages left → auto-load (adult-heavy newest fix)
-  if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded) {
-    setTimeout(_cvEnsureVisibleContent, 30);
+  // Empty grid + more pages left → auto-fetch (adult-heavy newest fix)
+  if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded && selCat !== 'watchlist') {
+    setTimeout(_cvEnsureVisibleContent, 40);
   }
 }
 
@@ -6875,7 +6872,12 @@ function cvRenderPage() {
 function cvRenderPagination(totalPages) {
   var pag = document.getElementById('cv-pagination');
   if (!pag) return;
-  if (totalPages <= 1) { pag.style.display = 'none'; pag.innerHTML = ''; return; }
+  // Agar abhi 1 page hi hai LEKIN Firebase se aur movies load ho sakti hain
+  // to pagination chhupao mat — Next dikhao taake user/category load continue kare.
+  // Pehle yahan totalPages<=1 pe hide ho jata tha, isliye category click pe
+  // pages nahi dikhte the jab tak Home pe wapas aa ke full load na ho jaye.
+  if (totalPages <= 1 && allLoaded) { pag.style.display = 'none'; pag.innerHTML = ''; return; }
+  if (totalPages < 1) totalPages = 1;
 
   pag.style.display = 'flex';
   var html = '';
@@ -7849,35 +7851,51 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     // Slider and TMDB — show only on Home (all)
     updateSlidersVisibility(isGenre ? 'genre' : cat);
 
-    // Auto-load remaining Firebase pages so category shows all movies
-    if (!allLoaded && cat !== 'all') {
-      _cvLoadAllForCategory();
+    // Category: saari remaining pages load karo taake movies + pagination sahi aaye.
+    // Home (all): agar abhi grid empty/thin hai to bhi load chalu rakho —
+    // warna adult-heavy newest batch ke baad Home blank / 1-page reh jata hai.
+    if (!allLoaded) {
+      if (cat !== 'all') {
+        _cvLoadAllForCategory();
+      } else if (!cvFilteredList || cvFilteredList.length < CV_PAGE_SIZE) {
+        // Home pe kam content → background load (pagination Next bhi kaam kare)
+        _cvLoadAllForCategory();
+      }
     }
     });
 });
 
 // Load remaining Firebase pages in background when a category is selected
-var _cvCatLoadInterval = null; // ek waqt mein sirf 1 category-load-loop chale
+var _cvCatLoadInterval = null;
 function _cvLoadAllForCategory() {
-  if (allLoaded) return;
-  if (_cvCatLoadInterval) return; // pehle se hi ek loop chal raha hai, dobara mat lagao
+  if (allLoaded) {
+    // Already full — abhi ka filter dubara render karo taake pages/count sahi dikhen
+    renderGrid(false);
+    return;
+  }
+  // Nayi category click pe purana loop hata ke naya start karo
+  if (_cvCatLoadInterval) {
+    clearInterval(_cvCatLoadInterval);
+    _cvCatLoadInterval = null;
+  }
   showLoadingMore(true);
   if (!isLoadingMore) fetchFirebasePage(false);
-  // After each page, check if more needed — isLoadingMore true ho tab bhi
-  // wait karo aur jese hi free ho, agla page khud fetch karo (koi silent
-  // return nahi — pehle yahi bug tha jiski wajah se dobara category click
-  // karne par hi pagination show hoti thi)
+  // Har page ke baad grid/pagination update (fetchFirebasePage → renderGrid)
+  // Loop tab tak jab tak allLoaded na ho
   _cvCatLoadInterval = setInterval(function() {
     if (allLoaded) {
       clearInterval(_cvCatLoadInterval);
       _cvCatLoadInterval = null;
       showLoadingMore(false);
-      renderGrid(false);
+      // Final render — sahi page count + movies
+      cvBuildFilteredList();
+      cvRenderPage();
+      cvUpdateFooterStats();
     } else if (!isLoadingMore) {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 800);
+  }, 500);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
