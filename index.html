@@ -4635,7 +4635,7 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 100;        // 100 at a time — adult-heavy newest batch ke baad bhi content mile
+var PAGE_SIZE = 80;         // 80 at a time — faster initial load
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -4818,17 +4818,6 @@ function fetchFirebasePage(isFirst, _retryCount) {
     if('requestIdleCallback' in window){requestIdleCallback(function(){idbSaveAll(allData);});}else{setTimeout(function(){idbSaveAll(allData);},50);}
     renderGrid(isFirst);
     showLoadingMore(false);
-    // Agar first/next page ke baad bhi grid empty hai (adult filter) to
-    // ensure-visible loop already renderGrid se trigger ho chuka hoga.
-    // Hero empty ho to non-adult aate hi rebuild.
-    if (!isFirst) {
-      try {
-        var heroStack = document.getElementById('cv-ns-stack');
-        var heroEmpty = !heroStack || !heroStack.querySelector('.cv-ns-poster');
-        if (heroEmpty && typeof buildNsHero === 'function') buildNsHero();
-        if (typeof buildNsLatest === 'function') buildNsLatest();
-      } catch (e) {}
-    }
     if (!isFirst && cvPendingGoToPage) {
       var _cvTargetPage = cvPendingGoToPage;
       cvPendingGoToPage = null;
@@ -6432,52 +6421,11 @@ var CV_PAGE_SIZE = 24;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
-// Home pe newest batch mostly adult ho to grid empty lagti hai.
-// Category pe bhi pehle sirf loaded batch filter hota hai — baaki pages
-// background mein load karni padti hain. Ye helpers dono cases cover karte hain.
-var _cvEnsureBusy = false;
-function _cvEnsureVisibleContent() {
-  if (_cvEnsureBusy) return;
-  if (allLoaded || isLoadingMore) return;
-  if (selCat === 'adult' || selCat === 'watchlist') return;
-  if (searchQ && String(searchQ).trim()) return;
-  // Home: jab tak kam-az-kam 1 non-adult movie na dikhe, load karte raho
-  // Category: _cvLoadAllForCategory handle karta hai — yahan sirf empty case
-  if (cvFilteredList && cvFilteredList.length > 0) return;
-  if (!allData || !allData.length) return;
-  _cvEnsureBusy = true;
-  showLoadingMore(true);
-  fetchFirebasePage(false);
-  var tries = 0;
-  var t = setInterval(function() {
-    tries++;
-    if (!isLoadingMore || tries > 50) {
-      clearInterval(t);
-      _cvEnsureBusy = false;
-      if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded) {
-        setTimeout(_cvEnsureVisibleContent, 150);
-      } else {
-        try {
-          if (typeof buildNsHero === 'function') buildNsHero();
-          if (typeof buildNsLatest === 'function') buildNsLatest();
-          if (typeof buildTrending === 'function') buildTrending();
-          if (typeof buildFeatured === 'function') buildFeatured();
-          if (typeof buildTsSlider === 'function') buildTsSlider();
-        } catch (e) {}
-      }
-    }
-  }, 200);
-}
-
 function renderGrid(resetPage) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
   cvRenderPage();
   cvUpdateFooterStats();
-  // Empty grid + more pages left → auto-fetch (adult-heavy newest fix)
-  if ((!cvFilteredList || !cvFilteredList.length) && !allLoaded && selCat !== 'watchlist') {
-    setTimeout(_cvEnsureVisibleContent, 40);
-  }
 }
 
 // Footer "live stats" badge — total movies vs series seen so far in allData.
@@ -6829,18 +6777,11 @@ function cvRenderPage() {
   if (!grid) return;
 
   if (!cvFilteredList.length) {
-    if (selCat === 'watchlist') {
-      grid.innerHTML = '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>';
-    } else if (allData.length === 0) {
-      grid.innerHTML = allLoaded
-        ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
-        : '<div class="cv-empty"><p>🔄</p><p>Loading movies...<br/><small style="color:#7d7d7d">Please wait a moment</small></p></div>';
-    } else if (!allLoaded) {
-      // Newest batch mostly adult / wrong cat — more pages loading
-      grid.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Loading movies...<br/><small style="color:#7d7d7d">Finding content for this category</small></p></div>';
-    } else {
-      grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
-    }
+    grid.innerHTML = selCat === 'watchlist'
+      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
+      : allData.length === 0
+      ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
+      : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
     cvRenderPagination(0);
     return;
   }
@@ -6872,12 +6813,7 @@ function cvRenderPage() {
 function cvRenderPagination(totalPages) {
   var pag = document.getElementById('cv-pagination');
   if (!pag) return;
-  // Agar abhi 1 page hi hai LEKIN Firebase se aur movies load ho sakti hain
-  // to pagination chhupao mat — Next dikhao taake user/category load continue kare.
-  // Pehle yahan totalPages<=1 pe hide ho jata tha, isliye category click pe
-  // pages nahi dikhte the jab tak Home pe wapas aa ke full load na ho jaye.
-  if (totalPages <= 1 && allLoaded) { pag.style.display = 'none'; pag.innerHTML = ''; return; }
-  if (totalPages < 1) totalPages = 1;
+  if (totalPages <= 1) { pag.style.display = 'none'; pag.innerHTML = ''; return; }
 
   pag.style.display = 'flex';
   var html = '';
@@ -7851,51 +7787,35 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     // Slider and TMDB — show only on Home (all)
     updateSlidersVisibility(isGenre ? 'genre' : cat);
 
-    // Category: saari remaining pages load karo taake movies + pagination sahi aaye.
-    // Home (all): agar abhi grid empty/thin hai to bhi load chalu rakho —
-    // warna adult-heavy newest batch ke baad Home blank / 1-page reh jata hai.
-    if (!allLoaded) {
-      if (cat !== 'all') {
-        _cvLoadAllForCategory();
-      } else if (!cvFilteredList || cvFilteredList.length < CV_PAGE_SIZE) {
-        // Home pe kam content → background load (pagination Next bhi kaam kare)
-        _cvLoadAllForCategory();
-      }
+    // Auto-load remaining Firebase pages so category shows all movies
+    if (!allLoaded && cat !== 'all') {
+      _cvLoadAllForCategory();
     }
     });
 });
 
 // Load remaining Firebase pages in background when a category is selected
-var _cvCatLoadInterval = null;
+var _cvCatLoadInterval = null; // ek waqt mein sirf 1 category-load-loop chale
 function _cvLoadAllForCategory() {
-  if (allLoaded) {
-    // Already full — abhi ka filter dubara render karo taake pages/count sahi dikhen
-    renderGrid(false);
-    return;
-  }
-  // Nayi category click pe purana loop hata ke naya start karo
-  if (_cvCatLoadInterval) {
-    clearInterval(_cvCatLoadInterval);
-    _cvCatLoadInterval = null;
-  }
+  if (allLoaded) return;
+  if (_cvCatLoadInterval) return; // pehle se hi ek loop chal raha hai, dobara mat lagao
   showLoadingMore(true);
   if (!isLoadingMore) fetchFirebasePage(false);
-  // Har page ke baad grid/pagination update (fetchFirebasePage → renderGrid)
-  // Loop tab tak jab tak allLoaded na ho
+  // After each page, check if more needed — isLoadingMore true ho tab bhi
+  // wait karo aur jese hi free ho, agla page khud fetch karo (koi silent
+  // return nahi — pehle yahi bug tha jiski wajah se dobara category click
+  // karne par hi pagination show hoti thi)
   _cvCatLoadInterval = setInterval(function() {
     if (allLoaded) {
       clearInterval(_cvCatLoadInterval);
       _cvCatLoadInterval = null;
       showLoadingMore(false);
-      // Final render — sahi page count + movies
-      cvBuildFilteredList();
-      cvRenderPage();
-      cvUpdateFooterStats();
+      renderGrid(false);
     } else if (!isLoadingMore) {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 500);
+  }, 800);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
