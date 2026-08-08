@@ -4623,12 +4623,15 @@ function cvHandleNewContent(nc) {
     if (descEl)  descEl.textContent  = nc.description || 'Now available! Watch it now.';
 
     if (btnEl) {
-      var _isMobNc = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
       btnEl.onclick = function(e) {
         e.preventDefault();
         cvCloseNcPopup();
-        if (_isMobNc && nc.vlcUrl) {
-          openMxPlayer(nc.vlcUrl);
+        // Play worker / VLC — movie key ho to worker, warna pixeldrain/vlcUrl
+        if (nc.movieKey && typeof cnGoToWatchWorker === 'function') {
+          cnGoToWatchWorker(nc.movieKey, '');
+        } else if (nc.vlcUrl && typeof cnOpenInVlc === 'function') {
+          var pd = (typeof cnPixeldrainApiUrl === 'function') ? cnPixeldrainApiUrl(nc.vlcUrl) : null;
+          cnOpenInVlc(pd || nc.vlcUrl);
         } else if (nc.link && nc.link !== '#') {
           window.location.href = nc.link;
         }
@@ -7065,16 +7068,11 @@ function openModal(key) {
   // Buttons
   var btns = '';
   var _mkey = m._key || window._cvCurrentKey || '';
-  // Watch: worker stream (hdfun/mmshd) — mobile + desktop same in-page player. NO VLC.
-  var _hasWorkerWatch = !!(m.videoSourceUrl || m.dlSourceUrl || m.download480p || m.download720p || m.download1080p || m.download4k);
-  var _directPlay = m.videoUrl || m.vlcUrl2 || m.vlcUrl || '';
-  if (_hasWorkerWatch || _directPlay) {
+  // Watch Now → Play Worker (play.cinenova.site) → VLC. Pixeldrain local fast-path.
+  var _watchInfo = cnResolveWatchTarget(m, _mkey);
+  if (_watchInfo && _watchInfo.url) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    if (_hasWorkerWatch && _mkey) {
-      btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
-    } else if (_directPlay) {
-      btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(_directPlay) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
-    }
+    btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\')">▶ Watch Now</button>';
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -7649,18 +7647,58 @@ function cnGoToDownloadWorker(movieKey, quality) {
 }
 
 // ══════════════════════════════════
-// WATCH NOW → seedha VLC (NO timer page)
-// Worker /video?id=KEY fresh resolve + stream URL — VLC usi link pe play karta hai
-// Mobile + Desktop dono
+// WATCH NOW → dedicated PLAY worker → VLC
+// Play worker panel se link resolve karta hai, final URL /go pe redirect
+// Domain: https://play.cinenova.site  (Cloudflare pe deploy karke DNS/route set karo)
 // ══════════════════════════════════
-function cnWorkerVideoUrl(movieKey, quality, season, episode) {
-  var base = 'https://download.cinenova.site/video';
+var CN_PLAY_WORKER = 'https://play.cinenova.site';
+
+function cnPlayGoUrl(movieKey, quality, season, episode) {
   var params = new URLSearchParams();
   params.set('id', movieKey);
   if (quality) params.set('q', quality);
   if (season) params.set('s', season);
   if (episode) params.set('e', episode);
-  return base + '?' + params.toString();
+  return CN_PLAY_WORKER + '/go?' + params.toString();
+}
+
+function cnPlayJsonUrl(movieKey, quality, season, episode) {
+  var params = new URLSearchParams();
+  params.set('id', movieKey);
+  if (quality) params.set('q', quality);
+  if (season) params.set('s', season);
+  if (episode) params.set('e', episode);
+  return CN_PLAY_WORKER + '/play?' + params.toString();
+}
+
+// Pixeldrain local fallback (worker down ho to theme khud try kare)
+function cnPixeldrainApiUrl(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  var s = raw.trim();
+  if (/^[a-zA-Z0-9]{8,20}$/.test(s) && s.indexOf('http') !== 0 && s.indexOf('/') === -1) {
+    return 'https://pixeldrain.com/api/file/' + s;
+  }
+  var m = s.match(/pixeldrain\.com\/(?:api\/file|u|l)\/([a-zA-Z0-9]+)/i);
+  if (m) return 'https://pixeldrain.com/api/file/' + m[1];
+  return null;
+}
+
+function cnResolveWatchTarget(m, movieKey) {
+  if (!m || !movieKey) return null;
+  // Local pixeldrain fast-path (worker hop skip — VLC turant)
+  var fields = [
+    m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
+    m.download1080p, m.download720p, m.download480p, m.download4k
+  ];
+  for (var i = 0; i < fields.length; i++) {
+    var pd = cnPixeldrainApiUrl(fields[i]);
+    if (pd) return { url: pd, type: 'pixeldrain' };
+  }
+  // Baaki sab → play worker /go (resolve + redirect to final)
+  var hasAny = !!(m.videoSourceUrl || m.dlSourceUrl || m.videoUrl || m.vlcUrl || m.vlcUrl2 ||
+    m.download480p || m.download720p || m.download1080p || m.download4k);
+  if (hasAny) return { url: cnPlayGoUrl(movieKey, '', '', ''), type: 'play-worker' };
+  return null;
 }
 
 function cnOpenInVlc(httpsUrl) {
@@ -7670,39 +7708,60 @@ function cnOpenInVlc(httpsUrl) {
   var bare = httpsUrl.replace(/^https?:\/\//i, '');
 
   if (isAndroid) {
-    // Android: VLC / MX / any video player via intent
     window.location.href = 'intent://' + bare
       + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/*;'
       + 'S.browser_fallback_url=' + encodeURIComponent(httpsUrl) + ';end';
     return;
   }
   if (isIOS) {
-    // iOS VLC
     window.location.href = 'vlc-x-callback://x-callback-url/stream?url=' + encodeURIComponent(httpsUrl);
-    setTimeout(function() {
-      window.location.href = 'vlc://' + bare;
-    }, 400);
+    setTimeout(function() { window.location.href = 'vlc://' + bare; }, 400);
     return;
   }
-  // Desktop: VLC protocol (agar installed + registered ho)
   window.location.href = 'vlc://' + bare;
-  // Fallback: kuch systems pe vlc:// fail — naya tab mein stream URL
-  setTimeout(function() {
-    // silent — user VLC open kar chuka hoga; warna wo khud URL use kar sakta hai
-  }, 800);
 }
 
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
-  var url = cnWorkerVideoUrl(movieKey, quality || '', '', '');
-  cnOpenInVlc(url);
+  var m = null;
+  try {
+    if (typeof allData !== 'undefined' && allData && allData.length) {
+      m = allData.find(function(x) { return x._key === movieKey; });
+    }
+  } catch (e) {}
+  if (m) {
+    var info = cnResolveWatchTarget(m, movieKey);
+    if (info && info.url) { cnOpenInVlc(info.url); return; }
+  }
+  // Fallback: play worker
+  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', '', ''));
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
   if (!movieKey) return;
-  var url = cnWorkerVideoUrl(movieKey, quality || '', season || '', episode || '');
-  cnOpenInVlc(url);
+  var m = null;
+  try {
+    if (typeof allData !== 'undefined' && allData && allData.length) {
+      m = allData.find(function(x) { return x._key === movieKey; });
+    }
+  } catch (e) {}
+  if (m && m.episodes && season && episode) {
+    var epList = Array.isArray(m.episodes) ? m.episodes : Object.values(m.episodes || {});
+    var ep = epList.find(function(e) {
+      return e && String(e.season || '1') === String(season) && String(e.episode) === String(episode);
+    });
+    if (ep) {
+      var epFields = [ep.vlcUrl, ep.videoUrl, ep.videoSourceUrl, ep.dlSourceUrl, ep.dl1080, ep.dl720, ep.dl480];
+      for (var i = 0; i < epFields.length; i++) {
+        var pd = cnPixeldrainApiUrl(epFields[i]);
+        if (pd) { cnOpenInVlc(pd); return; }
+      }
+    }
+  }
+  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', season || '', episode || ''));
 }
+
+
 
 // ══════════════════════════════════
 // DOWNLOAD QUALITY POPUP — sirf Download (Watch yahan nahi)
