@@ -7732,22 +7732,48 @@ function cnOpenInVlc(httpsUrl, title) {
 }
 
 // Play worker se FINAL direct URL lao → VLC seedha CDN pe (kam buffering)
+function cnShowPlayToast(msg) {
+  var el = document.getElementById('cn-play-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'cn-play-toast';
+    el.setAttribute('style',
+      'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;' +
+      'background:rgba(20,20,20,0.95);color:#fff;padding:12px 20px;border-radius:12px;' +
+      'font-size:0.88rem;font-weight:700;border:1px solid #333;box-shadow:0 8px 32px rgba(0,0,0,0.5);' +
+      'max-width:90vw;text-align:center;pointer-events:none;');
+    document.body.appendChild(el);
+  }
+  el.textContent = msg || 'Opening player…';
+  el.style.display = 'block';
+  clearTimeout(window._cnPlayToastT);
+  window._cnPlayToastT = setTimeout(function(){ el.style.display = 'none'; }, 4000);
+}
+
 function cnFetchAndOpenVlc(movieKey, quality, season, episode, fallbackTitle) {
   if (!movieKey) return;
-  var jsonUrl = cnPlayJsonUrl(movieKey, quality || '', season || '', episode || '');
-  // Show tiny status? optional — silent fetch
-  fetch(jsonUrl, { cache: 'no-store' })
+  // Default 720p — smooth play (worker bhi yahi default karta hai)
+  var q = quality || '720p';
+  cnShowPlayToast('⚡ Preparing stream…');
+  var jsonUrl = cnPlayJsonUrl(movieKey, q, season || '', episode || '');
+  var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = setTimeout(function(){ try { if (ctrl) ctrl.abort(); } catch(e){} }, 12000);
+  fetch(jsonUrl, { cache: 'default', signal: ctrl ? ctrl.signal : undefined })
     .then(function(r) { return r.json(); })
     .then(function(j) {
+      clearTimeout(timer);
       if (j && j.ok && j.url) {
+        cnShowPlayToast(j.cached ? '▶ Opening VLC (cached)' : '▶ Opening VLC…');
         cnOpenInVlc(j.url, j.title || fallbackTitle || '');
         return;
       }
-      // JSON fail → /go redirect fallback
-      cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', season || '', episode || ''), fallbackTitle || '');
+      cnShowPlayToast('▶ Opening VLC…');
+      cnOpenInVlc(cnPlayGoUrl(movieKey, q, season || '', episode || ''), fallbackTitle || '');
     })
     .catch(function() {
-      cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', season || '', episode || ''), fallbackTitle || '');
+      clearTimeout(timer);
+      cnShowPlayToast('▶ Opening VLC…');
+      cnOpenInVlc(cnPlayGoUrl(movieKey, q, season || '', episode || ''), fallbackTitle || '');
     });
 }
 
