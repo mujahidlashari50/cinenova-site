@@ -7070,9 +7070,12 @@ function openModal(key) {
   var _mkey = m._key || window._cvCurrentKey || '';
   // Watch Now → Play Worker (play.cinenova.site) → VLC. Pixeldrain local fast-path.
   var _watchInfo = cnResolveWatchTarget(m, _mkey);
-  if (_watchInfo && _watchInfo.url) {
+  if (_watchInfo && _watchInfo.url && _mkey) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\')">▶ Watch Now</button>';
+    btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
+  } else if (_watchInfo && _watchInfo.url) {
+    btns += '<div class="cv-section-title">▶ Watch</div>';
+    btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\',\'' + escJs(m.title||'') + '\')">▶ Watch Now</button>';
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -7701,24 +7704,51 @@ function cnResolveWatchTarget(m, movieKey) {
   return null;
 }
 
-function cnOpenInVlc(httpsUrl) {
+function cnOpenInVlc(httpsUrl, title) {
   if (!httpsUrl) return;
   var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
   var isAndroid = /Android/i.test(navigator.userAgent);
   var bare = httpsUrl.replace(/^https?:\/\//i, '');
+  var t = (title || '').replace(/[^\w\s\-\.\u0600-\u06FF\u0900-\u097F]/g, ' ').trim().slice(0, 80);
 
   if (isAndroid) {
-    window.location.href = 'intent://' + bare
-      + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/*;'
-      + 'S.browser_fallback_url=' + encodeURIComponent(httpsUrl) + ';end';
+    // Final CDN URL + title extra (MX/VLC dikhate hain)
+    var intent = 'intent://' + bare
+      + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/*;';
+    if (t) intent += 'S.title=' + encodeURIComponent(t) + ';';
+    intent += 'S.browser_fallback_url=' + encodeURIComponent(httpsUrl) + ';end';
+    window.location.href = intent;
     return;
   }
   if (isIOS) {
-    window.location.href = 'vlc-x-callback://x-callback-url/stream?url=' + encodeURIComponent(httpsUrl);
-    setTimeout(function() { window.location.href = 'vlc://' + bare; }, 400);
+    var cb = 'vlc-x-callback://x-callback-url/stream?url=' + encodeURIComponent(httpsUrl);
+    if (t) cb += '&filename=' + encodeURIComponent(t);
+    window.location.href = cb;
+    setTimeout(function() { window.location.href = 'vlc://' + bare; }, 500);
     return;
   }
+  // Desktop: seedha final file URL VLC protocol pe (worker proxy nahi)
   window.location.href = 'vlc://' + bare;
+}
+
+// Play worker se FINAL direct URL lao → VLC seedha CDN pe (kam buffering)
+function cnFetchAndOpenVlc(movieKey, quality, season, episode, fallbackTitle) {
+  if (!movieKey) return;
+  var jsonUrl = cnPlayJsonUrl(movieKey, quality || '', season || '', episode || '');
+  // Show tiny status? optional — silent fetch
+  fetch(jsonUrl, { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(j) {
+      if (j && j.ok && j.url) {
+        cnOpenInVlc(j.url, j.title || fallbackTitle || '');
+        return;
+      }
+      // JSON fail → /go redirect fallback
+      cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', season || '', episode || ''), fallbackTitle || '');
+    })
+    .catch(function() {
+      cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', season || '', episode || ''), fallbackTitle || '');
+    });
 }
 
 function cnGoToWatchWorker(movieKey, quality) {
@@ -7729,12 +7759,19 @@ function cnGoToWatchWorker(movieKey, quality) {
       m = allData.find(function(x) { return x._key === movieKey; });
     }
   } catch (e) {}
+  // Pixeldrain: local fast path — worker hop skip, kam wait
   if (m) {
-    var info = cnResolveWatchTarget(m, movieKey);
-    if (info && info.url) { cnOpenInVlc(info.url); return; }
+    var fields = [m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
+      m.download1080p, m.download720p, m.download480p, m.download4k];
+    for (var i = 0; i < fields.length; i++) {
+      var pd = cnPixeldrainApiUrl(fields[i]);
+      if (pd) {
+        cnOpenInVlc(pd, m.title || '');
+        return;
+      }
+    }
   }
-  // Fallback: play worker
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', '', ''));
+  cnFetchAndOpenVlc(movieKey, quality || '', '', '', m && m.title ? m.title : '');
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
@@ -7745,21 +7782,24 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
       m = allData.find(function(x) { return x._key === movieKey; });
     }
   } catch (e) {}
+  var title = (m && m.title) ? m.title : '';
   if (m && m.episodes && season && episode) {
     var epList = Array.isArray(m.episodes) ? m.episodes : Object.values(m.episodes || {});
     var ep = epList.find(function(e) {
       return e && String(e.season || '1') === String(season) && String(e.episode) === String(episode);
     });
     if (ep) {
+      if (ep.title) title = title ? (title + ' — ' + ep.title) : ep.title;
       var epFields = [ep.vlcUrl, ep.videoUrl, ep.videoSourceUrl, ep.dlSourceUrl, ep.dl1080, ep.dl720, ep.dl480];
       for (var i = 0; i < epFields.length; i++) {
         var pd = cnPixeldrainApiUrl(epFields[i]);
-        if (pd) { cnOpenInVlc(pd); return; }
+        if (pd) { cnOpenInVlc(pd, title); return; }
       }
     }
   }
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '', season || '', episode || ''));
+  cnFetchAndOpenVlc(movieKey, quality || '', season || '', episode || '', title);
 }
+
 
 
 
