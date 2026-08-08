@@ -9524,7 +9524,7 @@ function cvUpdateSEO(m, slug) {
 // canonical, meta description) jab user pill click kare.
 var CV_CAT_SEO = {
   hollywood: 'Hollywood', bollywood: 'Bollywood', tollywood: 'Tollywood',
-  animation: 'Animation', webseries: 'Web Series'
+  animation: 'Animation', webseries: 'Web Series', kdrama: 'K-Drama'
 };
 function cvUpdateCategorySEO(cat, isGenre) {
   if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
@@ -9670,7 +9670,7 @@ function cvResetSEO() {
     var cat=(e.target.dataset&&e.target.dataset.cat)||'';
     document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
     if(cat===''||cat==='all'){ var h=document.getElementById('cv-bnav-home'); if(h)h.classList.add('active'); }
-    else if(cat==='drama'||cat==='series'||cat==='webseries'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
+    else if(cat==='drama'||cat==='series'||cat==='webseries'||cat==='kdrama'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
     else { var m=document.getElementById('cv-bnav-movies'); if(m)m.classList.add('active'); }
   });
 })();
