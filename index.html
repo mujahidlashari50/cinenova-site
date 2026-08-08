@@ -1098,6 +1098,34 @@ body{text-rendering:optimizeSpeed}
   padding:3px 8px;border-radius:5px;letter-spacing:0.5px;
 }
 .cv-dl-quality-size{font-size:0.78rem;color:var(--grey)}
+.cv-dl-quality-row{
+  margin:8px 16px;padding:12px 14px;
+  background:rgba(255,255,255,0.04);border:1px solid #2a2a2a;
+  border-radius:12px;display:flex;flex-direction:column;gap:10px;
+}
+.cv-dl-quality-row-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.cv-dl-quality-actions{display:flex;gap:8px;width:100%}
+.cv-dl-action-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 10px;border-radius:10px;border:none;cursor:pointer;
+  font-size:0.82rem;font-weight:800;font-family:inherit;transition:all 0.18s;
+}
+.cv-dl-action-watch{
+  background:linear-gradient(135deg,#e50914,#ff2020);color:#fff;
+  box-shadow:0 4px 14px rgba(229,9,20,0.35);
+}
+.cv-dl-action-watch:hover{filter:brightness(1.08)}
+.cv-dl-action-download{
+  background:rgba(255,255,255,0.08);color:#eee;
+  border:1px solid rgba(255,255,255,0.14)!important;
+}
+.cv-dl-action-download:hover{background:rgba(255,255,255,0.14)}
+@media(max-width:400px){
+  .cv-dl-action-btn{font-size:0.76rem;padding:10px 8px}
+}
+
 #cv-dl-popup-cancel{
   display:block;width:calc(100% - 32px);margin:10px 16px 0;
   padding:13px;background:rgba(255,255,255,0.05);
@@ -7036,38 +7064,34 @@ function openModal(key) {
 
   // Buttons
   var btns = '';
-  // Mobile (VLC intent/protocol) hamesha Pixeldrain/original vlcUrl use
-  // karta hai — ye pehle se reliably kaam kar raha tha, ise chhera nahi.
-  // Desktop (in-page iframe/player) Direct VLC Link (vlcUrl2 — jaisa
-  // embed4me.com) ko prefer karta hai kyunki wo browser mein turant
-  // chalta hai; agar khali ho to Pixeldrain link hi fallback hai.
-  var _mobileSrc  = m.vlcUrl || m.vlcUrl2 || '';
-  var _desktopSrc = m.vlcUrl2 || m.vlcUrl || '';
-  var _vlcSrc = _mobileSrc; // backward-compat naam, "koi link maujood hai?" check ke liye
-  if (_vlcSrc || m.videoUrl) {
+  var _mkey = m._key || window._cvCurrentKey || '';
+  // Watch: worker stream (hdfun/mmshd) — mobile + desktop same in-page player. NO VLC.
+  var _hasWorkerWatch = !!(m.videoSourceUrl || m.dlSourceUrl || m.download480p || m.download720p || m.download1080p || m.download4k);
+  var _directPlay = m.videoUrl || m.vlcUrl2 || m.vlcUrl || '';
+  if (_hasWorkerWatch || _directPlay) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    if (_vlcSrc) {
-      // vlcUrl admin panel se manually add hota hai — koi worker/ads/timer
-      // nahi, seedha VLC/player launch hota hai (mobile ho ya desktop).
-      btns += '<button class="cv-dl-btn" onclick="openMxPlayer(\'' + escJs(_mobileSrc) + '\',\'' + escJs(_desktopSrc) + '\')">▶ Watch Now</button>';
-    } else {
-      // Purana static videoUrl fallback — in-page player.
-      btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(m.videoUrl) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+    if (_hasWorkerWatch && _mkey) {
+      btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
+    } else if (_directPlay) {
+      btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(_directPlay) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
     }
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
   }
-  var hasDownload = m.download480p || m.download720p || m.download1080p || m.download4k;
+  var hasDownload = m.download480p || m.download720p || m.download1080p || m.download4k || m.dlSourceUrl;
   if (hasDownload) {
     var dlData = [];
-    var _mkey = m._key || window._cvCurrentKey || '';
     // Worker URL use karo — fresh token har baar milega
     var _wBase = 'https://download.cinenova.site/get?id=' + encodeURIComponent(_mkey) + '&q=';
     if (m.download480p)  dlData.push({q:'480p',  url: _wBase + '480p',  size:m.size480||''});
     if (m.download720p)  dlData.push({q:'720p',  url: _wBase + '720p',  size:m.size720||''});
     if (m.download1080p) dlData.push({q:'1080p', url: _wBase + '1080p', size:m.size1080||''});
     if (m.download4k)    dlData.push({q:'4K',    url: _wBase + '4k',    size:m.size4k||''});
+    // Sirf dlSourceUrl ho (quality fields empty) — default 1080p
+    if (!dlData.length && m.dlSourceUrl) {
+      dlData.push({q:'1080p', url: _wBase + '1080p', size:''});
+    }
     window._cvDlData = dlData;
     btns += '<button class="cv-dl-btn secondary" onclick="openDlPopup()">⬇ Download</button>';
   }
@@ -7110,11 +7134,10 @@ function openModal(key) {
         window._cvEpDlRegistry[i] = arr;
       }
       var playBtn = '';
-      if (epVlc) {
-        // epVlc admin panel se manually add hota hai — koi worker/ads/timer
-        // nahi, seedha VLC/player launch (mobile ho ya desktop).
-        playBtn = '<button class="cv-ep-btn" onclick="openMxPlayer(\'' + escJs(epVlc) + '\')">▶ Play</button>';
-      } else if (epUrl) {
+      var epHasWorker = !!(ep.videoSourceUrl || ep.dlSourceUrl);
+      if (epHasWorker && _mkey) {
+        playBtn = '<button class="cv-ep-btn" onclick="cnGoToWatchWorkerEp(\'' + escJs(_mkey) + '\',\'' + escJs(String(epSeasonNum)) + '\',\'' + escJs(String(epNumVal)) + '\')">▶ Play</button>';
+      } else if (epUrl || epVlc) {
         playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">▶ Play</button>';
       }
       var epCountBadge = ep.epCount ? '<span style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:12px;margin-left:7px;white-space:nowrap;">📦 ' + escHtml(String(ep.epCount)) + ' Eps in this link</span>' : '';
@@ -7135,7 +7158,7 @@ function openModal(key) {
     epEl.innerHTML = epHtml;
     // Store episode urls for play function
     window._cvEpUrls = m.episodes.map(function(ep,i){
-      return ep.videoUrl||ep.url||ep.link||'';
+      return ep.videoUrl || ep.url || ep.link || ep.vlcUrl || '';
     });
     window._cvEpLabels = m.episodes.map(function(ep,i){ return (m.title||'')+ ' — S'+(ep.season||1)+'E'+(ep.episode||(i+1)); });
     cvMarkEpisodesSeen(m);
@@ -7369,30 +7392,12 @@ if (_cvModalEl) _cvModalEl.onclick = function(e) {
 // ══════════════════════════════════
 // PLAYER
 // ══════════════════════════════════
-// MX Player — video URL seedha ACTION_VIEW se open karo
+// Legacy helper — VLC/intent removed. All devices → in-page player.
 function openMxPlayer(url, desktopUrl) {
-  if (!url) return;
-  var isIOS     = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
-  var isAndroid = /Android/i.test(navigator.userAgent);
-  if (isIOS) {
-    window.location.href = 'vlc://' + url.replace(/^https?:\/\//, '');
-  } else if (isAndroid) {
-    var intent = 'intent://' + url.replace(/^https?:\/\//, '')
-      + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/any;end';
-    window.location.href = intent;
-  } else {
-    // Desktop (Windows/Mac/Linux) — 'vlc://' Windows par OS-level
-    // registered protocol NAHI hota (VLC installed hone ke bawajood
-    // bhi silently fail hoti hai), isliye desktop par seedha
-    // in-page CinePlayer (Plyr) mein video play karo — koi external
-    // app dependency nahi. Desktop-specific link (embed4me/direct)
-    // agar diya gaya ho to wahi prefer karo, warna mobile wala hi use karo.
-    var urlForDesktop = desktopUrl || url;
-    if (typeof playVideo === 'function') {
-      playVideo(urlForDesktop, '');
-    } else {
-      window.open(urlForDesktop, '_blank');
-    }
+  var playUrl = desktopUrl || url;
+  if (!playUrl) return;
+  if (typeof playVideo === 'function') {
+    playVideo(playUrl, '');
   }
 }
 
@@ -7644,24 +7649,82 @@ function cnGoToDownloadWorker(movieKey, quality) {
 }
 
 // ══════════════════════════════════
-// DOWNLOAD QUALITY POPUP
+// WATCH NOW → seedha VLC (NO timer page)
+// Worker /video?id=KEY fresh resolve + stream URL — VLC usi link pe play karta hai
+// Mobile + Desktop dono
+// ══════════════════════════════════
+function cnWorkerVideoUrl(movieKey, quality, season, episode) {
+  var base = 'https://download.cinenova.site/video';
+  var params = new URLSearchParams();
+  params.set('id', movieKey);
+  if (quality) params.set('q', quality);
+  if (season) params.set('s', season);
+  if (episode) params.set('e', episode);
+  return base + '?' + params.toString();
+}
+
+function cnOpenInVlc(httpsUrl) {
+  if (!httpsUrl) return;
+  var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
+  var isAndroid = /Android/i.test(navigator.userAgent);
+  var bare = httpsUrl.replace(/^https?:\/\//i, '');
+
+  if (isAndroid) {
+    // Android: VLC / MX / any video player via intent
+    window.location.href = 'intent://' + bare
+      + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/*;'
+      + 'S.browser_fallback_url=' + encodeURIComponent(httpsUrl) + ';end';
+    return;
+  }
+  if (isIOS) {
+    // iOS VLC
+    window.location.href = 'vlc-x-callback://x-callback-url/stream?url=' + encodeURIComponent(httpsUrl);
+    setTimeout(function() {
+      window.location.href = 'vlc://' + bare;
+    }, 400);
+    return;
+  }
+  // Desktop: VLC protocol (agar installed + registered ho)
+  window.location.href = 'vlc://' + bare;
+  // Fallback: kuch systems pe vlc:// fail — naya tab mein stream URL
+  setTimeout(function() {
+    // silent — user VLC open kar chuka hoga; warna wo khud URL use kar sakta hai
+  }, 800);
+}
+
+function cnGoToWatchWorker(movieKey, quality) {
+  if (!movieKey) return;
+  var url = cnWorkerVideoUrl(movieKey, quality || '', '', '');
+  cnOpenInVlc(url);
+}
+
+function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
+  if (!movieKey) return;
+  var url = cnWorkerVideoUrl(movieKey, quality || '', season || '', episode || '');
+  cnOpenInVlc(url);
+}
+
+// ══════════════════════════════════
+// DOWNLOAD QUALITY POPUP — sirf Download (Watch yahan nahi)
 // ══════════════════════════════════
 function openDlPopup() {
   var items = window._cvDlData || [];
   if (!items.length) return;
   var html = '';
   items.forEach(function(item) {
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(item.q) + '\');dlLink(\'' + escJs(item.url) + '\',\'' + escJs(item.q) + '\');closeDlPopup()">' +
+    var q = item.q || '480p';
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
       '<div class="cv-dl-quality-label">' +
-        '<span class="cv-dl-quality-badge">' + item.q + '</span>' +
-        '<span>Download ' + item.q + '</span>' +
+        '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
+        '<span>Download ' + escHtml(q) + '</span>' +
       '</div>' +
-      (item.size ? '<span class="cv-dl-quality-size">' + item.size + '</span>' : '') +
+      (item.size ? '<span class="cv-dl-quality-size">' + escHtml(item.size) + '</span>' : '') +
     '</div>';
   });
   document.getElementById('cv-dl-popup-options').innerHTML = html;
   document.getElementById('cv-dl-popup').classList.add('open');
 }
+
 
 // ── Download tracking (analytics only) ──
 function cvTrackDownload(quality) {
@@ -7695,12 +7758,13 @@ function cvEpDl(idx) {
   if (!items.length) return;
   var html = '';
   items.forEach(function(item) {
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(item.q) + '\');dlLink(\'' + escJs(item.url) + '\',\'' + escJs(item.q) + '\');closeDlPopup()">' +
+    var q = item.q || '480p';
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
       '<div class="cv-dl-quality-label">' +
-        '<span class="cv-dl-quality-badge">' + item.q + '</span>' +
-        '<span>Download ' + item.q + '</span>' +
+        '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
+        '<span>Download ' + escHtml(q) + '</span>' +
       '</div>' +
-      (item.size ? '<span class="cv-dl-quality-size">' + item.size + '</span>' : '') +
+      (item.size ? '<span class="cv-dl-quality-size">' + escHtml(item.size) + '</span>' : '') +
     '</div>';
   });
   document.getElementById('cv-dl-popup-options').innerHTML = html;
