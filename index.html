@@ -6038,14 +6038,19 @@ function cvTsMove(dir) {
 }
 
 function cvTsSetupDrag(track, cardStep) {
+  // ✅ PERF FIX: same listener-accumulation issue as setupTrendingDrag() —
+  // guard against re-attaching on every buildTsSlider() re-render.
+  track._cvCardStep = cardStep;
+  if (track._cvDragBound) return;
+  track._cvDragBound = true;
   var startX = 0, dragging = false, moved = false;
   track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; dragging = true; moved = false; clearInterval(cvTsInterval); track.style.transition = 'none'; }, {passive:true});
-  track.addEventListener('touchmove', function(e) { if (!dragging) return; var dx = e.touches[0].clientX - startX; if (!moved && Math.abs(dx) < 5) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * cardStep) - dx) + 'px)'; }, {passive:true});
-  track.addEventListener('touchend', function(e) { if (!dragging) return; dragging = false; var dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); }, {passive:true});
+  track.addEventListener('touchmove', function(e) { if (!dragging) return; var dx = e.touches[0].clientX - startX; if (!moved && Math.abs(dx) < 5) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * track._cvCardStep) - dx) + 'px)'; }, {passive:true});
+  track.addEventListener('touchend', function(e) { if (!dragging) return; dragging = false; var dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); }, {passive:true});
   track.addEventListener('mousedown', function(e) { startX = e.clientX; dragging = true; moved = false; clearInterval(cvTsInterval); track.style.transition = 'none'; e.preventDefault(); });
-  track.addEventListener('mousemove', function(e) { if (!dragging) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * cardStep) - (e.clientX - startX)) + 'px)'; });
-  track.addEventListener('mouseup', function(e) { if (!dragging) return; dragging = false; var dx = e.clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); });
-  track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); });
+  track.addEventListener('mousemove', function(e) { if (!dragging) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * track._cvCardStep) - (e.clientX - startX)) + 'px)'; });
+  track.addEventListener('mouseup', function(e) { if (!dragging) return; dragging = false; var dx = e.clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
+  track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
   track.addEventListener('click', function(e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
 
@@ -6219,6 +6224,18 @@ function startTrendingSlider(track, cardStep, total) {
 }
 
 function setupTrendingDrag(track, cardStep, total) {
+  // ✅ PERF FIX: ye function buildTrending() ke zariye baar baar call hoti
+  // hai (har realtime Firebase update pe ~300ms debounce ke baad). Pehle
+  // har call pe naye touch/mouse listeners track par dobara add ho jate
+  // the (purane kabhi remove nahi hote), jisse listeners jama hote rehte
+  // the aur session lamba chalne par drag/slide lagatar slow/jerky ho jata
+  // tha. Ab cardStep/total ko track element par store karte hain (hamesha
+  // fresh) aur listeners sirf EK baar attach karte hain.
+  track._cvCardStep = cardStep;
+  track._cvTotal = total;
+  if (track._cvDragBound) return;
+  track._cvDragBound = true;
+
   var startX = 0, isDragging = false, moved = false;
 
   track.addEventListener('touchstart', function(e) {
@@ -6233,7 +6250,7 @@ function setupTrendingDrag(track, cardStep, total) {
     var dx = e.touches[0].clientX - startX;
     if (!moved && Math.abs(dx) < 5) return;
     moved = true;
-    track.style.transform = 'translateX(-' + ((trendingIndex * cardStep) - dx) + 'px)';
+    track.style.transform = 'translateX(-' + ((trendingIndex * track._cvCardStep) - dx) + 'px)';
   }, {passive:true});
 
   track.addEventListener('touchend', function(e) {
@@ -6241,8 +6258,8 @@ function setupTrendingDrag(track, cardStep, total) {
     isDragging = false;
     var dx = e.changedTouches[0].clientX - startX;
     if (Math.abs(dx) > 40) { if (dx < 0) trendingIndex++; else trendingIndex--; }
-    snapTrending(track, cardStep, total);
-    startTrendingSlider(track, cardStep, total);
+    snapTrending(track, track._cvCardStep, track._cvTotal);
+    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
   }, {passive:true});
 
   track.addEventListener('mousedown', function(e) {
@@ -6254,21 +6271,21 @@ function setupTrendingDrag(track, cardStep, total) {
   track.addEventListener('mousemove', function(e) {
     if (!isDragging) return;
     moved = true;
-    track.style.transform = 'translateX(-' + ((trendingIndex * cardStep) - (e.clientX - startX)) + 'px)';
+    track.style.transform = 'translateX(-' + ((trendingIndex * track._cvCardStep) - (e.clientX - startX)) + 'px)';
   });
   track.addEventListener('mouseup', function(e) {
     if (!isDragging) return;
     isDragging = false;
     var dx = e.clientX - startX;
     if (Math.abs(dx) > 40) { if (dx < 0) trendingIndex++; else trendingIndex--; }
-    snapTrending(track, cardStep, total);
-    startTrendingSlider(track, cardStep, total);
+    snapTrending(track, track._cvCardStep, track._cvTotal);
+    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
   });
   track.addEventListener('mouseleave', function(e) {
     if (!isDragging) return;
     isDragging = false;
-    snapTrending(track, cardStep, total);
-    startTrendingSlider(track, cardStep, total);
+    snapTrending(track, track._cvCardStep, track._cvTotal);
+    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
   });
   track.addEventListener('click', function(e) {
     if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
@@ -8226,6 +8243,12 @@ function tmdbRender(trackId, movies) {
 }
 
 function tmdbSwipe(track, trackId, total) {
+  // ✅ PERF FIX: guard against duplicate listener attachment if this ever
+  // gets called more than once for the same track (defensive, same fix
+  // pattern as the trending sliders above).
+  track._cvTotal = total;
+  if (track._cvDragBound) return;
+  track._cvDragBound = true;
   var startX = 0;
   var isDragging = false;
   track.addEventListener('touchstart', function(e) {
@@ -8238,7 +8261,7 @@ function tmdbSwipe(track, trackId, total) {
     isDragging = false;
     var diff = startX - e.changedTouches[0].clientX;
     var visible = Math.floor((window.innerWidth - 16) / (tmdbCardWidth() + 10));
-    var max = Math.max(0, total - visible);
+    var max = Math.max(0, track._cvTotal - visible);
     if (Math.abs(diff) > 40) {
       if (diff > 0) tmdbIndexes[trackId] = Math.min(tmdbIndexes[trackId] + 1, max);
       else tmdbIndexes[trackId] = Math.max(tmdbIndexes[trackId] - 1, 0);
@@ -8257,7 +8280,7 @@ function tmdbSwipe(track, trackId, total) {
     if (!isDragging) return; isDragging = false;
     var diff = startX - e.clientX;
     var visible = Math.floor((window.innerWidth - 16) / (tmdbCardWidth() + 10));
-    var max = Math.max(0, total - visible);
+    var max = Math.max(0, track._cvTotal - visible);
     if (Math.abs(diff) > 40) {
       if (diff > 0) tmdbIndexes[trackId] = Math.min(tmdbIndexes[trackId] + 1, max);
       else tmdbIndexes[trackId] = Math.max(tmdbIndexes[trackId] - 1, 0);
@@ -8582,33 +8605,39 @@ function trailersRender(movies) {
   }, 3500);
 
   // Touch swipe
-  var startX = 0, isDrag = false;
-  track.addEventListener('touchstart', function(e) {
-    startX = e.touches[0].clientX; isDrag = true;
-    clearInterval(trailersInterval);
-  }, {passive: true});
-  track.addEventListener('touchend', function(e) {
-    if (!isDrag) return; isDrag = false;
-    var diff = startX - e.changedTouches[0].clientX;
-    var visible = Math.floor((window.innerWidth - 16) / (trailersCardWidth() + 12));
-    var max = Math.max(0, movies.length - visible);
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) trailersIndex = Math.min(trailersIndex + 1, max);
-      else trailersIndex = Math.max(trailersIndex - 1, 0);
-    }
-    track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
-    var dotsEl = document.getElementById('cv-tr-dots');
-    if (dotsEl) {
-      var page = Math.floor(trailersIndex / visible);
-      var dots = dotsEl.querySelectorAll('.cv-tr-dot-el');
-      dots.forEach(function(d, i) { d.classList.toggle('active', i === page); });
-    }
-    trailersInterval = setInterval(function() {
-      if (document.hidden) return; // tab background ho to CPU/battery bachao
-      trailersIndex = trailersIndex >= max ? 0 : trailersIndex + 1;
+  // ✅ PERF FIX: guard against duplicate listener attachment if trailersRender()
+  // ever runs more than once for the same track (defensive, same pattern as
+  // the trending sliders above).
+  if (!track._cvDragBound) {
+    track._cvDragBound = true;
+    var startX = 0, isDrag = false;
+    track.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX; isDrag = true;
+      clearInterval(trailersInterval);
+    }, {passive: true});
+    track.addEventListener('touchend', function(e) {
+      if (!isDrag) return; isDrag = false;
+      var diff = startX - e.changedTouches[0].clientX;
+      var visible = Math.floor((window.innerWidth - 16) / (trailersCardWidth() + 12));
+      var max = Math.max(0, trailersMovies.length - visible);
+      if (Math.abs(diff) > 40) {
+        if (diff > 0) trailersIndex = Math.min(trailersIndex + 1, max);
+        else trailersIndex = Math.max(trailersIndex - 1, 0);
+      }
       track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
-    }, 3500);
-  }, {passive: true});
+      var dotsEl = document.getElementById('cv-tr-dots');
+      if (dotsEl) {
+        var page = Math.floor(trailersIndex / visible);
+        var dots = dotsEl.querySelectorAll('.cv-tr-dot-el');
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === page); });
+      }
+      trailersInterval = setInterval(function() {
+        if (document.hidden) return; // tab background ho to CPU/battery bachao
+        trailersIndex = trailersIndex >= max ? 0 : trailersIndex + 1;
+        track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
+      }, 3500);
+    }, {passive: true});
+  }
 }
 
 function loadTrailers() {
