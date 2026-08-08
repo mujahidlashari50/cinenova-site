@@ -8003,6 +8003,78 @@ function cvHighlightMatch(text, q) {
     + escHtml(text.substring(idx + q.length));
 }
 
+
+// External auto-find (mmshd / hdfun) jab local search empty ho
+var _cvAutoFindTimer = null;
+var _cvAutoFindLastQ = '';
+function cvAutoFindExternal(q, dropdownEl) {
+  if (!q || q.length < 3) return;
+  var ql = q.trim().toLowerCase();
+  if (ql === _cvAutoFindLastQ) return;
+  clearTimeout(_cvAutoFindTimer);
+  _cvAutoFindTimer = setTimeout(function() {
+    _cvAutoFindLastQ = ql;
+    var base = (typeof CN_PLAY_WORKER !== 'undefined' && CN_PLAY_WORKER)
+      ? CN_PLAY_WORKER
+      : 'https://play.cinenova.site';
+    var url = base + '/autofind?q=' + encodeURIComponent(q.trim()) + '&import=1';
+    fetch(url, { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (!dropdownEl) return;
+        // User ne query change kar di?
+        var cur = (document.getElementById('cv-search') || {}).value ||
+                  (document.getElementById('cv-search-mobile') || {}).value || '';
+        if (cur.trim().toLowerCase() !== ql) return;
+
+        if (!j || !j.ok || !j.movie) {
+          dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+          return;
+        }
+        var m = j.movie;
+        if (j.key) m._key = j.key;
+        // Live list mein add (same session)
+        try {
+          if (typeof allData !== 'undefined' && Array.isArray(allData)) {
+            var exists = allData.some(function(x){ return x._key === m._key || (x.title||'').toLowerCase() === (m.title||'').toLowerCase(); });
+            if (!exists) {
+              allData.unshift(m);
+            }
+          }
+        } catch (e) {}
+
+        var thumb = m.thumbnail || '';
+        var isAdult = (m.category || '').toLowerCase() === 'adult' || (m.source === 'mmshd');
+        var badge = isAdult ? '18+' : (m.source || 'new');
+        var html = '<div class="cv-sug-header">Found online' + (j.alreadyExists || m.alreadyExists ? ' (already in library)' : ' · auto-added') + '</div>';
+        html += '<div class="cv-sug-item" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' + (isAdult ? 'true' : 'false') + ')">'
+          + (thumb ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">' : '<div class="cv-sug-thumb" style="display:flex;align-items:center;justify-content:center;background:#222;">🎬</div>')
+          + '<div class="cv-sug-meta">'
+          + '<div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
+          + '<div class="cv-sug-sub">' + escHtml([m.year, m.quality, badge].filter(Boolean).join(' · ')) + '</div>'
+          + '</div></div>';
+        dropdownEl.innerHTML = html;
+        dropdownEl.classList.add('open');
+      })
+      .catch(function() {
+        if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+      });
+  }, 700);
+}
+
+function cvAutoFindOpen(key, isAdult) {
+  if (!key) return;
+  function go() {
+    if (typeof openModal === 'function') openModal(key);
+    else if (typeof cvOpenMovie === 'function') cvOpenMovie(key);
+    else window.location.href = '/?movie=' + encodeURIComponent(key);
+  }
+  if (isAdult && typeof cvIsAdultVerified === 'function' && !cvIsAdultVerified()) {
+    if (typeof showAdultGate === 'function') { showAdultGate(go); return; }
+  }
+  go();
+}
+
 function cvBuildSuggestions(q, dropdownEl) {
   if (!q || q.length < 1) {
     dropdownEl.innerHTML = '';
@@ -8022,8 +8094,9 @@ function cvBuildSuggestions(q, dropdownEl) {
   cvSugFocusIdx = -1;
 
   if (!results.length) {
-    dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+    dropdownEl.innerHTML = '<div class="cv-sug-empty" id="cv-sug-autofind">🔍 Site pe nahi mili — external sources check ho rahi hain…</div>';
     dropdownEl.classList.add('open');
+    cvAutoFindExternal(q, dropdownEl);
     return;
   }
 
