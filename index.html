@@ -6813,6 +6813,13 @@ function cvRenderPage() {
       : allData.length === 0
       ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
       : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+    // Search active + empty → external autofind
+    try {
+      if (searchQ && String(searchQ).trim().length >= 2 && selCat !== 'watchlist' && typeof cvAutoFindExternal === 'function') {
+        var dd = document.getElementById('cv-search-dropdown') || document.getElementById('cv-mobile-search-dropdown');
+        cvAutoFindExternal(String(searchQ).trim(), dd);
+      }
+    } catch (e) {}
     cvRenderPagination(0);
     return;
   }
@@ -8008,58 +8015,97 @@ function cvHighlightMatch(text, q) {
 var _cvAutoFindTimer = null;
 var _cvAutoFindLastQ = '';
 function cvAutoFindExternal(q, dropdownEl) {
-  if (!q || q.length < 3) return;
+  if (!q || q.length < 2) return;
   var ql = q.trim().toLowerCase();
-  if (ql === _cvAutoFindLastQ) return;
   clearTimeout(_cvAutoFindTimer);
   _cvAutoFindTimer = setTimeout(function() {
-    _cvAutoFindLastQ = ql;
     var base = (typeof CN_PLAY_WORKER !== 'undefined' && CN_PLAY_WORKER)
       ? CN_PLAY_WORKER
       : 'https://play.cinenova.site';
     var url = base + '/autofind?q=' + encodeURIComponent(q.trim()) + '&import=1';
+    if (dropdownEl) {
+      dropdownEl.innerHTML = '<div class="cv-sug-empty">🌐 Searching HDFun / MMSHD / online…</div>';
+      dropdownEl.classList.add('open');
+    }
+    // Also show on grid if search active
+    var grid = document.getElementById('cv-grid');
+    var gridWasEmpty = grid && /No results found|No movies found/i.test(grid.innerHTML || '');
+    if (gridWasEmpty) {
+      grid.innerHTML = '<div class="cv-empty"><p>🌐</p><p>Online sources se dhoondh rahe hain…</p></div>';
+    }
     fetch(url, { cache: 'no-store' })
       .then(function(r) { return r.json(); })
       .then(function(j) {
-        if (!dropdownEl) return;
-        // User ne query change kar di?
-        var cur = (document.getElementById('cv-search') || {}).value ||
-                  (document.getElementById('cv-search-mobile') || {}).value || '';
-        if (cur.trim().toLowerCase() !== ql) return;
+        var cur = '';
+        try {
+          cur = ((document.getElementById('cv-search') || {}).value ||
+            (document.getElementById('cv-search-mobile') || {}).value || '').trim().toLowerCase();
+        } catch (e) {}
+        if (cur && cur !== ql && cur.indexOf(ql) !== 0 && ql.indexOf(cur) !== 0) return;
 
         if (!j || !j.ok || !j.movie) {
-          dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+          if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 Online pe bhi nahi mili</div>';
+          if (gridWasEmpty && grid) {
+            grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+          }
           return;
         }
         var m = j.movie;
         if (j.key) m._key = j.key;
-        // Live list mein add (same session)
+        // Session library mein add
         try {
           if (typeof allData !== 'undefined' && Array.isArray(allData)) {
-            var exists = allData.some(function(x){ return x._key === m._key || (x.title||'').toLowerCase() === (m.title||'').toLowerCase(); });
-            if (!exists) {
-              allData.unshift(m);
+            var exists = allData.some(function(x){
+              return (x._key && m._key && x._key === m._key) ||
+                ((x.title || '').toLowerCase() === (m.title || '').toLowerCase());
+            });
+            if (!exists) allData.unshift(m);
+            else {
+              // update existing key
+              allData.forEach(function(x){
+                if ((x.title || '').toLowerCase() === (m.title || '').toLowerCase()) {
+                  if (!x._key && m._key) x._key = m._key;
+                }
+              });
             }
           }
         } catch (e) {}
 
         var thumb = m.thumbnail || '';
-        var isAdult = (m.category || '').toLowerCase() === 'adult' || (m.source === 'mmshd');
-        var badge = isAdult ? '18+' : (m.source || 'new');
-        var html = '<div class="cv-sug-header">Found online' + (j.alreadyExists || m.alreadyExists ? ' (already in library)' : ' · auto-added') + '</div>';
-        html += '<div class="cv-sug-item" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' + (isAdult ? 'true' : 'false') + ')">'
-          + (thumb ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">' : '<div class="cv-sug-thumb" style="display:flex;align-items:center;justify-content:center;background:#222;">🎬</div>')
-          + '<div class="cv-sug-meta">'
+        var isAdult = (m.category || '').toLowerCase() === 'adult' || m.source === 'mmshd';
+        var badge = isAdult ? '18+' : (m.source || 'online');
+        var note = m.needsLinks ? ' · poster only (links baad mein)' : (m.alreadyExists ? ' · library' : ' · auto-added');
+        var html = '<div class="cv-sug-header">Found online' + note + '</div>';
+        html += '<div class="cv-sug-item" style="cursor:pointer" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' + (isAdult ? 'true' : 'false') + ')">'
+          + (thumb
+            ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">'
+            : '<div class="cv-sug-thumb-placeholder">🎬</div>')
+          + '<div class="cv-sug-info">'
           + '<div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
-          + '<div class="cv-sug-sub">' + escHtml([m.year, m.quality, badge].filter(Boolean).join(' · ')) + '</div>'
+          + '<div class="cv-sug-meta">' + escHtml([m.year, m.quality || m.language, badge].filter(Boolean).join(' · ')) + '</div>'
           + '</div></div>';
-        dropdownEl.innerHTML = html;
-        dropdownEl.classList.add('open');
+);
+        }
+        if (dropdownEl) {
+          dropdownEl.innerHTML = html;
+          dropdownEl.classList.add('open');
+        }
+        // Grid refresh so movie list mein bhi dikhe
+        try {
+          if (typeof searchQ !== 'undefined') searchQ = q.trim();
+          if (typeof cvApplyFilters === 'function') cvApplyFilters();
+          else if (typeof applyFilters === 'function') applyFilters();
+          if (typeof cvRenderPage === 'function') cvRenderPage();
+          else if (typeof renderGrid === 'function') renderGrid();
+        } catch (e) {}
       })
-      .catch(function() {
-        if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+      .catch(function(err) {
+        if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 Search fail — dubara try karein</div>';
+        if (gridWasEmpty && grid) {
+          grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+        }
       });
-  }, 700);
+  }, 450);
 }
 
 function cvAutoFindOpen(key, isAdult) {
