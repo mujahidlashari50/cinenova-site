@@ -4732,32 +4732,25 @@ function idbClear() {
 
 // Load first page from Firebase with optional cache
 function loadMoviesFirstPage() {
-  var started = false;
-  function startFirebase() {
-    if (started) return;
-    started = true;
-    try { fetchFirebasePage(true); } catch (e) {}
-  }
-  // IDB hang ho to 2s baad force Firebase
-  var idbTimer = setTimeout(startFirebase, 2000);
+  // Try cache first for instant render
   idbGetAll(function(cached) {
-    clearTimeout(idbTimer);
     if (cached && cached.length > 0) {
       allData = cached.sort(function(a,b){ return (b.addedAt||0)-(a.addedAt||0); });
-      try {
-        renderGrid();
-        buildTrending();
-        buildTsSlider();
-        buildFeatured();
-        showStatus('', '');
-        watchNewMovies();
-      } catch (e) {}
+      renderGrid();
+      buildTrending();
+      buildTsSlider();
+      buildFeatured();
+      showStatus('', '');
+      // Attach realtime watchers immediately with cached keys as baseline
+      watchNewMovies();
+      // Cache se data mila — URL restore abhi karo (Firebase se pehle)
       if (window._cvUrlRestorePending) {
         window._cvUrlRestorePending = false;
-        try { cvRestoreFromUrl(); } catch (e) {}
+        cvRestoreFromUrl();
       }
     }
-    startFirebase();
+    // Always fetch fresh from Firebase (background if cache hit)
+    fetchFirebasePage(true);
   });
 }
 
@@ -4769,16 +4762,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
   // read properties of null). Ab bas thodi der wait karke khud retry
   // karta hai jab tak Firebase ready na ho jaye — koi crash nahi.
   if (!db) {
-    _retryCount = _retryCount || 0;
-    if (_retryCount > 40) {
-      isLoadingMore = false;
-      var g = document.getElementById('cv-grid');
-      if (g && (!allData || !allData.length)) {
-        g.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Firebase load nahi hua<br/><small style="color:#7d7d7d"><a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
-      }
-      return;
-    }
-    setTimeout(function() { fetchFirebasePage(isFirst, (_retryCount || 0) + 1); }, 400);
+    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount); }, 400);
     return;
   }
   isLoadingMore = true;
@@ -6829,13 +6813,6 @@ function cvRenderPage() {
       : allData.length === 0
       ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
       : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
-    // Search active + empty → external autofind
-    try {
-      if (searchQ && String(searchQ).trim().length >= 2 && selCat !== 'watchlist' && typeof cvAutoFindExternal === 'function') {
-        var dd = document.getElementById('cv-search-dropdown') || document.getElementById('cv-mobile-search-dropdown');
-        cvAutoFindExternal(String(searchQ).trim(), dd);
-      }
-    } catch (e) {}
     cvRenderPagination(0);
     return;
   }
@@ -8031,96 +8008,61 @@ function cvHighlightMatch(text, q) {
 var _cvAutoFindTimer = null;
 var _cvAutoFindLastQ = '';
 function cvAutoFindExternal(q, dropdownEl) {
-  if (!q || q.length < 2) return;
+  if (!q || q.length < 3) return;
   var ql = q.trim().toLowerCase();
-  // Same query already running / done
-  if (_cvAutoFindLastQ === ql && _cvAutoFindInFlight) return;
+  if (ql === _cvAutoFindLastQ) return;
   clearTimeout(_cvAutoFindTimer);
   _cvAutoFindTimer = setTimeout(function() {
     _cvAutoFindLastQ = ql;
-    _cvAutoFindInFlight = true;
     var base = (typeof CN_PLAY_WORKER !== 'undefined' && CN_PLAY_WORKER)
       ? CN_PLAY_WORKER
       : 'https://play.cinenova.site';
     var url = base + '/autofind?q=' + encodeURIComponent(q.trim()) + '&import=1';
-    // Silent — no "searching online" messages
     fetch(url, { cache: 'no-store' })
       .then(function(r) { return r.json(); })
       .then(function(j) {
-        _cvAutoFindInFlight = false;
-        var cur = '';
-        try {
-          cur = ((document.getElementById('cv-search') || {}).value ||
-            (document.getElementById('cv-search-mobile') || {}).value || '').trim().toLowerCase();
-        } catch (e) {}
-        if (cur && cur !== ql && cur.indexOf(ql) !== 0 && ql.indexOf(cur) !== 0) return;
+        if (!dropdownEl) return;
+        // User ne query change kar di?
+        var cur = (document.getElementById('cv-search') || {}).value ||
+                  (document.getElementById('cv-search-mobile') || {}).value || '';
+        if (cur.trim().toLowerCase() !== ql) return;
 
         if (!j || !j.ok || !j.movie) {
-          // Fail silent — normal "no results" if still empty
-          if (dropdownEl && (!allData || !allData.some(function(x){
-            return ((x.title||'').toLowerCase().indexOf(ql) > -1);
-          }))) {
-            dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
-            dropdownEl.classList.add('open');
-          }
+          dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
           return;
         }
         var m = j.movie;
         if (j.key) m._key = j.key;
-        // Library mein add (user ko normal site movie dikhe)
+        // Live list mein add (same session)
         try {
           if (typeof allData !== 'undefined' && Array.isArray(allData)) {
-            var exists = allData.some(function(x){
-              return (x._key && m._key && x._key === m._key) ||
-                ((x.title || '').toLowerCase() === (m.title || '').toLowerCase());
-            });
-            if (!exists) allData.unshift(m);
-            else {
-              allData.forEach(function(x){
-                if ((x.title || '').toLowerCase() === (m.title || '').toLowerCase()) {
-                  if (!x._key && m._key) x._key = m._key;
-                  // merge useful fields
-                  if (!x.thumbnail && m.thumbnail) x.thumbnail = m.thumbnail;
-                  if (!x.videoSourceUrl && m.videoSourceUrl) x.videoSourceUrl = m.videoSourceUrl;
-                }
-              });
+            var exists = allData.some(function(x){ return x._key === m._key || (x.title||'').toLowerCase() === (m.title||'').toLowerCase(); });
+            if (!exists) {
+              allData.unshift(m);
             }
           }
         } catch (e) {}
 
-        // Normal suggestions / grid — jaise movie pehle se site pe thi
-        try {
-          if (typeof searchQ !== 'undefined') searchQ = (cur || q).trim();
-          if (dropdownEl) cvBuildSuggestions(cur || q, dropdownEl);
-          if (typeof cvBuildFilteredList === 'function') cvBuildFilteredList();
-          if (typeof cvRenderPage === 'function') cvRenderPage();
-          else if (typeof renderGrid === 'function') renderGrid();
-        } catch (e) {
-          if (dropdownEl) {
-            var thumb = m.thumbnail || '';
-            var html = '<div class="cv-sug-header">Results</div>';
-            html += '<div class="cv-sug-item" style="cursor:pointer" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' +
-              (((m.category||'').toLowerCase()==='adult'||m.source==='mmshd')?'true':'false') + ')">'
-              + (thumb ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">' : '')
-              + '<div class="cv-sug-info"><div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
-              + '<div class="cv-sug-meta">' + escHtml([m.year, m.quality||m.language].filter(Boolean).join(' · ')) + '</div></div></div>';
-            dropdownEl.innerHTML = html;
-            dropdownEl.classList.add('open');
-          }
-        }
+        var thumb = m.thumbnail || '';
+        var isAdult = (m.category || '').toLowerCase() === 'adult' || (m.source === 'mmshd');
+        var badge = isAdult ? '18+' : (m.source || 'new');
+        var html = '<div class="cv-sug-header">Found online' + (j.alreadyExists || m.alreadyExists ? ' (already in library)' : ' · auto-added') + '</div>';
+        html += '<div class="cv-sug-item" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' + (isAdult ? 'true' : 'false') + ')">'
+          + (thumb ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">' : '<div class="cv-sug-thumb" style="display:flex;align-items:center;justify-content:center;background:#222;">🎬</div>')
+          + '<div class="cv-sug-meta">'
+          + '<div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
+          + '<div class="cv-sug-sub">' + escHtml([m.year, m.quality, badge].filter(Boolean).join(' · ')) + '</div>'
+          + '</div></div>';
+        dropdownEl.innerHTML = html;
+        dropdownEl.classList.add('open');
       })
       .catch(function() {
-        _cvAutoFindInFlight = false;
-        if (dropdownEl) {
-          dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
-          dropdownEl.classList.add('open');
-        }
+        if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
       });
-  }, 500);
+  }, 700);
 }
-var _cvAutoFindInFlight = false;
 
-function cvAutoFindOpenfunction cvAutoFindOpen(key, isAdult) {
+function cvAutoFindOpen(key, isAdult) {
   if (!key) return;
   function go() {
     if (typeof openModal === 'function') openModal(key);
@@ -8152,8 +8094,7 @@ function cvBuildSuggestions(q, dropdownEl) {
   cvSugFocusIdx = -1;
 
   if (!results.length) {
-    // Silent background import — user ko normal wait dikhao
-    dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 Searching…</div>';
+    dropdownEl.innerHTML = '<div class="cv-sug-empty" id="cv-sug-autofind">🔍 Site pe nahi mili — external sources check ho rahi hain…</div>';
     dropdownEl.classList.add('open');
     cvAutoFindExternal(q, dropdownEl);
     return;
@@ -8243,21 +8184,9 @@ document.getElementById('cv-search').addEventListener('input', function() {
     _cvLoadAllForSearch(val, dd);
   }
   searchTimer = setTimeout(function() {
-    // Firebase abhi empty ho to loading dikhao, lekin 2s baad autofind try
+    // If Firebase not loaded yet, show loading message
     if (val && allData.length === 0) {
-      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Data loading…</div>'; dd.classList.add('open'); }
-      // Ensure firebase fetch running
-      try { if (typeof fetchFirebasePage === 'function' && !isLoadingMore) fetchFirebasePage(true); } catch(e) {}
-      setTimeout(function() {
-        var still = (document.getElementById('cv-search') || {}).value || '';
-        if (still !== val) return;
-        if (allData.length === 0 && typeof cvAutoFindExternal === 'function') {
-          cvAutoFindExternal(val, dd);
-        } else if (dd) {
-          cvBuildSuggestions(val, dd);
-        }
-        try { searchQ = val; renderGrid(); } catch(e) {}
-      }, 2000);
+      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Data is loading, please try again...</div>'; dd.classList.add('open'); }
       return;
     }
     searchQ = val;
