@@ -8033,25 +8033,21 @@ var _cvAutoFindLastQ = '';
 function cvAutoFindExternal(q, dropdownEl) {
   if (!q || q.length < 2) return;
   var ql = q.trim().toLowerCase();
+  // Same query already running / done
+  if (_cvAutoFindLastQ === ql && _cvAutoFindInFlight) return;
   clearTimeout(_cvAutoFindTimer);
   _cvAutoFindTimer = setTimeout(function() {
+    _cvAutoFindLastQ = ql;
+    _cvAutoFindInFlight = true;
     var base = (typeof CN_PLAY_WORKER !== 'undefined' && CN_PLAY_WORKER)
       ? CN_PLAY_WORKER
       : 'https://play.cinenova.site';
     var url = base + '/autofind?q=' + encodeURIComponent(q.trim()) + '&import=1';
-    if (dropdownEl) {
-      dropdownEl.innerHTML = '<div class="cv-sug-empty">🌐 Searching HDFun / MMSHD / online…</div>';
-      dropdownEl.classList.add('open');
-    }
-    // Also show on grid if search active
-    var grid = document.getElementById('cv-grid');
-    var gridWasEmpty = grid && /No results found|No movies found/i.test(grid.innerHTML || '');
-    if (gridWasEmpty) {
-      grid.innerHTML = '<div class="cv-empty"><p>🌐</p><p>Online sources se dhoondh rahe hain…</p></div>';
-    }
+    // Silent — no "searching online" messages
     fetch(url, { cache: 'no-store' })
       .then(function(r) { return r.json(); })
       .then(function(j) {
+        _cvAutoFindInFlight = false;
         var cur = '';
         try {
           cur = ((document.getElementById('cv-search') || {}).value ||
@@ -8060,15 +8056,18 @@ function cvAutoFindExternal(q, dropdownEl) {
         if (cur && cur !== ql && cur.indexOf(ql) !== 0 && ql.indexOf(cur) !== 0) return;
 
         if (!j || !j.ok || !j.movie) {
-          if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 Online pe bhi nahi mili</div>';
-          if (gridWasEmpty && grid) {
-            grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+          // Fail silent — normal "no results" if still empty
+          if (dropdownEl && (!allData || !allData.some(function(x){
+            return ((x.title||'').toLowerCase().indexOf(ql) > -1);
+          }))) {
+            dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+            dropdownEl.classList.add('open');
           }
           return;
         }
         var m = j.movie;
         if (j.key) m._key = j.key;
-        // Session library mein add
+        // Library mein add (user ko normal site movie dikhe)
         try {
           if (typeof allData !== 'undefined' && Array.isArray(allData)) {
             var exists = allData.some(function(x){
@@ -8077,52 +8076,51 @@ function cvAutoFindExternal(q, dropdownEl) {
             });
             if (!exists) allData.unshift(m);
             else {
-              // update existing key
               allData.forEach(function(x){
                 if ((x.title || '').toLowerCase() === (m.title || '').toLowerCase()) {
                   if (!x._key && m._key) x._key = m._key;
+                  // merge useful fields
+                  if (!x.thumbnail && m.thumbnail) x.thumbnail = m.thumbnail;
+                  if (!x.videoSourceUrl && m.videoSourceUrl) x.videoSourceUrl = m.videoSourceUrl;
                 }
               });
             }
           }
         } catch (e) {}
 
-        var thumb = m.thumbnail || '';
-        var isAdult = (m.category || '').toLowerCase() === 'adult' || m.source === 'mmshd';
-        var badge = isAdult ? '18+' : (m.source || 'online');
-        var note = m.needsLinks ? ' · poster only (links baad mein)' : (m.alreadyExists ? ' · library' : ' · auto-added');
-        var html = '<div class="cv-sug-header">Found online' + note + '</div>';
-        html += '<div class="cv-sug-item" style="cursor:pointer" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' + (isAdult ? 'true' : 'false') + ')">'
-          + (thumb
-            ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">'
-            : '<div class="cv-sug-thumb-placeholder">🎬</div>')
-          + '<div class="cv-sug-info">'
-          + '<div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
-          + '<div class="cv-sug-meta">' + escHtml([m.year, m.quality || m.language, badge].filter(Boolean).join(' · ')) + '</div>'
-          + '</div></div>';
-        if (dropdownEl) {
-          dropdownEl.innerHTML = html;
-          dropdownEl.classList.add('open');
-        }
-        // Grid refresh so movie list mein bhi dikhe
+        // Normal suggestions / grid — jaise movie pehle se site pe thi
         try {
-          if (typeof searchQ !== 'undefined') searchQ = q.trim();
-          if (typeof cvApplyFilters === 'function') cvApplyFilters();
-          else if (typeof applyFilters === 'function') applyFilters();
+          if (typeof searchQ !== 'undefined') searchQ = (cur || q).trim();
+          if (dropdownEl) cvBuildSuggestions(cur || q, dropdownEl);
+          if (typeof cvBuildFilteredList === 'function') cvBuildFilteredList();
           if (typeof cvRenderPage === 'function') cvRenderPage();
           else if (typeof renderGrid === 'function') renderGrid();
-        } catch (e) {}
+        } catch (e) {
+          if (dropdownEl) {
+            var thumb = m.thumbnail || '';
+            var html = '<div class="cv-sug-header">Results</div>';
+            html += '<div class="cv-sug-item" style="cursor:pointer" onclick="cvAutoFindOpen(\'' + escJs(m._key || j.key || '') + '\',' +
+              (((m.category||'').toLowerCase()==='adult'||m.source==='mmshd')?'true':'false') + ')">'
+              + (thumb ? '<img class="cv-sug-thumb" src="' + escHtml(thumb) + '" onerror="this.style.display=\'none\'">' : '')
+              + '<div class="cv-sug-info"><div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
+              + '<div class="cv-sug-meta">' + escHtml([m.year, m.quality||m.language].filter(Boolean).join(' · ')) + '</div></div></div>';
+            dropdownEl.innerHTML = html;
+            dropdownEl.classList.add('open');
+          }
+        }
       })
-      .catch(function(err) {
-        if (dropdownEl) dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 Search fail — dubara try karein</div>';
-        if (gridWasEmpty && grid) {
-          grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+      .catch(function() {
+        _cvAutoFindInFlight = false;
+        if (dropdownEl) {
+          dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+          dropdownEl.classList.add('open');
         }
       });
-  }, 450);
+  }, 500);
 }
+var _cvAutoFindInFlight = false;
 
-function cvAutoFindOpen(key, isAdult) {
+function cvAutoFindOpenfunction cvAutoFindOpen(key, isAdult) {
   if (!key) return;
   function go() {
     if (typeof openModal === 'function') openModal(key);
@@ -8154,7 +8152,8 @@ function cvBuildSuggestions(q, dropdownEl) {
   cvSugFocusIdx = -1;
 
   if (!results.length) {
-    dropdownEl.innerHTML = '<div class="cv-sug-empty" id="cv-sug-autofind">🔍 Site pe nahi mili — external sources check ho rahi hain…</div>';
+    // Silent background import — user ko normal wait dikhao
+    dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 Searching…</div>';
     dropdownEl.classList.add('open');
     cvAutoFindExternal(q, dropdownEl);
     return;
