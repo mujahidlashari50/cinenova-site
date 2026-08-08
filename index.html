@@ -4732,25 +4732,32 @@ function idbClear() {
 
 // Load first page from Firebase with optional cache
 function loadMoviesFirstPage() {
-  // Try cache first for instant render
+  var started = false;
+  function startFirebase() {
+    if (started) return;
+    started = true;
+    try { fetchFirebasePage(true); } catch (e) {}
+  }
+  // IDB hang ho to 2s baad force Firebase
+  var idbTimer = setTimeout(startFirebase, 2000);
   idbGetAll(function(cached) {
+    clearTimeout(idbTimer);
     if (cached && cached.length > 0) {
       allData = cached.sort(function(a,b){ return (b.addedAt||0)-(a.addedAt||0); });
-      renderGrid();
-      buildTrending();
-      buildTsSlider();
-      buildFeatured();
-      showStatus('', '');
-      // Attach realtime watchers immediately with cached keys as baseline
-      watchNewMovies();
-      // Cache se data mila — URL restore abhi karo (Firebase se pehle)
+      try {
+        renderGrid();
+        buildTrending();
+        buildTsSlider();
+        buildFeatured();
+        showStatus('', '');
+        watchNewMovies();
+      } catch (e) {}
       if (window._cvUrlRestorePending) {
         window._cvUrlRestorePending = false;
-        cvRestoreFromUrl();
+        try { cvRestoreFromUrl(); } catch (e) {}
       }
     }
-    // Always fetch fresh from Firebase (background if cache hit)
-    fetchFirebasePage(true);
+    startFirebase();
   });
 }
 
@@ -4762,7 +4769,16 @@ function fetchFirebasePage(isFirst, _retryCount) {
   // read properties of null). Ab bas thodi der wait karke khud retry
   // karta hai jab tak Firebase ready na ho jaye — koi crash nahi.
   if (!db) {
-    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount); }, 400);
+    _retryCount = _retryCount || 0;
+    if (_retryCount > 40) {
+      isLoadingMore = false;
+      var g = document.getElementById('cv-grid');
+      if (g && (!allData || !allData.length)) {
+        g.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Firebase load nahi hua<br/><small style="color:#7d7d7d"><a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
+      }
+      return;
+    }
+    setTimeout(function() { fetchFirebasePage(isFirst, (_retryCount || 0) + 1); }, 400);
     return;
   }
   isLoadingMore = true;
@@ -8084,8 +8100,6 @@ function cvAutoFindExternal(q, dropdownEl) {
           + '<div class="cv-sug-title">' + escHtml(m.title || q) + '</div>'
           + '<div class="cv-sug-meta">' + escHtml([m.year, m.quality || m.language, badge].filter(Boolean).join(' · ')) + '</div>'
           + '</div></div>';
-);
-        }
         if (dropdownEl) {
           dropdownEl.innerHTML = html;
           dropdownEl.classList.add('open');
@@ -8230,9 +8244,21 @@ document.getElementById('cv-search').addEventListener('input', function() {
     _cvLoadAllForSearch(val, dd);
   }
   searchTimer = setTimeout(function() {
-    // If Firebase not loaded yet, show loading message
+    // Firebase abhi empty ho to loading dikhao, lekin 2s baad autofind try
     if (val && allData.length === 0) {
-      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Data is loading, please try again...</div>'; dd.classList.add('open'); }
+      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Data loading…</div>'; dd.classList.add('open'); }
+      // Ensure firebase fetch running
+      try { if (typeof fetchFirebasePage === 'function' && !isLoadingMore) fetchFirebasePage(true); } catch(e) {}
+      setTimeout(function() {
+        var still = (document.getElementById('cv-search') || {}).value || '';
+        if (still !== val) return;
+        if (allData.length === 0 && typeof cvAutoFindExternal === 'function') {
+          cvAutoFindExternal(val, dd);
+        } else if (dd) {
+          cvBuildSuggestions(val, dd);
+        }
+        try { searchQ = val; renderGrid(); } catch(e) {}
+      }, 2000);
       return;
     }
     searchQ = val;
