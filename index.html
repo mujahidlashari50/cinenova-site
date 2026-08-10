@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CineNova theme FIX pack 2026-08-10: escHtml, PAGE_SIZE=120, deep-link, faster category load -->
+<!-- CineNova theme FIX pack v2 2026-08-10: analytics home, error filter, escHtml, PAGE_SIZE=120, deep-link -->
 
 <html lang="en" dir="ltr">
 <head>
@@ -4141,11 +4141,18 @@ function cvLogError(info) {
 }
 
 window.addEventListener('error', function(e) {
-  // Cross-origin/ad scripts se aane wali generic "Script error." (koi useful
-  // detail nahi hoti) ko skip karo — sirf noise hoti hai, kabhi trace nahi ho sakti.
+  // Cross-origin/ad scripts se aane wali generic "Script error." skip
   if (e.message === 'Script error.' || e.message === 'Script error') return;
+  var msg = String(e.message || '');
+  var src = String(e.filename || '');
+  // FIX v2: Facebook/Instagram/Android in-app browser noise — ignore
+  if (/postMessage|Java object is gone|iabjs:|webkit\.messageHandlers|navigation_performance_logger/i.test(msg)) return;
+  if (/iabjs:|navigation_performance_logger|facebook\.com|instagram\.com/i.test(src)) return;
 
   var isOwnSite = e.filename && e.filename.indexOf(location.hostname) > -1;
+  // Optional: 3rd-party pure noise mat log karo (sirf apni site + inline)
+  if (e.filename && !isOwnSite && /\[3rd-party\]|chrome-extension:|moz-extension:/i.test(src)) return;
+
   cvLogError({
     message: (isOwnSite || !e.filename ? '' : '[3rd-party script] ') + e.message,
     source: e.filename || '(no source — inline handler ya external script)',
@@ -4157,8 +4164,11 @@ window.addEventListener('error', function(e) {
 
 window.addEventListener('unhandledrejection', function(e) {
   var reason = e.reason;
+  var msg = reason && reason.message ? reason.message : String(reason);
+  // FIX v2: WebView / in-app noise skip
+  if (/postMessage|Java object is gone|webkit\.messageHandlers|iabjs:/i.test(msg)) return;
   cvLogError({
-    message: 'UnhandledRejection: ' + (reason && reason.message ? reason.message : String(reason)),
+    message: 'UnhandledRejection: ' + msg,
     stack: reason && reason.stack
   });
 });
@@ -4526,6 +4536,20 @@ function _cvOnFirebaseReady() {
 
   // ── PUSH UPDATES — Real-time listener ──
   cvWatchPushUpdates();
+
+  // ── FIX v2: Homepage visit analytics (pehle sirf movie open pe track hota tha) ──
+  try {
+    if (!sessionStorage.getItem('cv_home_visit_logged')) {
+      sessionStorage.setItem('cv_home_visit_logged', '1');
+      var _cvHomeDate = new Date().toISOString().substring(0, 10);
+      if (typeof cvLogAnalyticsVisit === 'function') {
+        // thoda delay — functions define ho chuki hon + db stable
+        setTimeout(function() {
+          try { cvLogAnalyticsVisit(null, _cvHomeDate); } catch (e) {}
+        }, 800);
+      }
+    }
+  } catch (e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -8908,6 +8932,7 @@ document.addEventListener('keydown', function(e) {
 // ══════════════════════════════════════════════════════════
 function trackView(key) {
   try {
+    if (!key) return;
     var viewed = JSON.parse(localStorage.getItem('cv_viewed') || '{}');
     if (viewed[key]) return; // Already counted this session
     viewed[key] = 1;
@@ -8917,10 +8942,14 @@ function trackView(key) {
     var todayDate = new Date().toISOString().substring(0,10);
 
     // ── Purana system (backward compatible) ──
-    db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
-    db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
-    db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
-    db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
+    if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
+      try {
+        db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
+        db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
+        db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
+        db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
+      } catch (e) {}
+    }
 
     // ── Naya analytics system (admin panel Analytics tab) ──
     cvLogAnalyticsVisit(key, todayDate);
