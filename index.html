@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- CineNova theme FIXED-v3 2026-08-10: old-theme base + home analytics + online ping + escHtml + PAGE_SIZE + deep-link + error filter -->
+
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
@@ -4117,10 +4119,11 @@ function cvLogError(info) {
 }
 
 window.addEventListener('error', function(e) {
-  // Cross-origin/ad scripts se aane wali generic "Script error." (koi useful
-  // detail nahi hoti) ko skip karo — sirf noise hoti hai, kabhi trace nahi ho sakti.
   if (e.message === 'Script error.' || e.message === 'Script error') return;
-
+  var msg = String(e.message || '');
+  var src = String(e.filename || '');
+  if (/postMessage|Java object is gone|iabjs:|webkit\.messageHandlers|navigation_performance_logger/i.test(msg)) return;
+  if (/iabjs:|navigation_performance_logger/i.test(src)) return;
   var isOwnSite = e.filename && e.filename.indexOf(location.hostname) > -1;
   cvLogError({
     message: (isOwnSite || !e.filename ? '' : '[3rd-party script] ') + e.message,
@@ -4133,8 +4136,10 @@ window.addEventListener('error', function(e) {
 
 window.addEventListener('unhandledrejection', function(e) {
   var reason = e.reason;
+  var msg = reason && reason.message ? reason.message : String(reason);
+  if (/postMessage|Java object is gone|webkit\.messageHandlers|iabjs:/i.test(msg)) return;
   cvLogError({
-    message: 'UnhandledRejection: ' + (reason && reason.message ? reason.message : String(reason)),
+    message: 'UnhandledRejection: ' + msg,
     stack: reason && reason.stack
   });
 });
@@ -4497,6 +4502,26 @@ function _cvOnFirebaseReady() {
 
   // ── PUSH UPDATES — Real-time listener ──
   cvWatchPushUpdates();
+
+  // ── FIX: Home open pe bhi visit + online active ──
+  try {
+    if (!sessionStorage.getItem('cv_home_visit_logged')) {
+      sessionStorage.setItem('cv_home_visit_logged', '1');
+      var _d = new Date().toISOString().substring(0, 10);
+      setTimeout(function() {
+        try {
+          if (typeof cvLogAnalyticsVisit === 'function') cvLogAnalyticsVisit(null, _d);
+          else if (typeof cvStartOnlinePing === 'function') cvStartOnlinePing();
+        } catch (e) {}
+      }, 600);
+    } else {
+      // same session: sirf online presence ensure karo
+      setTimeout(function() {
+        try { if (typeof cvStartOnlinePing === 'function') cvStartOnlinePing(); } catch (e) {}
+      }, 600);
+    }
+  } catch (e) {}
+
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4666,7 +4691,7 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 80;         // 80 at a time — faster initial load
+var PAGE_SIZE = 120;         // 80 at a time — faster initial load
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -6354,28 +6379,44 @@ function cvRestoreFromUrl() {
     }
 
     if (movieKey) {
-      // Movie detail link — open modal
       var decoded = decodeURIComponent(movieKey);
-      // Pehle slug se dhundho, phir key se
-      var found = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
-      if (found) {
-        openModal(found._key);
-        return;
+      function _cvTryOpenMovie() {
+        var found = (typeof cvFindBySlug === 'function' && cvFindBySlug(decoded))
+          || allData.find(function(x) { return x && (x._key === decoded || x.seoSlug === decoded); });
+        if (found) { openModal(found._key); return true; }
+        return false;
       }
-      // Data abhi load nahi hua — retry karo jab tak mile (max 10 sec)
+      if (_cvTryOpenMovie()) return;
+      try { if (typeof _cvLoadAllForCategory === 'function') _cvLoadAllForCategory(); } catch (e) {}
       var retryCount = 0;
       var retryInterval = setInterval(function() {
         retryCount++;
-        var f = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
-        if (f) {
+        if (_cvTryOpenMovie()) { clearInterval(retryInterval); return; }
+        try {
+          if (!allLoaded && typeof fetchFirebasePage === 'function' && !isLoadingMore) fetchFirebasePage(false);
+        } catch (e) {}
+        if (retryCount > 90) {
           clearInterval(retryInterval);
-          openModal(f._key);
-        } else if (retryCount > 50) {
-          clearInterval(retryInterval);
-          // Last try — slug directly use karo as key
-          if (allData.length > 0) {
-            var fallback = allData.find(function(x){ return x._key === decoded; });
-            if (fallback) openModal(fallback._key);
+          if (typeof db !== 'undefined' && db) {
+            try {
+              db.ref('movies/' + decoded).once('value', function(snap) {
+                if (snap && snap.exists()) {
+                  var item = snap.val() || {}; item._key = snap.key;
+                  if (!allData.find(function(x){ return x._key === snap.key; })) allData.unshift(item);
+                  openModal(snap.key);
+                }
+              });
+            } catch (e) {}
+            try {
+              db.ref('movies').orderByChild('seoSlug').equalTo(decoded).limitToFirst(1).once('value', function(snap) {
+                if (!snap || !snap.exists()) return;
+                snap.forEach(function(c) {
+                  var item = c.val() || {}; item._key = c.key;
+                  if (!allData.find(function(x){ return x._key === c.key; })) allData.unshift(item);
+                  openModal(c.key);
+                });
+              });
+            } catch (e) {}
           }
         }
       }, 200);
@@ -8784,21 +8825,23 @@ document.addEventListener('keydown', function(e) {
 // ══════════════════════════════════════════════════════════
 function trackView(key) {
   try {
+    if (!key) return;
     var viewed = JSON.parse(localStorage.getItem('cv_viewed') || '{}');
-    if (viewed[key]) return; // Already counted this session
+    if (viewed[key]) return;
     viewed[key] = 1;
     localStorage.setItem('cv_viewed', JSON.stringify(viewed));
 
     var todayKey = 'd' + new Date().toISOString().substring(0,10).replace(/-/g,'');
     var todayDate = new Date().toISOString().substring(0,10);
 
-    // ── Purana system (backward compatible) ──
-    db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
-    db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
-    db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
-    db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
-
-    // ── Naya analytics system (admin panel Analytics tab) ──
+    if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
+      try {
+        db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
+        db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
+        db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
+        db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
+      } catch (e) {}
+    }
     cvLogAnalyticsVisit(key, todayDate);
   } catch(e) {}
 }
@@ -9227,7 +9270,12 @@ function cvThumb(url) {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+  return String(s == null ? '' : s)
+    .replace(/&/g, '\u0026amp;')
+    .replace(/</g, '\u0026lt;')
+    .replace(/>/g, '\u0026gt;')
+    .replace(/"/g, '\u0026quot;')
+    .replace(/'/g, '\u0026#39;');
 }
 // ===== Cast Row (storyline ke neeche) =====
 // Post ka title SEO-friendly hota hai jese "Desert Warrior (2026) (Hindi Dubbed) Dual Audio..."
@@ -9315,7 +9363,12 @@ function cvRenderCast(cast, callKey) {
 }
 
 function escJs(s) {
-  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+  return String(s == null ? '' : s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
 }
 // ── Slug Generator ──
 function cvSlug(title) {
