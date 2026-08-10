@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CineNova theme FIXED-v6 2026-08-11: download count fix (track before redirect) + v5 -->
+<!-- CineNova theme FIXED-v7 2026-08-11: downloadCount fix, visit write-first, online stable, polish -->
 
 <html lang="en" dir="ltr">
 <head>
@@ -7900,10 +7900,21 @@ function cvTrackDownload(quality) {
     var qKey = String(quality || '480p').toLowerCase().replace(/\s/g,'');
     if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
       try {
+        // Admin panel / card pe jo ⬇ count dikhta hai — movies/{key}/downloadCount
+        db.ref('movies/' + key + '/downloadCount').transaction(function(c){ return (c||0)+1; });
+        // Quality-wise analytics
         db.ref('analytics/downloads/' + key + '/' + qKey).transaction(function(c){ return (c||0)+1; });
         db.ref('analytics/downloads/' + key + '/title').once('value', function(s){
           if (!s.val()) db.ref('analytics/downloads/' + key + '/title').set(title);
         });
+        // Local UI turant update (redirect se pehle)
+        try {
+          if (window._cvCurrentMovieObj) {
+            window._cvCurrentMovieObj.downloadCount = (window._cvCurrentMovieObj.downloadCount || 0) + 1;
+          }
+          var item = allData && allData.find(function(x){ return x && x._key === key; });
+          if (item) item.downloadCount = (item.downloadCount || 0) + 1;
+        } catch (e2) {}
       } catch (err) {}
     }
   } catch(e) {}
@@ -7917,7 +7928,7 @@ function cvTrackDownloadAndGo(quality) {
   setTimeout(function() {
     try { cnGoToDownloadWorker(key, q); } catch (e) {}
     try { closeDlPopup(); } catch (e) {}
-  }, 280);
+  }, 400);
 }
 
 function closeDlPopup() {
@@ -8058,7 +8069,7 @@ function _cvLoadAllForCategory() {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 800);
+  }, 600);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
@@ -8921,6 +8932,10 @@ function cvGetBrowser() {
 
 // ── Write visit to analytics/visits ──
 function cvLogAnalyticsVisit(movieKey, todayDate) {
+  if (typeof db === 'undefined' || !db || typeof db.ref !== 'function') {
+    try { cvStartOnlinePing(); } catch (e) {}
+    return;
+  }
   var visitData = {
     ts: Date.now(),
     date: todayDate,
@@ -8935,41 +8950,64 @@ function cvLogAnalyticsVisit(movieKey, todayDate) {
     ip: ''
   };
 
-  // Fetch IP + Location from free API
+  // Pehle turant save — ipapi slow/block ho to visit miss na ho
+  var visitRef = null;
+  try {
+    visitRef = db.ref('analytics/visits').push(visitData);
+  } catch (e) {
+    try { db.ref('analytics/visits').push(visitData); } catch (e2) {}
+  }
+
+  // Background geo update
   try {
     fetch('https://ipapi.co/json/')
       .then(function(r) { return r.json(); })
       .then(function(geo) {
-        visitData.country = geo.country_name || 'Unknown';
-        visitData.city    = geo.city         || 'Unknown';
-        visitData.ip      = geo.ip           || '';
-        db.ref('analytics/visits').push(visitData);
+        if (!visitRef || !geo) return;
+        try {
+          visitRef.update({
+            country: geo.country_name || 'Unknown',
+            city: geo.city || 'Unknown',
+            ip: geo.ip || ''
+          });
+        } catch (e) {}
       })
-      .catch(function() {
-        // Record visit even if location not found
-        db.ref('analytics/visits').push(visitData);
-      });
-  } catch(e) {
-    db.ref('analytics/visits').push(visitData);
-  }
+      .catch(function() {});
+  } catch (e) {}
 
-  // ── Online presence ping (har 30s) ──
   cvStartOnlinePing();
 }
 
 // ── Online ping ──
-var _cvSessionId = 'sess_' + Math.random().toString(36).substring(2, 10);
+var _cvSessionId = (function() {
+  try {
+    var s = sessionStorage.getItem('cv_sess_id');
+    if (s) return s;
+    s = 'sess_' + Math.random().toString(36).substring(2, 10);
+    sessionStorage.setItem('cv_sess_id', s);
+    return s;
+  } catch (e) {
+    return 'sess_' + Math.random().toString(36).substring(2, 10);
+  }
+})();
 var _cvPingTimer = null;
 function cvStartOnlinePing() {
-  if (_cvPingTimer) return; // Already running
+  if (_cvPingTimer) return;
   function doPing() {
-    try { db.ref('analytics/online/' + _cvSessionId).set({ ts: Date.now() }); } catch(e) {}
+    try {
+      if (typeof db !== 'undefined' && db) {
+        db.ref('analytics/online/' + _cvSessionId).set({ ts: Date.now(), page: location.pathname || '/' });
+      }
+    } catch(e) {}
   }
   doPing();
-  _cvPingTimer = setInterval(doPing, 30000);
-  // Remove on tab close
+  _cvPingTimer = setInterval(doPing, 25000);
   window.addEventListener('beforeunload', function() {
-    try { db.ref('analytics/online/' + _cvSessionId).remove(); } catch(e) {}
+    try { if (db) db.ref('analytics/online/' + _cvSessionId).remove(); } catch(e) {}
+  });
+  // visibility: tab wapas aaye to turant ping
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) doPing();
   });
 }
 
