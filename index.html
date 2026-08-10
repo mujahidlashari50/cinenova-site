@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<!-- CineNova theme FIX pack v2 2026-08-10: analytics home, error filter, escHtml, PAGE_SIZE=120, deep-link -->
-
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
@@ -20,7 +18,7 @@
 <meta content='summary_large_image' name='twitter:card'/>
 <meta content='CineNova - Free HD Movies' id='cv-tw-title' name='twitter:title'/>
 <meta content='Watch free HD movies, web series. No login, no subscription!' id='cv-tw-desc' name='twitter:description'/>
-<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' name='viewport'/>
+<meta content='width=device-width, initial-scale=1.0, viewport-fit=cover' name='viewport'/>
 <meta content='#0a0a0a' name='theme-color'/>
 <title>CineNova - Free HD Movies &amp; Web Series</title>
 <link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 66 66'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff4d40'/%3E%3Cstop offset='50%25' stop-color='%23e50914'/%3E%3Cstop offset='100%25' stop-color='%236e0309'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='33' cy='36' r='30' fill='%234a0307'/%3E%3Ccircle cx='33' cy='33' r='30' fill='url(%23g)'/%3E%3Cpath d='M24 19 L24 47 L48 33 Z' fill='%23ffffff'/%3E%3C/svg%3E" rel='icon' type='image/svg+xml'/>
@@ -120,21 +118,13 @@ img{image-rendering:auto}
 
 /* Font loaded via preload link in head */
 
-html{overflow-x:hidden;width:100%;max-width:100%;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{overflow-x:hidden;width:100%;scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   background:#141414;color:var(--text);
   font-family:'Netflix Sans','Outfit','Helvetica Neue',Helvetica,Arial,sans-serif;
-  min-height:100vh;overflow-x:hidden;width:100%;max-width:100%;
+  min-height:100vh;overflow-x:hidden;width:100%;max-width:100vw;
   -webkit-font-smoothing:antialiased;
-  overscroll-behavior-y:auto;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
-/* iOS: font < 16px on inputs causes auto-zoom */
-input, select, textarea{font-size:16px!important}
-@media(min-width:768px){
-  input, select, textarea{font-size:0.9rem!important}
 }
 a{text-decoration:none;color:inherit}
 
@@ -365,7 +355,6 @@ body{text-rendering:optimizeSpeed}
 
 /* ══ JUST UPLOADED STRIP (below hero) ══ */
 #cv-ns-latest-wrap{
-  display:none!important; /* Just Uploaded removed */
   position:relative;padding:24px 4% 14px;background:#141414;
   border-bottom:1px solid rgba(255,255,255,0.05);
 }
@@ -727,18 +716,6 @@ body{text-rendering:optimizeSpeed}
 .cv-page-info{font-size:0.8rem;color:#7d7d7d;white-space:nowrap;padding:0 4px}
 @media(max-width:400px){.cv-page-btn{min-width:36px;height:36px;padding:0 10px;font-size:0.82rem}}
 
-
-/* ══ VIP PERFORMANCE ══ */
-.cv-card{contain:layout style;transform:translateZ(0)}
-#cv-grid{contain:layout}
-@media(max-width:768px){
-  .cv-card{animation:none!important;transition:transform 0.1s ease!important}
-  .cv-card:active{transform:scale(0.98)}
-  *{scroll-behavior:auto!important}
-}
-#cv-main-content{-webkit-overflow-scrolling:touch}
-img{image-rendering:auto}
-
 /* ══ GRID — MASTER PRO ══ */
 #cv-grid{
   display:grid;
@@ -770,7 +747,7 @@ img{image-rendering:auto}
   cursor:pointer;
   position:relative;
   border:1px solid rgba(255,255,255,0.04);
-  animation:none;
+  animation:cardFadeIn 0.25s ease both;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -862,7 +839,7 @@ img{image-rendering:auto}
 }
 .cv-card:hover .cv-card-no-img{filter:brightness(1.3)}
 
-#cv-grid{min-height:400px;}
+#cv-grid{contain:content;content-visibility:auto;contain-intrinsic-size:0 1200px;min-height:500px;}
 .cv-card-img{image-rendering:auto;color-scheme:dark;}
 
 .cv-badge{
@@ -3682,7 +3659,6 @@ function cvOpenInBrowser() {
   <div class='cv-pill' data-cat='tollywood'> Tollywood</div>
   <div class='cv-pill' data-cat='animation'> Animation</div>
   <div class='cv-pill' data-cat='webseries'> Web Series</div>
-  <div class='cv-pill' data-cat='kdrama'>🇰🇷 K-Drama</div>
   <div class='cv-pill' data-cat='watchlist' id='cv-pill-watchlist'>🔖 My List</div>
   <div class='cv-pill cv-pill-adult' data-cat='adult'>🔞 Adult</div>
 </div>
@@ -3798,7 +3774,7 @@ function cvOpenInBrowser() {
 </div>
 
 <!-- ══ JUST UPLOADED STRIP (below new hero) ══ -->
-<div id='cv-ns-latest-wrap' style='display:none!important'>
+<div id='cv-ns-latest-wrap'>
   <div id='cv-ns-latest-header'>
     <div id='cv-ns-latest-title'>Just Uploaded</div>
   </div>
@@ -4141,18 +4117,11 @@ function cvLogError(info) {
 }
 
 window.addEventListener('error', function(e) {
-  // Cross-origin/ad scripts se aane wali generic "Script error." skip
+  // Cross-origin/ad scripts se aane wali generic "Script error." (koi useful
+  // detail nahi hoti) ko skip karo — sirf noise hoti hai, kabhi trace nahi ho sakti.
   if (e.message === 'Script error.' || e.message === 'Script error') return;
-  var msg = String(e.message || '');
-  var src = String(e.filename || '');
-  // FIX v2: Facebook/Instagram/Android in-app browser noise — ignore
-  if (/postMessage|Java object is gone|iabjs:|webkit\.messageHandlers|navigation_performance_logger/i.test(msg)) return;
-  if (/iabjs:|navigation_performance_logger|facebook\.com|instagram\.com/i.test(src)) return;
 
   var isOwnSite = e.filename && e.filename.indexOf(location.hostname) > -1;
-  // Optional: 3rd-party pure noise mat log karo (sirf apni site + inline)
-  if (e.filename && !isOwnSite && /\[3rd-party\]|chrome-extension:|moz-extension:/i.test(src)) return;
-
   cvLogError({
     message: (isOwnSite || !e.filename ? '' : '[3rd-party script] ') + e.message,
     source: e.filename || '(no source — inline handler ya external script)',
@@ -4164,11 +4133,8 @@ window.addEventListener('error', function(e) {
 
 window.addEventListener('unhandledrejection', function(e) {
   var reason = e.reason;
-  var msg = reason && reason.message ? reason.message : String(reason);
-  // FIX v2: WebView / in-app noise skip
-  if (/postMessage|Java object is gone|webkit\.messageHandlers|iabjs:/i.test(msg)) return;
   cvLogError({
-    message: 'UnhandledRejection: ' + msg,
+    message: 'UnhandledRejection: ' + (reason && reason.message ? reason.message : String(reason)),
     stack: reason && reason.stack
   });
 });
@@ -4293,10 +4259,6 @@ function showStatus(msg, color) {
 // STATE
 // ══════════════════════════════════
 var allData = [];
-// FIX: safe Firebase access — null db pe crash na ho
-function cvDbReady() { return (typeof db !== 'undefined' && db && typeof db.ref === 'function'); }
-function cvSafeRef(path) { return cvDbReady() ? db.ref(path) : null; }
-
 var selCat = 'all';
 var selGenre = ''; // genre filter: '' means no genre filter
 var searchQ = '';
@@ -4521,10 +4483,9 @@ function _cvOnFirebaseReady() {
       }
     }
 
-    clearTimeout(window._cvSettingsFeatT);
-    window._cvSettingsFeatT = setTimeout(function(){
-      try { buildFeatured(); } catch(e) {}
-    }, 400);
+    // Rebuild featured banner (ON hone par turant content ke saath show hoga,
+    // OFF hone par upar wali line already hide kar chuki hai)
+    buildFeatured();
   });
 
   // ── LOAD MOVIES DATA (main fix) ──
@@ -4536,20 +4497,6 @@ function _cvOnFirebaseReady() {
 
   // ── PUSH UPDATES — Real-time listener ──
   cvWatchPushUpdates();
-
-  // ── FIX v2: Homepage visit analytics (pehle sirf movie open pe track hota tha) ──
-  try {
-    if (!sessionStorage.getItem('cv_home_visit_logged')) {
-      sessionStorage.setItem('cv_home_visit_logged', '1');
-      var _cvHomeDate = new Date().toISOString().substring(0, 10);
-      if (typeof cvLogAnalyticsVisit === 'function') {
-        // thoda delay — functions define ho chuki hon + db stable
-        setTimeout(function() {
-          try { cvLogAnalyticsVisit(null, _cvHomeDate); } catch (e) {}
-        }, 800);
-      }
-    }
-  } catch (e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4719,7 +4666,7 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 120;        // FIX: 48 bohat kam tha — categories empty dikhti thin
+var PAGE_SIZE = 80;         // 80 at a time — faster initial load
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -4951,18 +4898,16 @@ var _cvWatchersAttached = false;
 function _cvDebouncedRefresh() {
   clearTimeout(_cvRenderDebounce);
   _cvRenderDebounce = setTimeout(function() {
+    // Re-sort by addedAt before saving/rendering
     allData.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
     idbSaveAll(allData);
-    var modalOpen = document.getElementById('cv-modal') && document.getElementById('cv-modal').classList.contains('open');
-    var playerOpen = document.getElementById('cv-player') && document.getElementById('cv-player').classList.contains('open');
-    if (modalOpen || playerOpen) return;
-    // Only grid — sliders rebuild sirf Home pe, kabhi kabhi (flicker kam)
     renderGrid(false);
-    if (selCat === 'all' && !selGenre) {
-      try { buildTrending(); } catch(e){}
-      try { buildTsSlider(); } catch(e){}
-    }
-  }, 1200);
+    buildTrending();
+    buildTsSlider();
+    buildFeatured();
+    buildNsHero();
+    buildNsLatest();
+  }, 300);
 }
 
 function watchNewMovies() {
@@ -4980,7 +4925,7 @@ function watchNewMovies() {
   // keys ki wajah se chronological order mein hain) ke limited window par
   // hi listen hota hai — catalog jitni bhi badi ho, sync hamesha halka
   // rehta hai.
-  var CV_WATCH_WINDOW = 40;
+  var CV_WATCH_WINDOW = 60;
   var watchQuery = db.ref('movies').orderByKey().limitToLast(CV_WATCH_WINDOW);
 
   // We track by key so initial data events are skipped
@@ -5591,7 +5536,7 @@ function buildNsHero() {
 
   if (_cvNsTimer) clearInterval(_cvNsTimer);
   if (_cvNsPool.length > 1) {
-    _cvNsTimer = setInterval(_cvNsRotate, 6000);
+    _cvNsTimer = setInterval(_cvNsRotate, 3800);
   }
 }
 
@@ -5647,11 +5592,8 @@ function _cvNsRotate() {
 
 // ══ JUST UPLOADED STRIP — newest movies, NEW badge, hover-to-front ══
 function buildNsLatest() {
-  var wrap = document.getElementById('cv-ns-latest-wrap');
-  if (wrap) wrap.style.display = 'none';
-  return; // Just Uploaded section disabled
   var track = document.getElementById('cv-ns-latest-track');
-  var wrap2 = document.getElementById('cv-ns-latest-wrap');
+  var wrap = document.getElementById('cv-ns-latest-wrap');
   if (!track) return;
   var picks = [];
   for (var i = 0; i < allData.length && picks.length < 16; i++) {
@@ -5981,8 +5923,8 @@ function updateSlidersVisibility(cat) {
   // Category heading update
   var catLabels = {
     hollywood:'🌟 Hollywood', bollywood:'🎭 Bollywood', tollywood:'🎬 Tollywood',
-    animation:'🧸 Animation', webseries:'📺 Web Series', kdrama:'🇰🇷 K-Drama',
-    adult:'🔞 Adult', trending:'🔥 Trending', watchlist:'🔖 My List'
+    animation:'🧸 Animation', webseries:'Web Series',
+    trending:'🔥 Trending', watchlist:'🔖 My List'
   };
   var heading = document.getElementById('cv-cat-heading');
   if (!heading) {
@@ -5993,12 +5935,7 @@ function updateSlidersVisibility(cat) {
     if (grid) grid.parentNode.insertBefore(heading, grid);
   }
   if (!isHome && catLabels[cat]) {
-    var suffix = '';
-    if (cat === 'watchlist') suffix = '';
-    else if (cat === 'webseries' || cat === 'kdrama') suffix = '';
-    else if (cat === 'adult') suffix = '';
-    else suffix = ' Movies';
-    heading.textContent = catLabels[cat] + suffix;
+    heading.textContent = catLabels[cat] + (cat === 'watchlist' ? '' : ' Movies');
     heading.style.display = 'block';
   } else {
     heading.style.display = 'none';
@@ -6042,7 +5979,7 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" fetchpriority="low" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
@@ -6087,7 +6024,7 @@ function cvTsSnap(track, cardStep) {
 function cvTsAutoPlay(track, cardStep) {
   clearInterval(cvTsInterval);
   if (cvTsTotal <= 1) return;
-  cvTsInterval = setInterval(function() { if (document.hidden) return; cvTsIndex++; cvTsSnap(track, cardStep); }, 5500);
+  cvTsInterval = setInterval(function() { if (document.hidden) return; cvTsIndex++; cvTsSnap(track, cardStep); }, 3500);
 }
 
 function cvTsMove(dir) {
@@ -6100,19 +6037,14 @@ function cvTsMove(dir) {
 }
 
 function cvTsSetupDrag(track, cardStep) {
-  // ✅ PERF FIX: same listener-accumulation issue as setupTrendingDrag() —
-  // guard against re-attaching on every buildTsSlider() re-render.
-  track._cvCardStep = cardStep;
-  if (track._cvDragBound) return;
-  track._cvDragBound = true;
   var startX = 0, dragging = false, moved = false;
   track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; dragging = true; moved = false; clearInterval(cvTsInterval); track.style.transition = 'none'; }, {passive:true});
-  track.addEventListener('touchmove', function(e) { if (!dragging) return; var dx = e.touches[0].clientX - startX; if (!moved && Math.abs(dx) < 5) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * track._cvCardStep) - dx) + 'px)'; }, {passive:true});
-  track.addEventListener('touchend', function(e) { if (!dragging) return; dragging = false; var dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); }, {passive:true});
+  track.addEventListener('touchmove', function(e) { if (!dragging) return; var dx = e.touches[0].clientX - startX; if (!moved && Math.abs(dx) < 5) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * cardStep) - dx) + 'px)'; }, {passive:true});
+  track.addEventListener('touchend', function(e) { if (!dragging) return; dragging = false; var dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); }, {passive:true});
   track.addEventListener('mousedown', function(e) { startX = e.clientX; dragging = true; moved = false; clearInterval(cvTsInterval); track.style.transition = 'none'; e.preventDefault(); });
-  track.addEventListener('mousemove', function(e) { if (!dragging) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * track._cvCardStep) - (e.clientX - startX)) + 'px)'; });
-  track.addEventListener('mouseup', function(e) { if (!dragging) return; dragging = false; var dx = e.clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
-  track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
+  track.addEventListener('mousemove', function(e) { if (!dragging) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * cardStep) - (e.clientX - startX)) + 'px)'; });
+  track.addEventListener('mouseup', function(e) { if (!dragging) return; dragging = false; var dx = e.clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); });
+  track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); });
   track.addEventListener('click', function(e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
 
@@ -6286,18 +6218,6 @@ function startTrendingSlider(track, cardStep, total) {
 }
 
 function setupTrendingDrag(track, cardStep, total) {
-  // ✅ PERF FIX: ye function buildTrending() ke zariye baar baar call hoti
-  // hai (har realtime Firebase update pe ~300ms debounce ke baad). Pehle
-  // har call pe naye touch/mouse listeners track par dobara add ho jate
-  // the (purane kabhi remove nahi hote), jisse listeners jama hote rehte
-  // the aur session lamba chalne par drag/slide lagatar slow/jerky ho jata
-  // tha. Ab cardStep/total ko track element par store karte hain (hamesha
-  // fresh) aur listeners sirf EK baar attach karte hain.
-  track._cvCardStep = cardStep;
-  track._cvTotal = total;
-  if (track._cvDragBound) return;
-  track._cvDragBound = true;
-
   var startX = 0, isDragging = false, moved = false;
 
   track.addEventListener('touchstart', function(e) {
@@ -6312,7 +6232,7 @@ function setupTrendingDrag(track, cardStep, total) {
     var dx = e.touches[0].clientX - startX;
     if (!moved && Math.abs(dx) < 5) return;
     moved = true;
-    track.style.transform = 'translateX(-' + ((trendingIndex * track._cvCardStep) - dx) + 'px)';
+    track.style.transform = 'translateX(-' + ((trendingIndex * cardStep) - dx) + 'px)';
   }, {passive:true});
 
   track.addEventListener('touchend', function(e) {
@@ -6320,8 +6240,8 @@ function setupTrendingDrag(track, cardStep, total) {
     isDragging = false;
     var dx = e.changedTouches[0].clientX - startX;
     if (Math.abs(dx) > 40) { if (dx < 0) trendingIndex++; else trendingIndex--; }
-    snapTrending(track, track._cvCardStep, track._cvTotal);
-    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
+    snapTrending(track, cardStep, total);
+    startTrendingSlider(track, cardStep, total);
   }, {passive:true});
 
   track.addEventListener('mousedown', function(e) {
@@ -6333,21 +6253,21 @@ function setupTrendingDrag(track, cardStep, total) {
   track.addEventListener('mousemove', function(e) {
     if (!isDragging) return;
     moved = true;
-    track.style.transform = 'translateX(-' + ((trendingIndex * track._cvCardStep) - (e.clientX - startX)) + 'px)';
+    track.style.transform = 'translateX(-' + ((trendingIndex * cardStep) - (e.clientX - startX)) + 'px)';
   });
   track.addEventListener('mouseup', function(e) {
     if (!isDragging) return;
     isDragging = false;
     var dx = e.clientX - startX;
     if (Math.abs(dx) > 40) { if (dx < 0) trendingIndex++; else trendingIndex--; }
-    snapTrending(track, track._cvCardStep, track._cvTotal);
-    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
+    snapTrending(track, cardStep, total);
+    startTrendingSlider(track, cardStep, total);
   });
   track.addEventListener('mouseleave', function(e) {
     if (!isDragging) return;
     isDragging = false;
-    snapTrending(track, track._cvCardStep, track._cvTotal);
-    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
+    snapTrending(track, cardStep, total);
+    startTrendingSlider(track, cardStep, total);
   });
   track.addEventListener('click', function(e) {
     if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
@@ -6434,52 +6354,28 @@ function cvRestoreFromUrl() {
     }
 
     if (movieKey) {
-      // Movie detail link — open modal (FIX: shared links pehle 48 ke bahar fail ho jate the)
+      // Movie detail link — open modal
       var decoded = decodeURIComponent(movieKey);
-      function _cvTryOpenMovie() {
-        var found = (typeof cvFindBySlug === 'function' && cvFindBySlug(decoded))
-          || allData.find(function(x) { return x && (x._key === decoded || x.seoSlug === decoded); });
-        if (found) { openModal(found._key); return true; }
-        return false;
+      // Pehle slug se dhundho, phir key se
+      var found = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
+      if (found) {
+        openModal(found._key);
+        return;
       }
-      if (_cvTryOpenMovie()) return;
-      // Background mein saari movies load karo
-      try { if (typeof _cvLoadAllForCategory === 'function') _cvLoadAllForCategory(); } catch (e) {}
+      // Data abhi load nahi hua — retry karo jab tak mile (max 10 sec)
       var retryCount = 0;
       var retryInterval = setInterval(function() {
         retryCount++;
-        if (_cvTryOpenMovie()) { clearInterval(retryInterval); return; }
-        // Jab free ho, agli page fetch karo
-        try {
-          if (!allLoaded && typeof fetchFirebasePage === 'function' && !isLoadingMore) {
-            fetchFirebasePage(false);
-          }
-        } catch (e) {}
-        if (retryCount > 90) {
+        var f = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
+        if (f) {
           clearInterval(retryInterval);
-          // Last resort: Firebase se direct key / seoSlug
-          if (typeof db !== 'undefined' && db) {
-            try {
-              db.ref('movies/' + decoded).once('value', function(snap) {
-                if (snap && snap.exists()) {
-                  var item = snap.val() || {};
-                  item._key = snap.key;
-                  if (!allData.find(function(x){ return x._key === snap.key; })) allData.unshift(item);
-                  openModal(snap.key);
-                }
-              });
-            } catch (e) {}
-            try {
-              db.ref('movies').orderByChild('seoSlug').equalTo(decoded).limitToFirst(1).once('value', function(snap) {
-                if (!snap || !snap.exists()) return;
-                snap.forEach(function(c) {
-                  var item = c.val() || {};
-                  item._key = c.key;
-                  if (!allData.find(function(x){ return x._key === c.key; })) allData.unshift(item);
-                  openModal(c.key);
-                });
-              });
-            } catch (e) {}
+          openModal(f._key);
+        } else if (retryCount > 50) {
+          clearInterval(retryInterval);
+          // Last try — slug directly use karo as key
+          if (allData.length > 0) {
+            var fallback = allData.find(function(x){ return x._key === decoded; });
+            if (fallback) openModal(fallback._key);
           }
         }
       }, 200);
@@ -6552,25 +6448,13 @@ function cvRestorePageFromUrl() {
 // PAGINATION STATE
 // ══════════════════════════════════
 var cvCurrentPage = 1;
-var CV_PAGE_SIZE = 36;
+var CV_PAGE_SIZE = 24;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
-var _cvLastGridSig = '';
 function renderGrid(resetPage) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
-  // Skip DOM rebuild if same movies on same page — stops image flicker / "refresh" feel
-  var sig = (selCat||'') + '|' + (selGenre||'') + '|' + cvCurrentPage + '|' +
-    (cvFilteredList ? cvFilteredList.length : 0) + '|' +
-    (cvFilteredList && cvFilteredList[0] ? cvFilteredList[0]._key : '') + '|' +
-    (cvFilteredList && cvFilteredList.length ? cvFilteredList[cvFilteredList.length-1]._key : '');
-  if (resetPage === false && sig === _cvLastGridSig && document.getElementById('cv-grid') &&
-      document.getElementById('cv-grid').querySelector('.cv-card')) {
-    cvUpdateFooterStats();
-    return;
-  }
-  _cvLastGridSig = sig;
   cvRenderPage();
   cvUpdateFooterStats();
 }
@@ -6584,9 +6468,7 @@ function cvUpdateFooterStats(){
     var movies = 0, series = 0;
     for(var i=0;i<allData.length;i++){
       var m = allData[i];
-      if(!m) continue;
-      var c = (m.category||'').toLowerCase();
-      if((m.episodes && m.episodes.length) || c === 'webseries' || c === 'kdrama') series++;
+      if(m && m.episodes && m.episodes.length) series++;
       else movies++;
     }
     var mEl = document.getElementById('cvf-stat-movies');
@@ -6926,17 +6808,11 @@ function cvRenderPage() {
   if (!grid) return;
 
   if (!cvFilteredList.length) {
-    // Category click pe pehle empty flash na aaye — loading skeleton dikhao
-    var stillLoading = (typeof allLoaded !== 'undefined' && !allLoaded) || (typeof isLoadingMore !== 'undefined' && isLoadingMore);
-    if (selCat === 'watchlist') {
-      grid.innerHTML = '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>';
-    } else if (stillLoading || allData.length === 0) {
-      var sk = '';
-      for (var si = 0; si < 8; si++) sk += '<div class="cv-skel" style="aspect-ratio:2/3;border-radius:10px;"></div>';
-      grid.innerHTML = sk + '<div class="cv-empty" style="padding:20px;grid-column:1/-1"><p style="font-size:0.9rem;color:#888">⏳ Loading movies...</p></div>';
-    } else {
-      grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
-    }
+    grid.innerHTML = selCat === 'watchlist'
+      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
+      : allData.length === 0
+      ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
+      : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
     cvRenderPagination(0);
     return;
   }
@@ -7097,7 +6973,7 @@ function makeCard(m) {
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" fetchpriority="low" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
@@ -7154,7 +7030,7 @@ function openModal(key) {
   img.alt = (m.title || 'Movie') + ' Poster';
   if (m.thumbnail) {
     img.src = '';  // Clear first to force reload on new movie
-    var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=420&output=webp&q=78';
+    var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=600&output=webp&q=85';
     img.src = _posterUrl;
     img.setAttribute('fetchpriority', 'high');
     img.loading = 'eager';
@@ -8035,21 +7911,12 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
       selCat = cat;
     }
 
-    // Pehle loading dikhao agar category data abhi page 1 mein nahi
     renderGrid();
-    if (!allLoaded && cat !== 'all' && cat !== 'watchlist') {
-      var g = document.getElementById('cv-grid');
-      if (g && (!cvFilteredList || !cvFilteredList.length)) {
-        var sk2 = '';
-        for (var sj = 0; sj < 8; sj++) sk2 += '<div class="cv-skel" style="aspect-ratio:2/3;border-radius:10px;"></div>';
-        g.innerHTML = sk2 + '<div class="cv-empty" style="padding:16px;grid-column:1/-1"><p style="font-size:0.9rem;color:#888">⏳ Loading ' + (cat || '') + '...</p></div>';
-      }
-    }
     cvUpdateCategorySEO(cat, isGenre);
-    // Soft scroll — only if not already near grid (avoids jank)
-    requestAnimationFrame(function(){
-      try { cvScrollToCatSection(); } catch(e){}
-    });
+    // Category/genre select hote hi poore grid section tak smooth scroll —
+    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
+    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
+    requestAnimationFrame(cvScrollToCatSection);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
@@ -8086,20 +7953,17 @@ function _cvLoadAllForCategory() {
   // wait karo aur jese hi free ho, agla page khud fetch karo (koi silent
   // return nahi — pehle yahi bug tha jiski wajah se dobara category click
   // karne par hi pagination show hoti thi)
-  var _cvLastRenderCount = allData ? allData.length : 0;
   _cvCatLoadInterval = setInterval(function() {
     if (allLoaded) {
       clearInterval(_cvCatLoadInterval);
       _cvCatLoadInterval = null;
       showLoadingMore(false);
       renderGrid(false);
-      return;
-    }
-    if (!isLoadingMore) {
+    } else if (!isLoadingMore) {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 600);
+  }, 800);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
@@ -8361,12 +8225,6 @@ function tmdbRender(trackId, movies) {
 }
 
 function tmdbSwipe(track, trackId, total) {
-  // ✅ PERF FIX: guard against duplicate listener attachment if this ever
-  // gets called more than once for the same track (defensive, same fix
-  // pattern as the trending sliders above).
-  track._cvTotal = total;
-  if (track._cvDragBound) return;
-  track._cvDragBound = true;
   var startX = 0;
   var isDragging = false;
   track.addEventListener('touchstart', function(e) {
@@ -8379,7 +8237,7 @@ function tmdbSwipe(track, trackId, total) {
     isDragging = false;
     var diff = startX - e.changedTouches[0].clientX;
     var visible = Math.floor((window.innerWidth - 16) / (tmdbCardWidth() + 10));
-    var max = Math.max(0, track._cvTotal - visible);
+    var max = Math.max(0, total - visible);
     if (Math.abs(diff) > 40) {
       if (diff > 0) tmdbIndexes[trackId] = Math.min(tmdbIndexes[trackId] + 1, max);
       else tmdbIndexes[trackId] = Math.max(tmdbIndexes[trackId] - 1, 0);
@@ -8398,7 +8256,7 @@ function tmdbSwipe(track, trackId, total) {
     if (!isDragging) return; isDragging = false;
     var diff = startX - e.clientX;
     var visible = Math.floor((window.innerWidth - 16) / (tmdbCardWidth() + 10));
-    var max = Math.max(0, track._cvTotal - visible);
+    var max = Math.max(0, total - visible);
     if (Math.abs(diff) > 40) {
       if (diff > 0) tmdbIndexes[trackId] = Math.min(tmdbIndexes[trackId] + 1, max);
       else tmdbIndexes[trackId] = Math.max(tmdbIndexes[trackId] - 1, 0);
@@ -8723,39 +8581,33 @@ function trailersRender(movies) {
   }, 3500);
 
   // Touch swipe
-  // ✅ PERF FIX: guard against duplicate listener attachment if trailersRender()
-  // ever runs more than once for the same track (defensive, same pattern as
-  // the trending sliders above).
-  if (!track._cvDragBound) {
-    track._cvDragBound = true;
-    var startX = 0, isDrag = false;
-    track.addEventListener('touchstart', function(e) {
-      startX = e.touches[0].clientX; isDrag = true;
-      clearInterval(trailersInterval);
-    }, {passive: true});
-    track.addEventListener('touchend', function(e) {
-      if (!isDrag) return; isDrag = false;
-      var diff = startX - e.changedTouches[0].clientX;
-      var visible = Math.floor((window.innerWidth - 16) / (trailersCardWidth() + 12));
-      var max = Math.max(0, trailersMovies.length - visible);
-      if (Math.abs(diff) > 40) {
-        if (diff > 0) trailersIndex = Math.min(trailersIndex + 1, max);
-        else trailersIndex = Math.max(trailersIndex - 1, 0);
-      }
+  var startX = 0, isDrag = false;
+  track.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX; isDrag = true;
+    clearInterval(trailersInterval);
+  }, {passive: true});
+  track.addEventListener('touchend', function(e) {
+    if (!isDrag) return; isDrag = false;
+    var diff = startX - e.changedTouches[0].clientX;
+    var visible = Math.floor((window.innerWidth - 16) / (trailersCardWidth() + 12));
+    var max = Math.max(0, movies.length - visible);
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) trailersIndex = Math.min(trailersIndex + 1, max);
+      else trailersIndex = Math.max(trailersIndex - 1, 0);
+    }
+    track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
+    var dotsEl = document.getElementById('cv-tr-dots');
+    if (dotsEl) {
+      var page = Math.floor(trailersIndex / visible);
+      var dots = dotsEl.querySelectorAll('.cv-tr-dot-el');
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === page); });
+    }
+    trailersInterval = setInterval(function() {
+      if (document.hidden) return; // tab background ho to CPU/battery bachao
+      trailersIndex = trailersIndex >= max ? 0 : trailersIndex + 1;
       track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
-      var dotsEl = document.getElementById('cv-tr-dots');
-      if (dotsEl) {
-        var page = Math.floor(trailersIndex / visible);
-        var dots = dotsEl.querySelectorAll('.cv-tr-dot-el');
-        dots.forEach(function(d, i) { d.classList.toggle('active', i === page); });
-      }
-      trailersInterval = setInterval(function() {
-        if (document.hidden) return; // tab background ho to CPU/battery bachao
-        trailersIndex = trailersIndex >= max ? 0 : trailersIndex + 1;
-        track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
-      }, 3500);
-    }, {passive: true});
-  }
+    }, 3500);
+  }, {passive: true});
 }
 
 function loadTrailers() {
@@ -8932,7 +8784,6 @@ document.addEventListener('keydown', function(e) {
 // ══════════════════════════════════════════════════════════
 function trackView(key) {
   try {
-    if (!key) return;
     var viewed = JSON.parse(localStorage.getItem('cv_viewed') || '{}');
     if (viewed[key]) return; // Already counted this session
     viewed[key] = 1;
@@ -8942,14 +8793,10 @@ function trackView(key) {
     var todayDate = new Date().toISOString().substring(0,10);
 
     // ── Purana system (backward compatible) ──
-    if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
-      try {
-        db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
-        db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
-        db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
-        db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
-      } catch (e) {}
-    }
+    db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
+    db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
+    db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
+    db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
 
     // ── Naya analytics system (admin panel Analytics tab) ──
     cvLogAnalyticsVisit(key, todayDate);
@@ -9372,24 +9219,15 @@ document.getElementById('cv-share-sheet').addEventListener('click', function(e) 
 
 function cvThumb(url) {
   if (!url) return '';
+  // wsrv.nl se 300x450 optimized image — faster load
   try {
     if (url.indexOf('wsrv.nl') > -1) return url;
-    // Mobile: chhoti image = tez load; desktop: thodi badi
-    var w = (window.innerWidth || 400) <= 480 ? 220 : 300;
-    var q = (window.innerWidth || 400) <= 480 ? 72 : 80;
-    return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=' + w + '&h=' + Math.round(w*1.5) + '&fit=cover&output=webp&q=' + q;
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=300&h=450&fit=cover&output=webp&q=80';
   } catch(e) { return url; }
 }
 
 function escHtml(s) {
-  // FIX: HTML entity decode script-tag ke andar &amp;/&quot; tod deta tha.
-  // Unicode escapes use kiye taake har browser mein safe rahe.
-  return String(s == null ? '' : s)
-    .replace(/&/g, '\u0026amp;')
-    .replace(/</g, '\u0026lt;')
-    .replace(/>/g, '\u0026gt;')
-    .replace(/"/g, '\u0026quot;')
-    .replace(/'/g, '\u0026#39;');
+  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
 }
 // ===== Cast Row (storyline ke neeche) =====
 // Post ka title SEO-friendly hota hai jese "Desert Warrior (2026) (Hindi Dubbed) Dual Audio..."
@@ -9477,14 +9315,7 @@ function cvRenderCast(cast, callKey) {
 }
 
 function escJs(s) {
-  return String(s == null ? '' : s)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
 }
 // ── Slug Generator ──
 function cvSlug(title) {
@@ -9692,7 +9523,7 @@ function cvUpdateSEO(m, slug) {
 // canonical, meta description) jab user pill click kare.
 var CV_CAT_SEO = {
   hollywood: 'Hollywood', bollywood: 'Bollywood', tollywood: 'Tollywood',
-  animation: 'Animation', webseries: 'Web Series', kdrama: 'K-Drama', adult: 'Adult'
+  animation: 'Animation', webseries: 'Web Series'
 };
 function cvUpdateCategorySEO(cat, isGenre) {
   if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
@@ -9744,40 +9575,26 @@ function cvResetSEO() {
 (function() {
   function activateCatFromUrl() {
     try {
-      // cvRestoreFromUrl already handles ?cat= — double-click causes flicker/jump
-      if (window._cvUrlRestorePending === false && window._cvRestoringFromUrl) return;
-      if (window._cvCatFromUrlDone) return;
       var params = new URLSearchParams(window.location.search);
       var cat = params.get('cat');
       if (!cat) return;
       cat = cat.toLowerCase();
+      // Normalize sci-fi -> scifi for URL compatibility
       if (cat === 'sci-fi') cat = 'scifi';
-      // If main restore already set selCat, skip second activation
-      if (typeof selCat === 'string' && selCat === cat && selCat !== 'all') {
-        window._cvCatFromUrlDone = true;
-        return;
-      }
+      // Wait for pills and data to be ready
       var attempts = 0;
       var interval = setInterval(function() {
         attempts++;
-        if (window._cvCatFromUrlDone) { clearInterval(interval); return; }
-        // Main URL restore finished — don't fight it
-        if (typeof selCat === 'string' && selCat === cat && selCat !== 'all') {
-          window._cvCatFromUrlDone = true;
-          clearInterval(interval);
-          return;
-        }
         var pill = document.querySelector('.cv-pill[data-cat="' + cat + '"]');
-        if (pill && !pill.classList.contains('active')) {
+        if (pill) {
           clearInterval(interval);
-          window._cvCatFromUrlDone = true;
           pill.click();
-        } else if (pill && pill.classList.contains('active')) {
-          clearInterval(interval);
-          window._cvCatFromUrlDone = true;
+          // Scroll to grid
+          var grid = document.getElementById('cv-grid');
+          if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        if (attempts > 20) clearInterval(interval);
-      }, 500);
+        if (attempts > 30) clearInterval(interval);
+      }, 400);
     } catch(e) {}
   }
   // Run after page load
@@ -9852,7 +9669,7 @@ function cvResetSEO() {
     var cat=(e.target.dataset&&e.target.dataset.cat)||'';
     document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
     if(cat===''||cat==='all'){ var h=document.getElementById('cv-bnav-home'); if(h)h.classList.add('active'); }
-    else if(cat==='drama'||cat==='series'||cat==='webseries'||cat==='kdrama'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
+    else if(cat==='drama'||cat==='series'||cat==='webseries'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
     else { var m=document.getElementById('cv-bnav-movies'); if(m)m.classList.add('active'); }
   });
 })();
@@ -10116,7 +9933,6 @@ function cvResetSEO() {
       <li><a href='/?cat=tollywood'>Tollywood</a></li>
       <li><a href='/?cat=webseries'>Web Series</a></li>
       <li><a href='/?cat=animation'>Animation</a></li>
-      <li><a href='/?cat=kdrama'>🇰🇷 K-Drama</a></li>
       <li><a href='/?cat=adult'>🔞 Adult</a></li>
     </ul>
   </div>
@@ -10151,7 +9967,6 @@ function cvResetSEO() {
     <a class='cvf-badge' href='/?cat=animation'>Animation</a>
     <a class='cvf-badge' href='/?cat=webseries'>Web Series</a>
     <a class='cvf-badge' href='/?cat=tollywood'>Tollywood</a>
-    <a class='cvf-badge' href='/?cat=kdrama'>🇰🇷 K-Drama</a>
     <a class='cvf-badge' href='/?cat=adult'>🔞 Adult</a>
   </div>
 </div>
