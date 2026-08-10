@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- CineNova theme FIX pack 2026-08-10: escHtml, PAGE_SIZE=120, deep-link, faster category load -->
+
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
@@ -4281,6 +4283,10 @@ function showStatus(msg, color) {
 // STATE
 // ══════════════════════════════════
 var allData = [];
+// FIX: safe Firebase access — null db pe crash na ho
+function cvDbReady() { return (typeof db !== 'undefined' && db && typeof db.ref === 'function'); }
+function cvSafeRef(path) { return cvDbReady() ? db.ref(path) : null; }
+
 var selCat = 'all';
 var selGenre = ''; // genre filter: '' means no genre filter
 var searchQ = '';
@@ -4689,7 +4695,7 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 48;         // 80 at a time — faster initial load
+var PAGE_SIZE = 120;        // FIX: 48 bohat kam tha — categories empty dikhti thin
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -6404,28 +6410,52 @@ function cvRestoreFromUrl() {
     }
 
     if (movieKey) {
-      // Movie detail link — open modal
+      // Movie detail link — open modal (FIX: shared links pehle 48 ke bahar fail ho jate the)
       var decoded = decodeURIComponent(movieKey);
-      // Pehle slug se dhundho, phir key se
-      var found = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
-      if (found) {
-        openModal(found._key);
-        return;
+      function _cvTryOpenMovie() {
+        var found = (typeof cvFindBySlug === 'function' && cvFindBySlug(decoded))
+          || allData.find(function(x) { return x && (x._key === decoded || x.seoSlug === decoded); });
+        if (found) { openModal(found._key); return true; }
+        return false;
       }
-      // Data abhi load nahi hua — retry karo jab tak mile (max 10 sec)
+      if (_cvTryOpenMovie()) return;
+      // Background mein saari movies load karo
+      try { if (typeof _cvLoadAllForCategory === 'function') _cvLoadAllForCategory(); } catch (e) {}
       var retryCount = 0;
       var retryInterval = setInterval(function() {
         retryCount++;
-        var f = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
-        if (f) {
+        if (_cvTryOpenMovie()) { clearInterval(retryInterval); return; }
+        // Jab free ho, agli page fetch karo
+        try {
+          if (!allLoaded && typeof fetchFirebasePage === 'function' && !isLoadingMore) {
+            fetchFirebasePage(false);
+          }
+        } catch (e) {}
+        if (retryCount > 90) {
           clearInterval(retryInterval);
-          openModal(f._key);
-        } else if (retryCount > 50) {
-          clearInterval(retryInterval);
-          // Last try — slug directly use karo as key
-          if (allData.length > 0) {
-            var fallback = allData.find(function(x){ return x._key === decoded; });
-            if (fallback) openModal(fallback._key);
+          // Last resort: Firebase se direct key / seoSlug
+          if (typeof db !== 'undefined' && db) {
+            try {
+              db.ref('movies/' + decoded).once('value', function(snap) {
+                if (snap && snap.exists()) {
+                  var item = snap.val() || {};
+                  item._key = snap.key;
+                  if (!allData.find(function(x){ return x._key === snap.key; })) allData.unshift(item);
+                  openModal(snap.key);
+                }
+              });
+            } catch (e) {}
+            try {
+              db.ref('movies').orderByChild('seoSlug').equalTo(decoded).limitToFirst(1).once('value', function(snap) {
+                if (!snap || !snap.exists()) return;
+                snap.forEach(function(c) {
+                  var item = c.val() || {};
+                  item._key = c.key;
+                  if (!allData.find(function(x){ return x._key === c.key; })) allData.unshift(item);
+                  openModal(c.key);
+                });
+              });
+            } catch (e) {}
           }
         }
       }, 200);
@@ -6498,7 +6528,7 @@ function cvRestorePageFromUrl() {
 // PAGINATION STATE
 // ══════════════════════════════════
 var cvCurrentPage = 1;
-var CV_PAGE_SIZE = 30;
+var CV_PAGE_SIZE = 36;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
@@ -8045,7 +8075,7 @@ function _cvLoadAllForCategory() {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 1100);
+  }, 600);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
@@ -9323,7 +9353,14 @@ function cvThumb(url) {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+  // FIX: HTML entity decode script-tag ke andar &amp;/&quot; tod deta tha.
+  // Unicode escapes use kiye taake har browser mein safe rahe.
+  return String(s == null ? '' : s)
+    .replace(/&/g, '\u0026amp;')
+    .replace(/</g, '\u0026lt;')
+    .replace(/>/g, '\u0026gt;')
+    .replace(/"/g, '\u0026quot;')
+    .replace(/'/g, '\u0026#39;');
 }
 // ===== Cast Row (storyline ke neeche) =====
 // Post ka title SEO-friendly hota hai jese "Desert Warrior (2026) (Hindi Dubbed) Dual Audio..."
@@ -9411,7 +9448,14 @@ function cvRenderCast(cast, callKey) {
 }
 
 function escJs(s) {
-  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+  return String(s == null ? '' : s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
 }
 // ── Slug Generator ──
 function cvSlug(title) {
