@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CineNova theme FIXED-v7 2026-08-11: downloadCount fix, visit write-first, online stable, polish -->
+<!-- CineNova theme PERF-v8 2026-08-11: PageSpeed LCP/CLS/preconnect fixes on top of FIXED-v7 -->
 
 <html lang="en" dir="ltr">
 <head>
@@ -66,25 +66,22 @@
 //]]>
 </script>
 
+<!-- PERF-v8: only critical origins as preconnect (max ~4). Rest dns-prefetch.
+     PageSpeed "More than 4 preconnect" warning fix. -->
 <link crossorigin='' href='https://fonts.gstatic.com' rel='preconnect'/>
-<link href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='dns-prefetch'/>
-<link href='https://www.gstatic.com' rel='dns-prefetch'/>
-<link crossorigin='' href='https://www.gstatic.com' rel='preconnect'/>
-<link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
-<link href='https://api.themoviedb.org' rel='dns-prefetch'/>
-<link href='https://image.tmdb.org' rel='dns-prefetch'/>
+<link crossorigin='' href='https://fonts.googleapis.com' rel='preconnect'/>
 <link crossorigin='' href='https://image.tmdb.org' rel='preconnect'/>
+<link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
+<link href='https://www.gstatic.com' rel='dns-prefetch'/>
+<link href='https://api.themoviedb.org' rel='dns-prefetch'/>
 <link href='https://wsrv.nl' rel='dns-prefetch'/>
 <link href='https://i.ibb.co' rel='dns-prefetch'/>
-<link crossorigin='' href='https://fonts.googleapis.com' rel='preconnect'/>
 
-<!-- Plyr.io Player — non-blocking. Preconnect hata diya (video player sirf
-     tab chahiye jab user movie khole, initial load ke liye zaroori nahi —
-     "too many preconnects" warning kam karne ke liye) -->
+<!-- Plyr CSS — non-blocking (player only needed when user opens a movie) -->
 <link as='style' href='https://cdn.plyr.io/3.7.8/plyr.css' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://cdn.plyr.io/3.7.8/plyr.css' rel='stylesheet'/></noscript>
 
-<!-- Fonts async load &#8212; non-blocking with font-display:swap -->
+<!-- Fonts async — font-display:swap already in Google URL -->
 <link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' rel='stylesheet'/></noscript>
 
@@ -92,7 +89,21 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-img{image-rendering:auto}
+img{image-rendering:auto;max-width:100%;height:auto}
+/* PERF-v8: reserve space + reduce CLS from late images */
+img[width][height]{height:auto}
+.cv-card-img-wrap,.cv-ns-lcard-img-wrap,.cv-tr-thumb-wrap,.tmdb-skel-img,.cv-skel-img{
+  background:#1a1a1a;
+}
+#cv-featured-card{
+  /* explicit size already set — reinforce for CLS */
+  contain:layout paint;
+  content-visibility:auto;
+}
+#cv-banner-intro{
+  /* intro sits on top of upcoming — keep it from shifting layout */
+  contain:strict;
+}
 :root{
   --red:#e50914;
   --red-hover:#f40612;
@@ -145,6 +156,9 @@ body{text-rendering:optimizeSpeed}
 .cv-card,.cv-pill,.cv-btn,button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* Mobile — disable heavy GPU effects for smoothness */
 @media(max-width:480px){
+  /* PERF-v8 mobile: lighter hero, less layout thrash */
+  #cv-featured-card{min-height:200px}
+  #cv-banner-intro{will-change:auto}
   #cv-modal-box{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
   /* Sliders GPU optimize */
   #cv-trending-track,#cv-ts-track,.tmdb-track,.cv-trailers-track{
@@ -5223,16 +5237,35 @@ function setupInfiniteScroll() {
     cnBiRunSequence();
   };
 
+  /* PERF-v8: mobile/slow devices — shorter cinematic intro so LCP/Speed Index improve.
+     Desktop keeps full ~4.6s sequence. Features unchanged. */
+  var cnBiFast = (window.innerWidth <= 768) ||
+    (navigator.connection && (navigator.connection.saveData || /2g|slow-2g|3g/i.test(navigator.connection.effectiveType||'')));
+
   /* Auto-start animation on page load — no tap needed */
   setTimeout(function() {
     if (!cnBiStarted) {
       cnBiTapStart._userGesture = false;
       cnBiTapStart();
     }
-  }, 150);
+  }, cnBiFast ? 80 : 150);
 
   /* Controls + progress shown after tap */
   function cnBiRunSequence() {
+    if (cnBiFast) {
+      /* Compact mobile sequence ~1.6s then end */
+      setTimeout(function() {
+        [prog, skip].forEach(function(el) { if(el){ el.style.transition='opacity 0.3s'; el.style.opacity='1'; } });
+        cnBiProgress(1400);
+      }, 50);
+      setTimeout(function() {
+        if(circles){ circles.style.transition='opacity 0.3s'; circles.style.opacity='1'; }
+        if(logoWrap){ logoWrap.style.transition='opacity 0.4s ease,transform 0.45s ease'; logoWrap.style.opacity='1'; logoWrap.style.transform='scale(1)'; }
+        if(tag){ tag.style.opacity='1'; tag.style.transform='translateY(0)'; }
+      }, 120);
+      setTimeout(function() { cnBiEnd(); }, 1600);
+      return;
+    }
     setTimeout(function() {
       [prog, skip].forEach(function(el) { if(el){ el.style.transition='opacity 0.6s'; el.style.opacity='1'; } });
       cnBiProgress(4400);
