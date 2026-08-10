@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CineNova theme FIXED-v5 2026-08-10: home mix 30 cards, adult only in adult, no-zoom, K-Drama -->
+<!-- CineNova theme FIXED-v6 2026-08-11: download count fix (track before redirect) + v5 -->
 
 <html lang="en" dir="ltr">
 <head>
@@ -7714,7 +7714,8 @@ window.addEventListener('popstate', function(e) {
 // Download — ab Cloudflare Worker timer page pe navigate karta hai
 function dlLink(url, quality) {
   if (!url) return;
-  cnGoToDownloadWorker(window._cvCurrentKey, quality || '');
+  if (typeof cvTrackDownloadAndGo === 'function') cvTrackDownloadAndGo(quality || '480p');
+  else cnGoToDownloadWorker(window._cvCurrentKey, quality || '');
 }
 
 // ══════════════════════════════════
@@ -7877,7 +7878,7 @@ function openDlPopup() {
   var html = '';
   items.forEach(function(item) {
     var q = item.q || '480p';
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownloadAndGo(\'' + escJs(q) + '\')">' +
       '<div class="cv-dl-quality-label">' +
         '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
         '<span>Download ' + escHtml(q) + '</span>' +
@@ -7896,13 +7897,27 @@ function cvTrackDownload(quality) {
     var key   = window._cvCurrentKey   || null;
     var title = window._cvCurrentTitle || '';
     if (!key) return;
-    // Normalize quality key: "480p" -> "480p", "4K" -> "4k"
-    var qKey = quality.toLowerCase().replace(/\s/g,'');
-    db.ref('analytics/downloads/' + key + '/' + qKey).transaction(function(c){ return (c||0)+1; });
-    db.ref('analytics/downloads/' + key + '/title').once('value', function(s){
-      if (!s.val()) db.ref('analytics/downloads/' + key + '/title').set(title);
-    });
+    var qKey = String(quality || '480p').toLowerCase().replace(/\s/g,'');
+    if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
+      try {
+        db.ref('analytics/downloads/' + key + '/' + qKey).transaction(function(c){ return (c||0)+1; });
+        db.ref('analytics/downloads/' + key + '/title').once('value', function(s){
+          if (!s.val()) db.ref('analytics/downloads/' + key + '/title').set(title);
+        });
+      } catch (err) {}
+    }
   } catch(e) {}
+}
+
+// FIX: count pehle save, redirect 280ms baad — warna page unload se download miss
+function cvTrackDownloadAndGo(quality) {
+  var key = window._cvCurrentKey || null;
+  var q = quality || '480p';
+  try { cvTrackDownload(q); } catch (e) {}
+  setTimeout(function() {
+    try { cnGoToDownloadWorker(key, q); } catch (e) {}
+    try { closeDlPopup(); } catch (e) {}
+  }, 280);
 }
 
 function closeDlPopup() {
@@ -7923,7 +7938,7 @@ function cvEpDl(idx) {
   var html = '';
   items.forEach(function(item) {
     var q = item.q || '480p';
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownloadAndGo(\'' + escJs(q) + '\')">' +
       '<div class="cv-dl-quality-label">' +
         '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
         '<span>Download ' + escHtml(q) + '</span>' +
@@ -10174,5 +10189,6 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 })();
 </script>
 
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"f8a2595c2f1640dcaf9bc7cf617561cd","r":1}' crossorigin="anonymous"></script>
 </body>
 </html>
