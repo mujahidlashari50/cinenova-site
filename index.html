@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CineNova theme FIXED-v4 2026-08-10: v3 + no-zoom viewport + K-Drama category -->
+<!-- CineNova theme FIXED-v5 2026-08-10: home mix 30 cards, adult only in adult, no-zoom, K-Drama -->
 
 <html lang="en" dir="ltr">
 <head>
@@ -6490,7 +6490,7 @@ function cvRestorePageFromUrl() {
 // PAGINATION STATE
 // ══════════════════════════════════
 var cvCurrentPage = 1;
-var CV_PAGE_SIZE = 24;
+var CV_PAGE_SIZE = 30;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
@@ -6808,14 +6808,52 @@ function cvBuildFilteredList() {
     return;
   }
 
+  // ── HOME (all): adult hide + har category se MIX (ek category bulk upload se home na bhar jaye) ──
+  if (selCat === 'all' && selGenre === '' && !q) {
+    var byCat = {};
+    for (var i = 0; i < allData.length; i++) {
+      var m = allData[i];
+      if (!m) continue;
+      var cat = (m.category || '').toLowerCase().trim();
+      if (!cat || cat === 'adult') continue; // adult sirf Adult category mein
+      if (!byCat[cat]) byCat[cat] = [];
+      byCat[cat].push(m);
+    }
+    var preferred = ['hollywood', 'bollywood', 'tollywood', 'webseries', 'kdrama', 'animation'];
+    var cats = [];
+    for (var p = 0; p < preferred.length; p++) {
+      if (byCat[preferred[p]] && byCat[preferred[p]].length) cats.push(preferred[p]);
+    }
+    Object.keys(byCat).forEach(function(c) {
+      if (cats.indexOf(c) < 0) cats.push(c);
+    });
+    cats.forEach(function(c) {
+      byCat[c].sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    });
+    var idx = {};
+    cats.forEach(function(c) { idx[c] = 0; });
+    var mixed = [];
+    var more = true;
+    while (more) {
+      more = false;
+      for (var c = 0; c < cats.length; c++) {
+        var key = cats[c];
+        if (idx[key] < byCat[key].length) {
+          mixed.push(byCat[key][idx[key]++]);
+          more = true;
+        }
+      }
+    }
+    cvFilteredList = mixed;
+    return;
+  }
+
   cvFilteredList = allData.filter(function(m) {
     var cat = (m.category || '').toLowerCase();
     var genre = (m.genre || '').toLowerCase();
     var title = (m.title || '').toLowerCase();
 
-    // Adult content sirf tab dikhta hai jab "Adult" category explicitly
-    // select ho AND user verified ho — Home/all, genre filters, search,
-    // ya kisi bhi dusri category mein kabhi shaamil nahi hota.
+    // Adult sirf Adult category + verified
     var isAdultItem = (cat === 'adult');
     if (isAdultItem) {
       if (!(selCat === 'adult' && adultUnlocked)) return false;
