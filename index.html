@@ -369,8 +369,8 @@ body{text-rendering:optimizeSpeed}
   .cv-ns-p2-cap{font-size:0.68rem;padding:10px 10px 12px}
 }
 
-/* ══ JUST UPLOADED STRIP (below hero) ══ */
-#cv-ns-latest-wrap{
+/* ══ JUST UPLOADED STRIP — REMOVED ══ */
+#cv-ns-latest-wrap{display:none!important;
   position:relative;padding:24px 4% 14px;background:#141414;
   border-bottom:1px solid rgba(255,255,255,0.05);
 }
@@ -3790,18 +3790,8 @@ function cvOpenInBrowser() {
   </div>
 </div>
 
-<!-- ══ JUST UPLOADED STRIP (below new hero) ══ -->
-<div id='cv-ns-latest-wrap'>
-  <div id='cv-ns-latest-header'>
-    <div id='cv-ns-latest-title'>Just Uploaded</div>
-  </div>
-  <div id='cv-ns-latest-track-wrap'>
-    <div id='cv-ns-latest-track'>
-      <div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div>
-    </div>
-  </div>
-</div>
-<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';document.getElementById('cv-ns-latest-wrap').style.display='none';}}catch(e){}})();</script>
+<!-- JUST UPLOADED strip removed (PERF-v8 / user request) -->
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){var h=document.getElementById('cv-ns-hero');if(h)h.style.display='none';}}catch(e){}})();</script>
 
 <!-- MOVIE OF THE DAY -->
 <div id='cv-motd-outer' style='display:none'>
@@ -5649,10 +5639,12 @@ function _cvNsRotate() {
   }, 380);
 }
 
-// ══ JUST UPLOADED STRIP — newest movies, NEW badge, hover-to-front ══
+// ══ JUST UPLOADED STRIP — DISABLED (removed from theme) ══
 function buildNsLatest() {
-  var track = document.getElementById('cv-ns-latest-track');
   var wrap = document.getElementById('cv-ns-latest-wrap');
+  if (wrap) wrap.style.display = 'none';
+  return;
+  var track = document.getElementById('cv-ns-latest-track');
   if (!track) return;
   var picks = [];
   for (var i = 0; i < allData.length && picks.length < 16; i++) {
@@ -5959,7 +5951,7 @@ function updateSlidersVisibility(cat) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-    if (nsLatest) nsLatest.style.display = '';
+    if (nsLatest) nsLatest.style.display = 'none';
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
       // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
@@ -7052,7 +7044,7 @@ function cvGoPage(page, fromPopstate) {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
       if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-      if (nsLatest) nsLatest.style.display = '';
+      if (nsLatest) nsLatest.style.display = 'none';
     }
   } else {
     if (trailersWrap) trailersWrap.style.display = 'none';
