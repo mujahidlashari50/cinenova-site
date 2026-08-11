@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- CineNova theme PERF-v8 2026-08-11: PageSpeed LCP/CLS/preconnect fixes on top of FIXED-v7 -->
+
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
@@ -64,25 +66,22 @@
 //]]>
 </script>
 
+<!-- PERF-v8: only critical origins as preconnect (max ~4). Rest dns-prefetch.
+     PageSpeed "More than 4 preconnect" warning fix. -->
 <link crossorigin='' href='https://fonts.gstatic.com' rel='preconnect'/>
-<link href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='dns-prefetch'/>
-<link href='https://www.gstatic.com' rel='dns-prefetch'/>
-<link crossorigin='' href='https://www.gstatic.com' rel='preconnect'/>
-<link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
-<link href='https://api.themoviedb.org' rel='dns-prefetch'/>
-<link href='https://image.tmdb.org' rel='dns-prefetch'/>
+<link crossorigin='' href='https://fonts.googleapis.com' rel='preconnect'/>
 <link crossorigin='' href='https://image.tmdb.org' rel='preconnect'/>
+<link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
+<link href='https://www.gstatic.com' rel='dns-prefetch'/>
+<link href='https://api.themoviedb.org' rel='dns-prefetch'/>
 <link href='https://wsrv.nl' rel='dns-prefetch'/>
 <link href='https://i.ibb.co' rel='dns-prefetch'/>
-<link crossorigin='' href='https://fonts.googleapis.com' rel='preconnect'/>
 
-<!-- Plyr.io Player — non-blocking. Preconnect hata diya (video player sirf
-     tab chahiye jab user movie khole, initial load ke liye zaroori nahi —
-     "too many preconnects" warning kam karne ke liye) -->
+<!-- Plyr CSS — non-blocking (player only needed when user opens a movie) -->
 <link as='style' href='https://cdn.plyr.io/3.7.8/plyr.css' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://cdn.plyr.io/3.7.8/plyr.css' rel='stylesheet'/></noscript>
 
-<!-- Fonts async load &#8212; non-blocking with font-display:swap -->
+<!-- Fonts async — font-display:swap already in Google URL -->
 <link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/>
 <noscript><link href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' rel='stylesheet'/></noscript>
 
@@ -90,7 +89,21 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-img{image-rendering:auto}
+img{image-rendering:auto;max-width:100%;height:auto}
+/* PERF-v8: reserve space + reduce CLS from late images */
+img[width][height]{height:auto}
+.cv-card-img-wrap,.cv-ns-lcard-img-wrap,.cv-tr-thumb-wrap,.tmdb-skel-img,.cv-skel-img{
+  background:#1a1a1a;
+}
+#cv-featured-card{
+  /* explicit size already set — reinforce for CLS */
+  contain:layout paint;
+  content-visibility:auto;
+}
+#cv-banner-intro{
+  /* intro sits on top of upcoming — keep it from shifting layout */
+  contain:strict;
+}
 :root{
   --red:#e50914;
   --red-hover:#f40612;
@@ -118,21 +131,13 @@ img{image-rendering:auto}
 
 /* Font loaded via preload link in head */
 
-html{overflow-x:hidden;width:100%;max-width:100%;scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{overflow-x:hidden;width:100%;scroll-behavior:smooth;touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   background:#141414;color:var(--text);
   font-family:'Netflix Sans','Outfit','Helvetica Neue',Helvetica,Arial,sans-serif;
-  min-height:100vh;overflow-x:hidden;width:100%;max-width:100%;
+  min-height:100vh;overflow-x:hidden;width:100%;max-width:100vw;
   -webkit-font-smoothing:antialiased;
-  overscroll-behavior-y:auto;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
-/* iOS: font < 16px on inputs causes auto-zoom */
-input, select, textarea{font-size:16px!important}
-@media(min-width:768px){
-  input, select, textarea{font-size:0.9rem!important}
 }
 a{text-decoration:none;color:inherit}
 
@@ -151,6 +156,9 @@ body{text-rendering:optimizeSpeed}
 .cv-card,.cv-pill,.cv-btn,button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* Mobile — disable heavy GPU effects for smoothness */
 @media(max-width:480px){
+  /* PERF-v8 mobile: lighter hero, less layout thrash */
+  #cv-featured-card{min-height:200px}
+  #cv-banner-intro{will-change:auto}
   #cv-modal-box{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
   /* Sliders GPU optimize */
   #cv-trending-track,#cv-ts-track,.tmdb-track,.cv-trailers-track{
@@ -361,9 +369,8 @@ body{text-rendering:optimizeSpeed}
   .cv-ns-p2-cap{font-size:0.68rem;padding:10px 10px 12px}
 }
 
-/* ══ JUST UPLOADED STRIP (below hero) ══ */
-#cv-ns-latest-wrap{
-  display:none!important; /* Just Uploaded removed */
+/* ══ JUST UPLOADED STRIP — REMOVED ══ */
+#cv-ns-latest-wrap{display:none!important;
   position:relative;padding:24px 4% 14px;background:#141414;
   border-bottom:1px solid rgba(255,255,255,0.05);
 }
@@ -725,18 +732,6 @@ body{text-rendering:optimizeSpeed}
 .cv-page-info{font-size:0.8rem;color:#7d7d7d;white-space:nowrap;padding:0 4px}
 @media(max-width:400px){.cv-page-btn{min-width:36px;height:36px;padding:0 10px;font-size:0.82rem}}
 
-
-/* ══ VIP PERFORMANCE ══ */
-.cv-card{contain:layout style;transform:translateZ(0)}
-#cv-grid{contain:layout}
-@media(max-width:768px){
-  .cv-card{animation:none!important;transition:transform 0.1s ease!important}
-  .cv-card:active{transform:scale(0.98)}
-  *{scroll-behavior:auto!important}
-}
-#cv-main-content{-webkit-overflow-scrolling:touch}
-img{image-rendering:auto}
-
 /* ══ GRID — MASTER PRO ══ */
 #cv-grid{
   display:grid;
@@ -768,7 +763,7 @@ img{image-rendering:auto}
   cursor:pointer;
   position:relative;
   border:1px solid rgba(255,255,255,0.04);
-  animation:none;
+  animation:cardFadeIn 0.25s ease both;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -860,7 +855,7 @@ img{image-rendering:auto}
 }
 .cv-card:hover .cv-card-no-img{filter:brightness(1.3)}
 
-#cv-grid{min-height:400px;}
+#cv-grid{contain:content;content-visibility:auto;contain-intrinsic-size:0 1200px;min-height:500px;}
 .cv-card-img{image-rendering:auto;color-scheme:dark;}
 
 .cv-badge{
@@ -1497,18 +1492,70 @@ img{image-rendering:auto}
 
 @keyframes noticepulse{0%,100%{opacity:1}50%{opacity:0.75}}
 
-/* ══ MAINTENANCE MODE ══ */
+/* ══ MAINTENANCE MODE — CINEMATIC (reuses banner-intro visual language) ══ */
 #cv-maintenance-screen{
   display:none;position:fixed;inset:0;z-index:99999;
-  background:linear-gradient(135deg,#0a0a0a 0%,#1a0000 100%);
+  background:#0a0a0a;
   flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:24px;
+  text-align:center;padding:24px;overflow:hidden;
 }
 #cv-maintenance-screen.active{display:flex;}
-.cv-maint-icon{font-size:4rem;margin-bottom:20px;animation:noticepulse 2s infinite;}
-.cv-maint-title{font-family:'Bebas Neue',cursive;font-size:2.4rem;letter-spacing:2px;color:#e50914;margin-bottom:12px;}
-.cv-maint-msg{font-size:1rem;color:#b3b3b3;max-width:480px;line-height:1.6;margin-bottom:20px;}
-.cv-maint-time{background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.3);border-radius:8px;padding:10px 20px;color:#e5e5e5;font-size:0.88rem;}
+
+/* film grain — same texture as intro */
+#cv-maintenance-screen::after{
+  content:'';position:absolute;inset:-50%;width:200%;height:200%;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:200;animation:cnGrain 0.18s steps(1) infinite;
+}
+
+/* rays — continuous pulse instead of one-shot JS trigger */
+.cv-maint-rays{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+.cv-maint-rays .cn-bi-ray{animation:cvMaintRayPulse 3.2s ease-in-out infinite;}
+.cv-maint-rays .cn-bi-ray:nth-child(1){animation-delay:0s}
+.cv-maint-rays .cn-bi-ray:nth-child(2){animation-delay:0.3s}
+.cv-maint-rays .cn-bi-ray:nth-child(3){animation-delay:0.6s}
+.cv-maint-rays .cn-bi-ray:nth-child(4){animation-delay:0.9s}
+.cv-maint-rays .cn-bi-ray:nth-child(5){animation-delay:1.2s}
+.cv-maint-rays .cn-bi-ray:nth-child(6){animation-delay:1.5s}
+@keyframes cvMaintRayPulse{0%,100%{opacity:0.1;}50%{opacity:0.32;}}
+
+/* pulse rings — always on */
+.cv-maint-circles{position:relative;display:flex;align-items:center;justify-content:center;opacity:1;margin-bottom:-40px;}
+.cv-maint-circles .cn-bi-ring{animation:cnBiRingPulse 2.5s ease-in-out infinite;}
+
+/* scanlines */
+#cv-maint-scanlines{
+  position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0.6;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);
+}
+
+/* logo + glow */
+.cv-maint-logo-wrap{
+  position:relative;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;z-index:10;
+}
+.cv-maint-glow{
+  position:absolute;width:clamp(180px,42vw,360px);height:clamp(180px,42vw,360px);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(229,9,20,0.35) 0%,transparent 70%);
+  filter:blur(18px);pointer-events:none;z-index:-1;
+  animation:cnBiGlowPulse 2s ease-in-out infinite;
+}
+.cv-maint-logo-svg{
+  height:clamp(48px,9vw,100px);width:auto;display:block;
+  filter:drop-shadow(0 4px 20px rgba(229,9,20,0.5));
+  animation:cvMaintLogoBreath 3s ease-in-out infinite;
+}
+@keyframes cvMaintLogoBreath{0%,100%{transform:scale(1);}50%{transform:scale(1.035);}}
+.cv-maint-tagline{
+  font-size:clamp(7px,1vw,11px);font-weight:600;
+  letter-spacing:6px;color:#5a5a5a;text-transform:uppercase;
+  font-family:'Segoe UI',Arial,sans-serif;white-space:nowrap;
+}
+
+.cv-maint-title{font-family:'Bebas Neue',cursive;font-size:2.4rem;letter-spacing:2px;color:#e50914;margin:22px 0 12px;position:relative;z-index:10;}
+.cv-maint-msg{font-size:1rem;color:#b3b3b3;max-width:480px;line-height:1.6;margin-bottom:20px;position:relative;z-index:10;}
+.cv-maint-time{background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.3);border-radius:8px;padding:10px 20px;color:#e5e5e5;font-size:0.88rem;position:relative;z-index:10;}
 
 /* ══ ANNOUNCEMENT BAR — APP UPDATE NOTICE UPGRADE ══ */
 /* ══ FB/IG IN-APP BROWSER BANNER ══ */
@@ -3529,9 +3576,49 @@ function cvOpenInBrowser() {
 }
 </script>
 
-<!-- &#9552;&#9552; MAINTENANCE SCREEN &#9552;&#9552; -->
+<!-- &#9552;&#9552; MAINTENANCE SCREEN — CINEMATIC (reuses banner-intro logo/glow/rays) &#9552;&#9552; -->
 <div id='cv-maintenance-screen'>
-  <div class='cv-maint-icon'>🔧</div>
+  <div class='cv-maint-rays'>
+    <div class='cn-bi-ray' style='transform:rotate(-85deg) translateY(-50%)'></div>
+    <div class='cn-bi-ray' style='transform:rotate(-45deg) translateY(-50%)'></div>
+    <div class='cn-bi-ray' style='transform:rotate(-5deg) translateY(-50%)'></div>
+    <div class='cn-bi-ray' style='transform:rotate(35deg) translateY(-50%)'></div>
+    <div class='cn-bi-ray' style='transform:rotate(75deg) translateY(-50%)'></div>
+    <div class='cn-bi-ray' style='transform:rotate(115deg) translateY(-50%)'></div>
+  </div>
+  <div id='cv-maint-scanlines'></div>
+  <div class='cv-maint-circles'>
+    <div class='cn-bi-ring'></div>
+    <div class='cn-bi-ring'></div>
+    <div class='cn-bi-ring'></div>
+  </div>
+  <div class='cv-maint-logo-wrap'>
+    <div class='cv-maint-glow'></div>
+    <svg alt='CineNova' aria-label='CineNova' class='cv-maint-logo-svg' role='img' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
+      <defs>
+        <linearGradient id='cnCircBiM' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
+        <radialGradient cx='32%' cy='24%' id='cnShineBiM' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
+        <linearGradient id='cnPlayBiM' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ffffff'/><stop offset='100%' stop-color='#cfcfcf'/></linearGradient>
+        <linearGradient id='cnSilverBiM' x1='0%' x2='0%' y1='0%' y2='100%'>
+          <stop offset='0%' stop-color='#ffffff'/><stop offset='20%' stop-color='#dcdcdc'/><stop offset='38%' stop-color='#7a7a7a'/><stop offset='52%' stop-color='#ffffff'/><stop offset='68%' stop-color='#5c5c5c'/><stop offset='85%' stop-color='#c8c8c8'/><stop offset='100%' stop-color='#3d3d3d'/>
+        </linearGradient>
+        <linearGradient id='cnRedChromeBiM' x1='0%' x2='0%' y1='0%' y2='100%'>
+          <stop offset='0%' stop-color='#ff9a90'/><stop offset='20%' stop-color='#ff4d4d'/><stop offset='38%' stop-color='#8a0209'/><stop offset='52%' stop-color='#ff6b6b'/><stop offset='68%' stop-color='#6e0309'/><stop offset='85%' stop-color='#ff5c5c'/><stop offset='100%' stop-color='#420205'/>
+        </linearGradient>
+      </defs>
+      <circle cx='33' cy='36' fill='#4a0307' r='30'/>
+      <circle cx='33' cy='33' fill='url(#cnCircBiM)' r='30'/>
+      <circle cx='33' cy='33' fill='url(#cnShineBiM)' r='30'/>
+      <path d='M24 19 L24 47 L48 33 Z' fill='#000000' opacity='0.3' transform='translate(1.5,2)'/>
+      <path d='M24 19 L24 47 L48 33 Z' fill='url(#cnPlayBiM)'/>
+      <g transform='skewX(-11)'>
+        <text fill='#000000' font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' opacity='0.55' x='79' y='50'>CineNova</text>
+        <text font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' stroke='#1a0a0a' stroke-width='0.75' x='75' y='47'><tspan fill='url(#cnSilverBiM)'>Cine</tspan><tspan fill='url(#cnRedChromeBiM)'>Nova</tspan></text>
+        <rect fill='url(#cnRedChromeBiM)' height='3' opacity='0.85' rx='1.5' width='168' x='75' y='54'/>
+      </g>
+    </svg>
+    <div class='cv-maint-tagline'>STREAM &#160;&#183;&#160; WATCH &#160;&#183;&#160; ENJOY</div>
+  </div>
   <div class='cv-maint-title'>Under Maintenance</div>
   <div class='cv-maint-msg' id='cv-maint-msg'>We are performing scheduled maintenance. We&#39;ll be back shortly!</div>
   <div class='cv-maint-time' id='cv-maint-time' style='display:none'></div>
@@ -3680,7 +3767,7 @@ function cvOpenInBrowser() {
   <div class='cv-pill' data-cat='tollywood'> Tollywood</div>
   <div class='cv-pill' data-cat='animation'> Animation</div>
   <div class='cv-pill' data-cat='webseries'> Web Series</div>
-  <div class='cv-pill' data-cat='kdrama'>🇰🇷 K-Drama</div>
+  <div class='cv-pill' data-cat='kdrama'> K-Drama</div>
   <div class='cv-pill' data-cat='watchlist' id='cv-pill-watchlist'>🔖 My List</div>
   <div class='cv-pill cv-pill-adult' data-cat='adult'>🔞 Adult</div>
 </div>
@@ -3795,18 +3882,8 @@ function cvOpenInBrowser() {
   </div>
 </div>
 
-<!-- ══ JUST UPLOADED STRIP (below new hero) ══ -->
-<div id='cv-ns-latest-wrap' style='display:none!important'>
-  <div id='cv-ns-latest-header'>
-    <div id='cv-ns-latest-title'>Just Uploaded</div>
-  </div>
-  <div id='cv-ns-latest-track-wrap'>
-    <div id='cv-ns-latest-track'>
-      <div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div>
-    </div>
-  </div>
-</div>
-<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';document.getElementById('cv-ns-latest-wrap').style.display='none';}}catch(e){}})();</script>
+<!-- JUST UPLOADED strip removed (PERF-v8 / user request) -->
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){var h=document.getElementById('cv-ns-hero');if(h)h.style.display='none';}}catch(e){}})();</script>
 
 <!-- MOVIE OF THE DAY -->
 <div id='cv-motd-outer' style='display:none'>
@@ -4139,10 +4216,11 @@ function cvLogError(info) {
 }
 
 window.addEventListener('error', function(e) {
-  // Cross-origin/ad scripts se aane wali generic "Script error." (koi useful
-  // detail nahi hoti) ko skip karo — sirf noise hoti hai, kabhi trace nahi ho sakti.
   if (e.message === 'Script error.' || e.message === 'Script error') return;
-
+  var msg = String(e.message || '');
+  var src = String(e.filename || '');
+  if (/postMessage|Java object is gone|iabjs:|webkit\.messageHandlers|navigation_performance_logger/i.test(msg)) return;
+  if (/iabjs:|navigation_performance_logger/i.test(src)) return;
   var isOwnSite = e.filename && e.filename.indexOf(location.hostname) > -1;
   cvLogError({
     message: (isOwnSite || !e.filename ? '' : '[3rd-party script] ') + e.message,
@@ -4155,8 +4233,10 @@ window.addEventListener('error', function(e) {
 
 window.addEventListener('unhandledrejection', function(e) {
   var reason = e.reason;
+  var msg = reason && reason.message ? reason.message : String(reason);
+  if (/postMessage|Java object is gone|webkit\.messageHandlers|iabjs:/i.test(msg)) return;
   cvLogError({
-    message: 'UnhandledRejection: ' + (reason && reason.message ? reason.message : String(reason)),
+    message: 'UnhandledRejection: ' + msg,
     stack: reason && reason.stack
   });
 });
@@ -4505,10 +4585,9 @@ function _cvOnFirebaseReady() {
       }
     }
 
-    clearTimeout(window._cvSettingsFeatT);
-    window._cvSettingsFeatT = setTimeout(function(){
-      try { buildFeatured(); } catch(e) {}
-    }, 400);
+    // Rebuild featured banner (ON hone par turant content ke saath show hoga,
+    // OFF hone par upar wali line already hide kar chuki hai)
+    buildFeatured();
   });
 
   // ── LOAD MOVIES DATA (main fix) ──
@@ -4520,6 +4599,26 @@ function _cvOnFirebaseReady() {
 
   // ── PUSH UPDATES — Real-time listener ──
   cvWatchPushUpdates();
+
+  // ── FIX: Home open pe bhi visit + online active ──
+  try {
+    if (!sessionStorage.getItem('cv_home_visit_logged')) {
+      sessionStorage.setItem('cv_home_visit_logged', '1');
+      var _d = new Date().toISOString().substring(0, 10);
+      setTimeout(function() {
+        try {
+          if (typeof cvLogAnalyticsVisit === 'function') cvLogAnalyticsVisit(null, _d);
+          else if (typeof cvStartOnlinePing === 'function') cvStartOnlinePing();
+        } catch (e) {}
+      }, 600);
+    } else {
+      // same session: sirf online presence ensure karo
+      setTimeout(function() {
+        try { if (typeof cvStartOnlinePing === 'function') cvStartOnlinePing(); } catch (e) {}
+      }, 600);
+    }
+  } catch (e) {}
+
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4689,7 +4788,7 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 48;         // 80 at a time — faster initial load
+var PAGE_SIZE = 120;         // 80 at a time — faster initial load
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -4921,18 +5020,16 @@ var _cvWatchersAttached = false;
 function _cvDebouncedRefresh() {
   clearTimeout(_cvRenderDebounce);
   _cvRenderDebounce = setTimeout(function() {
+    // Re-sort by addedAt before saving/rendering
     allData.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
     idbSaveAll(allData);
-    var modalOpen = document.getElementById('cv-modal') && document.getElementById('cv-modal').classList.contains('open');
-    var playerOpen = document.getElementById('cv-player') && document.getElementById('cv-player').classList.contains('open');
-    if (modalOpen || playerOpen) return;
-    // Only grid — sliders rebuild sirf Home pe, kabhi kabhi (flicker kam)
     renderGrid(false);
-    if (selCat === 'all' && !selGenre) {
-      try { buildTrending(); } catch(e){}
-      try { buildTsSlider(); } catch(e){}
-    }
-  }, 1200);
+    buildTrending();
+    buildTsSlider();
+    buildFeatured();
+    buildNsHero();
+    buildNsLatest();
+  }, 300);
 }
 
 function watchNewMovies() {
@@ -4950,7 +5047,7 @@ function watchNewMovies() {
   // keys ki wajah se chronological order mein hain) ke limited window par
   // hi listen hota hai — catalog jitni bhi badi ho, sync hamesha halka
   // rehta hai.
-  var CV_WATCH_WINDOW = 40;
+  var CV_WATCH_WINDOW = 60;
   var watchQuery = db.ref('movies').orderByKey().limitToLast(CV_WATCH_WINDOW);
 
   // We track by key so initial data events are skipped
@@ -5222,16 +5319,35 @@ function setupInfiniteScroll() {
     cnBiRunSequence();
   };
 
+  /* PERF-v8: mobile/slow devices — shorter cinematic intro so LCP/Speed Index improve.
+     Desktop keeps full ~4.6s sequence. Features unchanged. */
+  var cnBiFast = (window.innerWidth <= 768) ||
+    (navigator.connection && (navigator.connection.saveData || /2g|slow-2g|3g/i.test(navigator.connection.effectiveType||'')));
+
   /* Auto-start animation on page load — no tap needed */
   setTimeout(function() {
     if (!cnBiStarted) {
       cnBiTapStart._userGesture = false;
       cnBiTapStart();
     }
-  }, 150);
+  }, cnBiFast ? 80 : 150);
 
   /* Controls + progress shown after tap */
   function cnBiRunSequence() {
+    if (cnBiFast) {
+      /* Compact mobile sequence ~1.6s then end */
+      setTimeout(function() {
+        [prog, skip].forEach(function(el) { if(el){ el.style.transition='opacity 0.3s'; el.style.opacity='1'; } });
+        cnBiProgress(1400);
+      }, 50);
+      setTimeout(function() {
+        if(circles){ circles.style.transition='opacity 0.3s'; circles.style.opacity='1'; }
+        if(logoWrap){ logoWrap.style.transition='opacity 0.4s ease,transform 0.45s ease'; logoWrap.style.opacity='1'; logoWrap.style.transform='scale(1)'; }
+        if(tag){ tag.style.opacity='1'; tag.style.transform='translateY(0)'; }
+      }, 120);
+      setTimeout(function() { cnBiEnd(); }, 1600);
+      return;
+    }
     setTimeout(function() {
       [prog, skip].forEach(function(el) { if(el){ el.style.transition='opacity 0.6s'; el.style.opacity='1'; } });
       cnBiProgress(4400);
@@ -5561,7 +5677,7 @@ function buildNsHero() {
 
   if (_cvNsTimer) clearInterval(_cvNsTimer);
   if (_cvNsPool.length > 1) {
-    _cvNsTimer = setInterval(_cvNsRotate, 6000);
+    _cvNsTimer = setInterval(_cvNsRotate, 3800);
   }
 }
 
@@ -5615,13 +5731,12 @@ function _cvNsRotate() {
   }, 380);
 }
 
-// ══ JUST UPLOADED STRIP — newest movies, NEW badge, hover-to-front ══
+// ══ JUST UPLOADED STRIP — DISABLED (removed from theme) ══
 function buildNsLatest() {
   var wrap = document.getElementById('cv-ns-latest-wrap');
   if (wrap) wrap.style.display = 'none';
-  return; // Just Uploaded section disabled
+  return;
   var track = document.getElementById('cv-ns-latest-track');
-  var wrap2 = document.getElementById('cv-ns-latest-wrap');
   if (!track) return;
   var picks = [];
   for (var i = 0; i < allData.length && picks.length < 16; i++) {
@@ -5928,7 +6043,7 @@ function updateSlidersVisibility(cat) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-    if (nsLatest) nsLatest.style.display = '';
+    if (nsLatest) nsLatest.style.display = 'none';
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
       // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
@@ -5951,9 +6066,9 @@ function updateSlidersVisibility(cat) {
   // Category heading update
   var catLabels = {
     hollywood:'🌟 Hollywood', bollywood:'🎭 Bollywood', tollywood:'🎬 Tollywood',
-    animation:'🧸 Animation', webseries:'📺 Web Series', kdrama:'🇰🇷 K-Drama',
-    adult:'🔞 Adult', trending:'🔥 Trending', watchlist:'🔖 My List'
-  };
+    animation:'🧸 Animation', webseries:'Web Series',
+    trending:'🔥 Trending', watchlist:'🔖 My List'
+  , kdrama: 'K-Drama'};
   var heading = document.getElementById('cv-cat-heading');
   if (!heading) {
     heading = document.createElement('div');
@@ -5963,12 +6078,7 @@ function updateSlidersVisibility(cat) {
     if (grid) grid.parentNode.insertBefore(heading, grid);
   }
   if (!isHome && catLabels[cat]) {
-    var suffix = '';
-    if (cat === 'watchlist') suffix = '';
-    else if (cat === 'webseries' || cat === 'kdrama') suffix = '';
-    else if (cat === 'adult') suffix = '';
-    else suffix = ' Movies';
-    heading.textContent = catLabels[cat] + suffix;
+    heading.textContent = catLabels[cat] + (cat === 'watchlist' ? '' : ' Movies');
     heading.style.display = 'block';
   } else {
     heading.style.display = 'none';
@@ -6012,7 +6122,7 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" fetchpriority="low" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
@@ -6057,7 +6167,7 @@ function cvTsSnap(track, cardStep) {
 function cvTsAutoPlay(track, cardStep) {
   clearInterval(cvTsInterval);
   if (cvTsTotal <= 1) return;
-  cvTsInterval = setInterval(function() { if (document.hidden) return; cvTsIndex++; cvTsSnap(track, cardStep); }, 5500);
+  cvTsInterval = setInterval(function() { if (document.hidden) return; cvTsIndex++; cvTsSnap(track, cardStep); }, 3500);
 }
 
 function cvTsMove(dir) {
@@ -6070,19 +6180,14 @@ function cvTsMove(dir) {
 }
 
 function cvTsSetupDrag(track, cardStep) {
-  // ✅ PERF FIX: same listener-accumulation issue as setupTrendingDrag() —
-  // guard against re-attaching on every buildTsSlider() re-render.
-  track._cvCardStep = cardStep;
-  if (track._cvDragBound) return;
-  track._cvDragBound = true;
   var startX = 0, dragging = false, moved = false;
   track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; dragging = true; moved = false; clearInterval(cvTsInterval); track.style.transition = 'none'; }, {passive:true});
-  track.addEventListener('touchmove', function(e) { if (!dragging) return; var dx = e.touches[0].clientX - startX; if (!moved && Math.abs(dx) < 5) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * track._cvCardStep) - dx) + 'px)'; }, {passive:true});
-  track.addEventListener('touchend', function(e) { if (!dragging) return; dragging = false; var dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); }, {passive:true});
+  track.addEventListener('touchmove', function(e) { if (!dragging) return; var dx = e.touches[0].clientX - startX; if (!moved && Math.abs(dx) < 5) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * cardStep) - dx) + 'px)'; }, {passive:true});
+  track.addEventListener('touchend', function(e) { if (!dragging) return; dragging = false; var dx = e.changedTouches[0].clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); }, {passive:true});
   track.addEventListener('mousedown', function(e) { startX = e.clientX; dragging = true; moved = false; clearInterval(cvTsInterval); track.style.transition = 'none'; e.preventDefault(); });
-  track.addEventListener('mousemove', function(e) { if (!dragging) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * track._cvCardStep) - (e.clientX - startX)) + 'px)'; });
-  track.addEventListener('mouseup', function(e) { if (!dragging) return; dragging = false; var dx = e.clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
-  track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
+  track.addEventListener('mousemove', function(e) { if (!dragging) return; moved = true; track.style.transform = 'translateX(-' + ((cvTsIndex * cardStep) - (e.clientX - startX)) + 'px)'; });
+  track.addEventListener('mouseup', function(e) { if (!dragging) return; dragging = false; var dx = e.clientX - startX; if (Math.abs(dx) > 40) { dx < 0 ? cvTsIndex++ : cvTsIndex--; } cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); });
+  track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, cardStep); cvTsAutoPlay(track, cardStep); });
   track.addEventListener('click', function(e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
 
@@ -6256,18 +6361,6 @@ function startTrendingSlider(track, cardStep, total) {
 }
 
 function setupTrendingDrag(track, cardStep, total) {
-  // ✅ PERF FIX: ye function buildTrending() ke zariye baar baar call hoti
-  // hai (har realtime Firebase update pe ~300ms debounce ke baad). Pehle
-  // har call pe naye touch/mouse listeners track par dobara add ho jate
-  // the (purane kabhi remove nahi hote), jisse listeners jama hote rehte
-  // the aur session lamba chalne par drag/slide lagatar slow/jerky ho jata
-  // tha. Ab cardStep/total ko track element par store karte hain (hamesha
-  // fresh) aur listeners sirf EK baar attach karte hain.
-  track._cvCardStep = cardStep;
-  track._cvTotal = total;
-  if (track._cvDragBound) return;
-  track._cvDragBound = true;
-
   var startX = 0, isDragging = false, moved = false;
 
   track.addEventListener('touchstart', function(e) {
@@ -6282,7 +6375,7 @@ function setupTrendingDrag(track, cardStep, total) {
     var dx = e.touches[0].clientX - startX;
     if (!moved && Math.abs(dx) < 5) return;
     moved = true;
-    track.style.transform = 'translateX(-' + ((trendingIndex * track._cvCardStep) - dx) + 'px)';
+    track.style.transform = 'translateX(-' + ((trendingIndex * cardStep) - dx) + 'px)';
   }, {passive:true});
 
   track.addEventListener('touchend', function(e) {
@@ -6290,8 +6383,8 @@ function setupTrendingDrag(track, cardStep, total) {
     isDragging = false;
     var dx = e.changedTouches[0].clientX - startX;
     if (Math.abs(dx) > 40) { if (dx < 0) trendingIndex++; else trendingIndex--; }
-    snapTrending(track, track._cvCardStep, track._cvTotal);
-    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
+    snapTrending(track, cardStep, total);
+    startTrendingSlider(track, cardStep, total);
   }, {passive:true});
 
   track.addEventListener('mousedown', function(e) {
@@ -6303,21 +6396,21 @@ function setupTrendingDrag(track, cardStep, total) {
   track.addEventListener('mousemove', function(e) {
     if (!isDragging) return;
     moved = true;
-    track.style.transform = 'translateX(-' + ((trendingIndex * track._cvCardStep) - (e.clientX - startX)) + 'px)';
+    track.style.transform = 'translateX(-' + ((trendingIndex * cardStep) - (e.clientX - startX)) + 'px)';
   });
   track.addEventListener('mouseup', function(e) {
     if (!isDragging) return;
     isDragging = false;
     var dx = e.clientX - startX;
     if (Math.abs(dx) > 40) { if (dx < 0) trendingIndex++; else trendingIndex--; }
-    snapTrending(track, track._cvCardStep, track._cvTotal);
-    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
+    snapTrending(track, cardStep, total);
+    startTrendingSlider(track, cardStep, total);
   });
   track.addEventListener('mouseleave', function(e) {
     if (!isDragging) return;
     isDragging = false;
-    snapTrending(track, track._cvCardStep, track._cvTotal);
-    startTrendingSlider(track, track._cvCardStep, track._cvTotal);
+    snapTrending(track, cardStep, total);
+    startTrendingSlider(track, cardStep, total);
   });
   track.addEventListener('click', function(e) {
     if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
@@ -6404,28 +6497,44 @@ function cvRestoreFromUrl() {
     }
 
     if (movieKey) {
-      // Movie detail link — open modal
       var decoded = decodeURIComponent(movieKey);
-      // Pehle slug se dhundho, phir key se
-      var found = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
-      if (found) {
-        openModal(found._key);
-        return;
+      function _cvTryOpenMovie() {
+        var found = (typeof cvFindBySlug === 'function' && cvFindBySlug(decoded))
+          || allData.find(function(x) { return x && (x._key === decoded || x.seoSlug === decoded); });
+        if (found) { openModal(found._key); return true; }
+        return false;
       }
-      // Data abhi load nahi hua — retry karo jab tak mile (max 10 sec)
+      if (_cvTryOpenMovie()) return;
+      try { if (typeof _cvLoadAllForCategory === 'function') _cvLoadAllForCategory(); } catch (e) {}
       var retryCount = 0;
       var retryInterval = setInterval(function() {
         retryCount++;
-        var f = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
-        if (f) {
+        if (_cvTryOpenMovie()) { clearInterval(retryInterval); return; }
+        try {
+          if (!allLoaded && typeof fetchFirebasePage === 'function' && !isLoadingMore) fetchFirebasePage(false);
+        } catch (e) {}
+        if (retryCount > 90) {
           clearInterval(retryInterval);
-          openModal(f._key);
-        } else if (retryCount > 50) {
-          clearInterval(retryInterval);
-          // Last try — slug directly use karo as key
-          if (allData.length > 0) {
-            var fallback = allData.find(function(x){ return x._key === decoded; });
-            if (fallback) openModal(fallback._key);
+          if (typeof db !== 'undefined' && db) {
+            try {
+              db.ref('movies/' + decoded).once('value', function(snap) {
+                if (snap && snap.exists()) {
+                  var item = snap.val() || {}; item._key = snap.key;
+                  if (!allData.find(function(x){ return x._key === snap.key; })) allData.unshift(item);
+                  openModal(snap.key);
+                }
+              });
+            } catch (e) {}
+            try {
+              db.ref('movies').orderByChild('seoSlug').equalTo(decoded).limitToFirst(1).once('value', function(snap) {
+                if (!snap || !snap.exists()) return;
+                snap.forEach(function(c) {
+                  var item = c.val() || {}; item._key = c.key;
+                  if (!allData.find(function(x){ return x._key === c.key; })) allData.unshift(item);
+                  openModal(c.key);
+                });
+              });
+            } catch (e) {}
           }
         }
       }, 200);
@@ -6502,21 +6611,9 @@ var CV_PAGE_SIZE = 30;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
-var _cvLastGridSig = '';
 function renderGrid(resetPage) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
-  // Skip DOM rebuild if same movies on same page — stops image flicker / "refresh" feel
-  var sig = (selCat||'') + '|' + (selGenre||'') + '|' + cvCurrentPage + '|' +
-    (cvFilteredList ? cvFilteredList.length : 0) + '|' +
-    (cvFilteredList && cvFilteredList[0] ? cvFilteredList[0]._key : '') + '|' +
-    (cvFilteredList && cvFilteredList.length ? cvFilteredList[cvFilteredList.length-1]._key : '');
-  if (resetPage === false && sig === _cvLastGridSig && document.getElementById('cv-grid') &&
-      document.getElementById('cv-grid').querySelector('.cv-card')) {
-    cvUpdateFooterStats();
-    return;
-  }
-  _cvLastGridSig = sig;
   cvRenderPage();
   cvUpdateFooterStats();
 }
@@ -6530,9 +6627,7 @@ function cvUpdateFooterStats(){
     var movies = 0, series = 0;
     for(var i=0;i<allData.length;i++){
       var m = allData[i];
-      if(!m) continue;
-      var c = (m.category||'').toLowerCase();
-      if((m.episodes && m.episodes.length) || c === 'webseries' || c === 'kdrama') series++;
+      if(m && m.episodes && m.episodes.length) series++;
       else movies++;
     }
     var mEl = document.getElementById('cvf-stat-movies');
@@ -6830,14 +6925,52 @@ function cvBuildFilteredList() {
     return;
   }
 
+  // ── HOME (all): adult hide + har category se MIX (ek category bulk upload se home na bhar jaye) ──
+  if (selCat === 'all' && selGenre === '' && !q) {
+    var byCat = {};
+    for (var i = 0; i < allData.length; i++) {
+      var m = allData[i];
+      if (!m) continue;
+      var cat = (m.category || '').toLowerCase().trim();
+      if (!cat || cat === 'adult') continue; // adult sirf Adult category mein
+      if (!byCat[cat]) byCat[cat] = [];
+      byCat[cat].push(m);
+    }
+    var preferred = ['hollywood', 'bollywood', 'tollywood', 'webseries', 'kdrama', 'animation'];
+    var cats = [];
+    for (var p = 0; p < preferred.length; p++) {
+      if (byCat[preferred[p]] && byCat[preferred[p]].length) cats.push(preferred[p]);
+    }
+    Object.keys(byCat).forEach(function(c) {
+      if (cats.indexOf(c) < 0) cats.push(c);
+    });
+    cats.forEach(function(c) {
+      byCat[c].sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    });
+    var idx = {};
+    cats.forEach(function(c) { idx[c] = 0; });
+    var mixed = [];
+    var more = true;
+    while (more) {
+      more = false;
+      for (var c = 0; c < cats.length; c++) {
+        var key = cats[c];
+        if (idx[key] < byCat[key].length) {
+          mixed.push(byCat[key][idx[key]++]);
+          more = true;
+        }
+      }
+    }
+    cvFilteredList = mixed;
+    return;
+  }
+
   cvFilteredList = allData.filter(function(m) {
     var cat = (m.category || '').toLowerCase();
     var genre = (m.genre || '').toLowerCase();
     var title = (m.title || '').toLowerCase();
 
-    // Adult content sirf tab dikhta hai jab "Adult" category explicitly
-    // select ho AND user verified ho — Home/all, genre filters, search,
-    // ya kisi bhi dusri category mein kabhi shaamil nahi hota.
+    // Adult sirf Adult category + verified
     var isAdultItem = (cat === 'adult');
     if (isAdultItem) {
       if (!(selCat === 'adult' && adultUnlocked)) return false;
@@ -6872,17 +7005,11 @@ function cvRenderPage() {
   if (!grid) return;
 
   if (!cvFilteredList.length) {
-    // Category click pe pehle empty flash na aaye — loading skeleton dikhao
-    var stillLoading = (typeof allLoaded !== 'undefined' && !allLoaded) || (typeof isLoadingMore !== 'undefined' && isLoadingMore);
-    if (selCat === 'watchlist') {
-      grid.innerHTML = '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>';
-    } else if (stillLoading || allData.length === 0) {
-      var sk = '';
-      for (var si = 0; si < 8; si++) sk += '<div class="cv-skel" style="aspect-ratio:2/3;border-radius:10px;"></div>';
-      grid.innerHTML = sk + '<div class="cv-empty" style="padding:20px;grid-column:1/-1"><p style="font-size:0.9rem;color:#888">⏳ Loading movies...</p></div>';
-    } else {
-      grid.innerHTML = '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
-    }
+    grid.innerHTML = selCat === 'watchlist'
+      ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
+      : allData.length === 0
+      ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
+      : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
     cvRenderPagination(0);
     return;
   }
@@ -7009,7 +7136,7 @@ function cvGoPage(page, fromPopstate) {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
       if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-      if (nsLatest) nsLatest.style.display = '';
+      if (nsLatest) nsLatest.style.display = 'none';
     }
   } else {
     if (trailersWrap) trailersWrap.style.display = 'none';
@@ -7043,7 +7170,7 @@ function makeCard(m) {
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" fetchpriority="low" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
@@ -7100,7 +7227,7 @@ function openModal(key) {
   img.alt = (m.title || 'Movie') + ' Poster';
   if (m.thumbnail) {
     img.src = '';  // Clear first to force reload on new movie
-    var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=420&output=webp&q=78';
+    var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=600&output=webp&q=85';
     img.src = _posterUrl;
     img.setAttribute('fetchpriority', 'high');
     img.loading = 'eager';
@@ -7704,7 +7831,8 @@ window.addEventListener('popstate', function(e) {
 // Download — ab Cloudflare Worker timer page pe navigate karta hai
 function dlLink(url, quality) {
   if (!url) return;
-  cnGoToDownloadWorker(window._cvCurrentKey, quality || '');
+  if (typeof cvTrackDownloadAndGo === 'function') cvTrackDownloadAndGo(quality || '480p');
+  else cnGoToDownloadWorker(window._cvCurrentKey, quality || '');
 }
 
 // ══════════════════════════════════
@@ -7867,7 +7995,7 @@ function openDlPopup() {
   var html = '';
   items.forEach(function(item) {
     var q = item.q || '480p';
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownloadAndGo(\'' + escJs(q) + '\')">' +
       '<div class="cv-dl-quality-label">' +
         '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
         '<span>Download ' + escHtml(q) + '</span>' +
@@ -7886,13 +8014,38 @@ function cvTrackDownload(quality) {
     var key   = window._cvCurrentKey   || null;
     var title = window._cvCurrentTitle || '';
     if (!key) return;
-    // Normalize quality key: "480p" -> "480p", "4K" -> "4k"
-    var qKey = quality.toLowerCase().replace(/\s/g,'');
-    db.ref('analytics/downloads/' + key + '/' + qKey).transaction(function(c){ return (c||0)+1; });
-    db.ref('analytics/downloads/' + key + '/title').once('value', function(s){
-      if (!s.val()) db.ref('analytics/downloads/' + key + '/title').set(title);
-    });
+    var qKey = String(quality || '480p').toLowerCase().replace(/\s/g,'');
+    if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
+      try {
+        // Admin panel / card pe jo ⬇ count dikhta hai — movies/{key}/downloadCount
+        db.ref('movies/' + key + '/downloadCount').transaction(function(c){ return (c||0)+1; });
+        // Quality-wise analytics
+        db.ref('analytics/downloads/' + key + '/' + qKey).transaction(function(c){ return (c||0)+1; });
+        db.ref('analytics/downloads/' + key + '/title').once('value', function(s){
+          if (!s.val()) db.ref('analytics/downloads/' + key + '/title').set(title);
+        });
+        // Local UI turant update (redirect se pehle)
+        try {
+          if (window._cvCurrentMovieObj) {
+            window._cvCurrentMovieObj.downloadCount = (window._cvCurrentMovieObj.downloadCount || 0) + 1;
+          }
+          var item = allData && allData.find(function(x){ return x && x._key === key; });
+          if (item) item.downloadCount = (item.downloadCount || 0) + 1;
+        } catch (e2) {}
+      } catch (err) {}
+    }
   } catch(e) {}
+}
+
+// FIX: count pehle save, redirect 280ms baad — warna page unload se download miss
+function cvTrackDownloadAndGo(quality) {
+  var key = window._cvCurrentKey || null;
+  var q = quality || '480p';
+  try { cvTrackDownload(q); } catch (e) {}
+  setTimeout(function() {
+    try { cnGoToDownloadWorker(key, q); } catch (e) {}
+    try { closeDlPopup(); } catch (e) {}
+  }, 400);
 }
 
 function closeDlPopup() {
@@ -7913,7 +8066,7 @@ function cvEpDl(idx) {
   var html = '';
   items.forEach(function(item) {
     var q = item.q || '480p';
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownloadAndGo(\'' + escJs(q) + '\')">' +
       '<div class="cv-dl-quality-label">' +
         '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
         '<span>Download ' + escHtml(q) + '</span>' +
@@ -7981,21 +8134,12 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
       selCat = cat;
     }
 
-    // Pehle loading dikhao agar category data abhi page 1 mein nahi
     renderGrid();
-    if (!allLoaded && cat !== 'all' && cat !== 'watchlist') {
-      var g = document.getElementById('cv-grid');
-      if (g && (!cvFilteredList || !cvFilteredList.length)) {
-        var sk2 = '';
-        for (var sj = 0; sj < 8; sj++) sk2 += '<div class="cv-skel" style="aspect-ratio:2/3;border-radius:10px;"></div>';
-        g.innerHTML = sk2 + '<div class="cv-empty" style="padding:16px;grid-column:1/-1"><p style="font-size:0.9rem;color:#888">⏳ Loading ' + (cat || '') + '...</p></div>';
-      }
-    }
     cvUpdateCategorySEO(cat, isGenre);
-    // Soft scroll — only if not already near grid (avoids jank)
-    requestAnimationFrame(function(){
-      try { cvScrollToCatSection(); } catch(e){}
-    });
+    // Category/genre select hote hi poore grid section tak smooth scroll —
+    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
+    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
+    requestAnimationFrame(cvScrollToCatSection);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
@@ -8032,20 +8176,17 @@ function _cvLoadAllForCategory() {
   // wait karo aur jese hi free ho, agla page khud fetch karo (koi silent
   // return nahi — pehle yahi bug tha jiski wajah se dobara category click
   // karne par hi pagination show hoti thi)
-  var _cvLastRenderCount = allData ? allData.length : 0;
   _cvCatLoadInterval = setInterval(function() {
     if (allLoaded) {
       clearInterval(_cvCatLoadInterval);
       _cvCatLoadInterval = null;
       showLoadingMore(false);
       renderGrid(false);
-      return;
-    }
-    if (!isLoadingMore) {
+    } else if (!isLoadingMore) {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 1100);
+  }, 600);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
@@ -8307,12 +8448,6 @@ function tmdbRender(trackId, movies) {
 }
 
 function tmdbSwipe(track, trackId, total) {
-  // ✅ PERF FIX: guard against duplicate listener attachment if this ever
-  // gets called more than once for the same track (defensive, same fix
-  // pattern as the trending sliders above).
-  track._cvTotal = total;
-  if (track._cvDragBound) return;
-  track._cvDragBound = true;
   var startX = 0;
   var isDragging = false;
   track.addEventListener('touchstart', function(e) {
@@ -8325,7 +8460,7 @@ function tmdbSwipe(track, trackId, total) {
     isDragging = false;
     var diff = startX - e.changedTouches[0].clientX;
     var visible = Math.floor((window.innerWidth - 16) / (tmdbCardWidth() + 10));
-    var max = Math.max(0, track._cvTotal - visible);
+    var max = Math.max(0, total - visible);
     if (Math.abs(diff) > 40) {
       if (diff > 0) tmdbIndexes[trackId] = Math.min(tmdbIndexes[trackId] + 1, max);
       else tmdbIndexes[trackId] = Math.max(tmdbIndexes[trackId] - 1, 0);
@@ -8344,7 +8479,7 @@ function tmdbSwipe(track, trackId, total) {
     if (!isDragging) return; isDragging = false;
     var diff = startX - e.clientX;
     var visible = Math.floor((window.innerWidth - 16) / (tmdbCardWidth() + 10));
-    var max = Math.max(0, track._cvTotal - visible);
+    var max = Math.max(0, total - visible);
     if (Math.abs(diff) > 40) {
       if (diff > 0) tmdbIndexes[trackId] = Math.min(tmdbIndexes[trackId] + 1, max);
       else tmdbIndexes[trackId] = Math.max(tmdbIndexes[trackId] - 1, 0);
@@ -8669,39 +8804,33 @@ function trailersRender(movies) {
   }, 3500);
 
   // Touch swipe
-  // ✅ PERF FIX: guard against duplicate listener attachment if trailersRender()
-  // ever runs more than once for the same track (defensive, same pattern as
-  // the trending sliders above).
-  if (!track._cvDragBound) {
-    track._cvDragBound = true;
-    var startX = 0, isDrag = false;
-    track.addEventListener('touchstart', function(e) {
-      startX = e.touches[0].clientX; isDrag = true;
-      clearInterval(trailersInterval);
-    }, {passive: true});
-    track.addEventListener('touchend', function(e) {
-      if (!isDrag) return; isDrag = false;
-      var diff = startX - e.changedTouches[0].clientX;
-      var visible = Math.floor((window.innerWidth - 16) / (trailersCardWidth() + 12));
-      var max = Math.max(0, trailersMovies.length - visible);
-      if (Math.abs(diff) > 40) {
-        if (diff > 0) trailersIndex = Math.min(trailersIndex + 1, max);
-        else trailersIndex = Math.max(trailersIndex - 1, 0);
-      }
+  var startX = 0, isDrag = false;
+  track.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX; isDrag = true;
+    clearInterval(trailersInterval);
+  }, {passive: true});
+  track.addEventListener('touchend', function(e) {
+    if (!isDrag) return; isDrag = false;
+    var diff = startX - e.changedTouches[0].clientX;
+    var visible = Math.floor((window.innerWidth - 16) / (trailersCardWidth() + 12));
+    var max = Math.max(0, movies.length - visible);
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) trailersIndex = Math.min(trailersIndex + 1, max);
+      else trailersIndex = Math.max(trailersIndex - 1, 0);
+    }
+    track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
+    var dotsEl = document.getElementById('cv-tr-dots');
+    if (dotsEl) {
+      var page = Math.floor(trailersIndex / visible);
+      var dots = dotsEl.querySelectorAll('.cv-tr-dot-el');
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === page); });
+    }
+    trailersInterval = setInterval(function() {
+      if (document.hidden) return; // tab background ho to CPU/battery bachao
+      trailersIndex = trailersIndex >= max ? 0 : trailersIndex + 1;
       track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
-      var dotsEl = document.getElementById('cv-tr-dots');
-      if (dotsEl) {
-        var page = Math.floor(trailersIndex / visible);
-        var dots = dotsEl.querySelectorAll('.cv-tr-dot-el');
-        dots.forEach(function(d, i) { d.classList.toggle('active', i === page); });
-      }
-      trailersInterval = setInterval(function() {
-        if (document.hidden) return; // tab background ho to CPU/battery bachao
-        trailersIndex = trailersIndex >= max ? 0 : trailersIndex + 1;
-        track.style.transform = 'translateX(-' + (trailersIndex * (trailersCardWidth() + 12)) + 'px)';
-      }, 3500);
-    }, {passive: true});
-  }
+    }, 3500);
+  }, {passive: true});
 }
 
 function loadTrailers() {
@@ -8878,21 +9007,23 @@ document.addEventListener('keydown', function(e) {
 // ══════════════════════════════════════════════════════════
 function trackView(key) {
   try {
+    if (!key) return;
     var viewed = JSON.parse(localStorage.getItem('cv_viewed') || '{}');
-    if (viewed[key]) return; // Already counted this session
+    if (viewed[key]) return;
     viewed[key] = 1;
     localStorage.setItem('cv_viewed', JSON.stringify(viewed));
 
     var todayKey = 'd' + new Date().toISOString().substring(0,10).replace(/-/g,'');
     var todayDate = new Date().toISOString().substring(0,10);
 
-    // ── Purana system (backward compatible) ──
-    db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
-    db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
-    db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
-    db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
-
-    // ── Naya analytics system (admin panel Analytics tab) ──
+    if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
+      try {
+        db.ref('views/' + key + '/count').transaction(function(c){ return (c||0)+1; });
+        db.ref('views/' + key + '/total').transaction(function(c){ return (c||0)+1; });
+        db.ref('views/' + key + '/' + todayKey).transaction(function(c){ return (c||0)+1; });
+        db.ref('movies/' + key + '/views').transaction(function(c){ return (c||0)+1; });
+      } catch (e) {}
+    }
     cvLogAnalyticsVisit(key, todayDate);
   } catch(e) {}
 }
@@ -8918,6 +9049,10 @@ function cvGetBrowser() {
 
 // ── Write visit to analytics/visits ──
 function cvLogAnalyticsVisit(movieKey, todayDate) {
+  if (typeof db === 'undefined' || !db || typeof db.ref !== 'function') {
+    try { cvStartOnlinePing(); } catch (e) {}
+    return;
+  }
   var visitData = {
     ts: Date.now(),
     date: todayDate,
@@ -8932,41 +9067,64 @@ function cvLogAnalyticsVisit(movieKey, todayDate) {
     ip: ''
   };
 
-  // Fetch IP + Location from free API
+  // Pehle turant save — ipapi slow/block ho to visit miss na ho
+  var visitRef = null;
+  try {
+    visitRef = db.ref('analytics/visits').push(visitData);
+  } catch (e) {
+    try { db.ref('analytics/visits').push(visitData); } catch (e2) {}
+  }
+
+  // Background geo update
   try {
     fetch('https://ipapi.co/json/')
       .then(function(r) { return r.json(); })
       .then(function(geo) {
-        visitData.country = geo.country_name || 'Unknown';
-        visitData.city    = geo.city         || 'Unknown';
-        visitData.ip      = geo.ip           || '';
-        db.ref('analytics/visits').push(visitData);
+        if (!visitRef || !geo) return;
+        try {
+          visitRef.update({
+            country: geo.country_name || 'Unknown',
+            city: geo.city || 'Unknown',
+            ip: geo.ip || ''
+          });
+        } catch (e) {}
       })
-      .catch(function() {
-        // Record visit even if location not found
-        db.ref('analytics/visits').push(visitData);
-      });
-  } catch(e) {
-    db.ref('analytics/visits').push(visitData);
-  }
+      .catch(function() {});
+  } catch (e) {}
 
-  // ── Online presence ping (har 30s) ──
   cvStartOnlinePing();
 }
 
 // ── Online ping ──
-var _cvSessionId = 'sess_' + Math.random().toString(36).substring(2, 10);
+var _cvSessionId = (function() {
+  try {
+    var s = sessionStorage.getItem('cv_sess_id');
+    if (s) return s;
+    s = 'sess_' + Math.random().toString(36).substring(2, 10);
+    sessionStorage.setItem('cv_sess_id', s);
+    return s;
+  } catch (e) {
+    return 'sess_' + Math.random().toString(36).substring(2, 10);
+  }
+})();
 var _cvPingTimer = null;
 function cvStartOnlinePing() {
-  if (_cvPingTimer) return; // Already running
+  if (_cvPingTimer) return;
   function doPing() {
-    try { db.ref('analytics/online/' + _cvSessionId).set({ ts: Date.now() }); } catch(e) {}
+    try {
+      if (typeof db !== 'undefined' && db) {
+        db.ref('analytics/online/' + _cvSessionId).set({ ts: Date.now(), page: location.pathname || '/' });
+      }
+    } catch(e) {}
   }
   doPing();
-  _cvPingTimer = setInterval(doPing, 30000);
-  // Remove on tab close
+  _cvPingTimer = setInterval(doPing, 25000);
   window.addEventListener('beforeunload', function() {
-    try { db.ref('analytics/online/' + _cvSessionId).remove(); } catch(e) {}
+    try { if (db) db.ref('analytics/online/' + _cvSessionId).remove(); } catch(e) {}
+  });
+  // visibility: tab wapas aaye to turant ping
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) doPing();
   });
 }
 
@@ -9313,17 +9471,20 @@ document.getElementById('cv-share-sheet').addEventListener('click', function(e) 
 
 function cvThumb(url) {
   if (!url) return '';
+  // wsrv.nl se 300x450 optimized image — faster load
   try {
     if (url.indexOf('wsrv.nl') > -1) return url;
-    // Mobile: chhoti image = tez load; desktop: thodi badi
-    var w = (window.innerWidth || 400) <= 480 ? 220 : 300;
-    var q = (window.innerWidth || 400) <= 480 ? 72 : 80;
-    return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=' + w + '&h=' + Math.round(w*1.5) + '&fit=cover&output=webp&q=' + q;
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=300&h=450&fit=cover&output=webp&q=80';
   } catch(e) { return url; }
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+  return String(s == null ? '' : s)
+    .replace(/&/g, '\u0026amp;')
+    .replace(/</g, '\u0026lt;')
+    .replace(/>/g, '\u0026gt;')
+    .replace(/"/g, '\u0026quot;')
+    .replace(/'/g, '\u0026#39;');
 }
 // ===== Cast Row (storyline ke neeche) =====
 // Post ka title SEO-friendly hota hai jese "Desert Warrior (2026) (Hindi Dubbed) Dual Audio..."
@@ -9411,7 +9572,12 @@ function cvRenderCast(cast, callKey) {
 }
 
 function escJs(s) {
-  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+  return String(s == null ? '' : s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
 }
 // ── Slug Generator ──
 function cvSlug(title) {
@@ -9619,7 +9785,7 @@ function cvUpdateSEO(m, slug) {
 // canonical, meta description) jab user pill click kare.
 var CV_CAT_SEO = {
   hollywood: 'Hollywood', bollywood: 'Bollywood', tollywood: 'Tollywood',
-  animation: 'Animation', webseries: 'Web Series', kdrama: 'K-Drama', adult: 'Adult'
+  animation: 'Animation', webseries: 'Web Series'
 };
 function cvUpdateCategorySEO(cat, isGenre) {
   if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
@@ -9671,40 +9837,26 @@ function cvResetSEO() {
 (function() {
   function activateCatFromUrl() {
     try {
-      // cvRestoreFromUrl already handles ?cat= — double-click causes flicker/jump
-      if (window._cvUrlRestorePending === false && window._cvRestoringFromUrl) return;
-      if (window._cvCatFromUrlDone) return;
       var params = new URLSearchParams(window.location.search);
       var cat = params.get('cat');
       if (!cat) return;
       cat = cat.toLowerCase();
+      // Normalize sci-fi -> scifi for URL compatibility
       if (cat === 'sci-fi') cat = 'scifi';
-      // If main restore already set selCat, skip second activation
-      if (typeof selCat === 'string' && selCat === cat && selCat !== 'all') {
-        window._cvCatFromUrlDone = true;
-        return;
-      }
+      // Wait for pills and data to be ready
       var attempts = 0;
       var interval = setInterval(function() {
         attempts++;
-        if (window._cvCatFromUrlDone) { clearInterval(interval); return; }
-        // Main URL restore finished — don't fight it
-        if (typeof selCat === 'string' && selCat === cat && selCat !== 'all') {
-          window._cvCatFromUrlDone = true;
-          clearInterval(interval);
-          return;
-        }
         var pill = document.querySelector('.cv-pill[data-cat="' + cat + '"]');
-        if (pill && !pill.classList.contains('active')) {
+        if (pill) {
           clearInterval(interval);
-          window._cvCatFromUrlDone = true;
           pill.click();
-        } else if (pill && pill.classList.contains('active')) {
-          clearInterval(interval);
-          window._cvCatFromUrlDone = true;
+          // Scroll to grid
+          var grid = document.getElementById('cv-grid');
+          if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        if (attempts > 20) clearInterval(interval);
-      }, 500);
+        if (attempts > 30) clearInterval(interval);
+      }, 400);
     } catch(e) {}
   }
   // Run after page load
@@ -9779,7 +9931,7 @@ function cvResetSEO() {
     var cat=(e.target.dataset&&e.target.dataset.cat)||'';
     document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
     if(cat===''||cat==='all'){ var h=document.getElementById('cv-bnav-home'); if(h)h.classList.add('active'); }
-    else if(cat==='drama'||cat==='series'||cat==='webseries'||cat==='kdrama'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
+    else if(cat==='drama'||cat==='series'||cat==='webseries'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
     else { var m=document.getElementById('cv-bnav-movies'); if(m)m.classList.add('active'); }
   });
 })();
@@ -10042,8 +10194,8 @@ function cvResetSEO() {
       <li><a href='/?cat=bollywood'>Bollywood</a></li>
       <li><a href='/?cat=tollywood'>Tollywood</a></li>
       <li><a href='/?cat=webseries'>Web Series</a></li>
+      <li><a href='/?cat=kdrama'>K-Drama</a></li>
       <li><a href='/?cat=animation'>Animation</a></li>
-      <li><a href='/?cat=kdrama'>🇰🇷 K-Drama</a></li>
       <li><a href='/?cat=adult'>🔞 Adult</a></li>
     </ul>
   </div>
@@ -10078,7 +10230,6 @@ function cvResetSEO() {
     <a class='cvf-badge' href='/?cat=animation'>Animation</a>
     <a class='cvf-badge' href='/?cat=webseries'>Web Series</a>
     <a class='cvf-badge' href='/?cat=tollywood'>Tollywood</a>
-    <a class='cvf-badge' href='/?cat=kdrama'>🇰🇷 K-Drama</a>
     <a class='cvf-badge' href='/?cat=adult'>🔞 Adult</a>
   </div>
 </div>
@@ -10193,5 +10344,6 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 })();
 </script>
 
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"f8a2595c2f1640dcaf9bc7cf617561cd","r":1}' crossorigin="anonymous"></script>
 </body>
 </html>
