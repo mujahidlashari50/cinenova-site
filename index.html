@@ -726,6 +726,10 @@ body{text-rendering:optimizeSpeed}
 @media(max-width:400px){.cv-page-btn{min-width:36px;height:36px;padding:0 10px;font-size:0.82rem}}
 
 
+
+/* ══ REMOVED: Now Showing + Banner Intro ══ */
+#cv-ns-hero,#cv-banner-intro,#cv-upcoming-wrap,#cn-bi-rays,#cn-bi-circles,#cn-bi-logo-wrap,#cn-bi-progress,#cn-bi-tap,#cn-bi-skip{display:none!important;pointer-events:none!important;height:0!important;overflow:hidden!important;opacity:0!important}
+
 /* ══ VIP PERFORMANCE ══ */
 .cv-card{contain:layout style;transform:translateZ(0)}
 #cv-grid{contain:layout}
@@ -1826,6 +1830,127 @@ img{image-rendering:auto}
 .cv-nc-poster-wrap,.cv-nc-poster-shine,.cv-nc-info,
 .cv-nc-actions,.cv-nc-btn,.cv-nc-btn-watch,.cv-nc-btn-close{all:unset;}
 
+
+/* ══ FEATURED HERO v4 — compact dual-poster (panel: featuredBanner) ══ */
+#cv-featured-wrap{
+  display:none;width:100%;box-sizing:border-box;
+  padding:10px 12px 6px;background:#0a0a0a;
+}
+#cv-featured-card.cv-fh{
+  position:relative;display:flex;align-items:center;justify-content:space-between;
+  gap:16px;max-width:1100px;margin:0 auto;
+  min-height:200px;max-height:280px;
+  padding:18px 20px;border-radius:14px;overflow:hidden;
+  background:radial-gradient(ellipse at 70% 50%,#1a1520 0%,#0d0d12 55%,#0a0a0a 100%);
+  border:1px solid rgba(255,255,255,0.06);
+  box-sizing:border-box;
+}
+.cv-fh-left{flex:1;min-width:0;z-index:2;max-width:58%}
+.cv-fh-label{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:0.65rem;font-weight:800;letter-spacing:1.2px;
+  color:#e50914;text-transform:uppercase;margin-bottom:6px;
+}
+.cv-fh-dot{width:6px;height:6px;border-radius:50%;background:#e50914;box-shadow:0 0 8px #e50914}
+.cv-fh-title{
+  font-size:clamp(1.15rem, 3.2vw, 1.85rem);font-weight:800;color:#fff;
+  line-height:1.15;margin:0 0 8px;letter-spacing:-0.3px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.cv-fh-meta{
+  display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:8px;
+}
+.cv-fh-chip{
+  font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:4px;
+  background:rgba(255,255,255,0.08);color:#ccc;border:1px solid rgba(255,255,255,0.1);
+  white-space:nowrap;
+}
+.cv-fh-chip.r{color:#facc15;border-color:rgba(250,204,21,0.3)}
+.cv-fh-chip.q{color:#e50914;border-color:rgba(229,9,20,0.35);background:rgba(229,9,20,0.12)}
+.cv-fh-desc{
+  font-size:0.72rem;color:#9a9a9a;line-height:1.45;margin:0 0 12px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  max-width:420px;
+}
+.cv-fh-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cv-fh-btn{
+  height:34px;padding:0 14px;border-radius:8px;font-size:0.78rem;font-weight:700;
+  cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;
+  transition:transform 0.15s,background 0.15s;
+}
+.cv-fh-btn:active{transform:scale(0.97)}
+.cv-fh-btn.play{background:#e50914;color:#fff}
+.cv-fh-btn.play:hover{background:#f40612}
+.cv-fh-btn.ghost{
+  background:rgba(255,255,255,0.06);color:#e5e5e5;
+  border:1px solid rgba(255,255,255,0.14);
+}
+.cv-fh-btn.ghost:hover{background:rgba(255,255,255,0.12)}
+.cv-fh-right{
+  flex-shrink:0;width:min(38%,200px);position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.cv-fh-posters{position:relative;width:120px;height:170px}
+.cv-fh-poster{
+  position:absolute;border-radius:8px;object-fit:cover;
+  box-shadow:0 8px 28px rgba(0,0,0,0.55);background:#1a1a1a;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.cv-fh-poster.back{
+  width:100px;height:148px;left:14px;top:8px;
+  transform:rotate(6deg) translateX(10px);opacity:0.55;z-index:0;
+  filter:brightness(0.7);
+}
+.cv-fh-poster.front{
+  width:112px;height:160px;left:0;top:0;z-index:1;
+  transform:rotate(-2deg);
+}
+#cv-featured-dots{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;z-index:3;
+}
+#cv-featured-dots .cv-feat-dot{
+  width:6px;height:6px;border-radius:50%;border:none;padding:0;
+  background:rgba(255,255,255,0.25);cursor:pointer;
+}
+#cv-featured-dots .cv-feat-dot.active{background:#e50914;width:14px;border-radius:3px}
+/* Mobile */
+@media(max-width:600px){
+  #cv-featured-wrap{padding:8px 10px 4px}
+  #cv-featured-card.cv-fh{
+    flex-direction:row;min-height:160px;max-height:none;padding:12px 12px;
+    gap:10px;
+  }
+  .cv-fh-left{max-width:62%}
+  .cv-fh-title{font-size:1.05rem;margin-bottom:5px;-webkit-line-clamp:2}
+  .cv-fh-desc{font-size:0.68rem;-webkit-line-clamp:2;margin-bottom:8px}
+  .cv-fh-btn{height:30px;padding:0 10px;font-size:0.72rem}
+  .cv-fh-right{width:min(36%,110px)}
+  .cv-fh-posters{width:88px;height:128px}
+  .cv-fh-poster.front{width:84px;height:120px}
+  .cv-fh-poster.back{width:76px;height:110px;left:10px}
+  .cv-fh-chip{font-size:0.6rem;padding:1px 5px}
+  .cv-fh-label{font-size:0.58rem;margin-bottom:4px}
+}
+@media(max-width:380px){
+  .cv-fh-btn.ghost.details{display:none}
+  .cv-fh-desc{-webkit-line-clamp:1}
+}
+/* Desktop wider */
+@media(min-width:900px){
+  #cv-featured-wrap{padding:14px 4% 8px}
+  #cv-featured-card.cv-fh{min-height:240px;max-height:300px;padding:22px 28px}
+  .cv-fh-posters{width:140px;height:200px}
+  .cv-fh-poster.front{width:130px;height:188px}
+  .cv-fh-poster.back{width:118px;height:172px}
+  .cv-fh-title{font-size:1.9rem}
+  .cv-fh-desc{font-size:0.8rem;max-width:480px}
+}
+/* Hide legacy featured children if any remain */
+#cv-featured-bg,#cv-featured-overlay,#cv-featured-right,#cv-featured-mute,#cv-featured-age,
+#cv-featured-badge,#cv-custom-pbar,#cv-custom-caption{display:none!important}
+
+/* ══ OLD FEATURED BANNER CSS (kept inert) ══ */
 /* ══ FEATURED BANNER — CINEMATIC REDESIGN ══ */
 #cv-featured-wrap{
   display:block;
@@ -2005,6 +2130,7 @@ img{image-rendering:auto}
 #cv-featured-bg,#cv-featured-img,#cv-featured-title,#cv-featured-meta,#cv-featured-desc{
   transition:opacity 0.55s ease;
 }
+#cv-featured-card.cv-fh.cv-feat-transitioning{opacity:0.35;transition:opacity 0.25s}
 #cv-featured-card.cv-feat-transitioning #cv-featured-bg,
 #cv-featured-card.cv-feat-transitioning #cv-featured-img,
 #cv-featured-card.cv-feat-transitioning #cv-featured-title,
@@ -3685,110 +3811,43 @@ function cvOpenInBrowser() {
   <div class='cv-pill cv-pill-adult' data-cat='adult'>🔞 Adult</div>
 </div>
 
-<!-- FEATURED BANNER -->
+<!-- FEATURED BANNER v4 — compact dual-poster (toggle: settings/sliders/featuredBanner) -->
 <div id='cv-featured-wrap'>
   <script>(function(){try{
     var p=new URLSearchParams(location.search);
     if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';return;}
-    // Pichli baar ka pata hua state turant apply karo (Firebase ka wait
-    // nahi karna) — taake na CLS ho (banner ON case) na flash ho (OFF case).
-    // Firebase settings load hone ke baad, agar zarurat pade to silently
-    // correct + cache update ho jata hai.
     if(localStorage.getItem('cv_fb_off')==='1'){document.getElementById('cv-featured-wrap').style.display='none';}
   }catch(e){}})();</script>
-  <div id='cv-featured-card'>
-
-    <!-- &#9552;&#9552;&#9552; CINENOVA CINEMATIC BANNER INTRO &#9552;&#9552;&#9552; -->
-    <div id='cv-banner-intro'>
-      <div id='cn-bi-rays'>
-        <div class='cn-bi-ray' style='transform:rotate(-85deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(-45deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(-5deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(35deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(75deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(115deg) translateY(-50%)'></div>
-      </div>
-      <div id='cn-bi-scanlines'></div>
-      <div id='cn-bi-circles'>
-        <div class='cn-bi-ring'></div>
-        <div class='cn-bi-ring'></div>
-        <div class='cn-bi-ring'></div>
-      </div>
-      <div id='cn-bi-logo-wrap'>
-        <div id='cn-bi-glow'></div>
-        <svg alt='CineNova' aria-label='CineNova' id='cn-bi-logo-svg' role='img' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
-          <defs>
-            <linearGradient id='cnCircBi' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
-            <radialGradient cx='32%' cy='24%' id='cnShineBi' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
-            <linearGradient id='cnPlayBi' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ffffff'/><stop offset='100%' stop-color='#cfcfcf'/></linearGradient>
-            <linearGradient id='cnSilverBi' x1='0%' x2='0%' y1='0%' y2='100%'>
-              <stop offset='0%' stop-color='#ffffff'/><stop offset='20%' stop-color='#dcdcdc'/><stop offset='38%' stop-color='#7a7a7a'/><stop offset='52%' stop-color='#ffffff'/><stop offset='68%' stop-color='#5c5c5c'/><stop offset='85%' stop-color='#c8c8c8'/><stop offset='100%' stop-color='#3d3d3d'/>
-            </linearGradient>
-            <linearGradient id='cnRedChromeBi' x1='0%' x2='0%' y1='0%' y2='100%'>
-              <stop offset='0%' stop-color='#ff9a90'/><stop offset='20%' stop-color='#ff4d4d'/><stop offset='38%' stop-color='#8a0209'/><stop offset='52%' stop-color='#ff6b6b'/><stop offset='68%' stop-color='#6e0309'/><stop offset='85%' stop-color='#ff5c5c'/><stop offset='100%' stop-color='#420205'/>
-            </linearGradient>
-          </defs>
-          <circle cx='33' cy='36' fill='#4a0307' r='30'/>
-          <circle cx='33' cy='33' fill='url(#cnCircBi)' r='30'/>
-          <circle cx='33' cy='33' fill='url(#cnShineBi)' r='30'/>
-          <path d='M24 19 L24 47 L48 33 Z' fill='#000000' opacity='0.3' transform='translate(1.5,2)'/>
-          <path d='M24 19 L24 47 L48 33 Z' fill='url(#cnPlayBi)'/>
-          <g transform='skewX(-11)'>
-            <text fill='#000000' font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' opacity='0.55' x='79' y='50'>CineNova</text>
-            <text font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' stroke='#1a0a0a' stroke-width='0.75' x='75' y='47'><tspan fill='url(#cnSilverBi)'>Cine</tspan><tspan fill='url(#cnRedChromeBi)'>Nova</tspan></text>
-            <rect fill='url(#cnRedChromeBi)' height='3' opacity='0.85' rx='1.5' width='168' x='75' y='54'/>
-          </g>
-        </svg>
-        <div id='cn-bi-tagline'>STREAM &#160;&#183;&#160; WATCH &#160;&#183;&#160; ENJOY</div>
-      </div>
-      <div id='cn-bi-progress'>
-        <div id='cn-bi-prog-bar'><div id='cn-bi-prog-fill'></div></div>
-      </div>
-      <div id='cn-bi-tap' onclick='cnBiTapStart._userGesture=true;cnBiTapStart()'>
-        <div id='cn-bi-tap-inner'>
-          <div id='cn-bi-tap-icon'>&#9654;</div>
-          <div id='cn-bi-tap-text'>TAP TO PLAY</div>
-        </div>
+  <div id='cv-featured-card' class='cv-fh'>
+    <div class='cv-fh-left'>
+      <div class='cv-fh-label'><span class='cv-fh-dot'></span> FEATURED</div>
+      <h2 id='cv-featured-title' class='cv-fh-title'>Loading…</h2>
+      <div id='cv-featured-meta' class='cv-fh-meta'></div>
+      <p id='cv-featured-desc' class='cv-fh-desc'></p>
+      <div class='cv-fh-actions' id='cv-featured-actions'>
+        <button type='button' class='cv-fh-btn play' id='cv-featured-play'>▶ Watch</button>
+        <button type='button' class='cv-fh-btn ghost' id='cv-featured-dl'>↓ Download</button>
+        <button type='button' class='cv-fh-btn ghost details' id='cv-featured-info-btn'>Details</button>
       </div>
     </div>
-    <!-- &#9552;&#9552;&#9552; END CINENOVA BANNER INTRO &#9552;&#9552;&#9552; -->
-
-    <!-- UPCOMING MOVIES HERO SLIDER — display:none nahi rakhte ab, taake ye
-         intro ke sath PARALLEL load/render ho (intro opaque hai, upar se dhak
-         deta hai) — isse LCP/CLS dono behtar hote hain, real content ko
-         intro khatam hone ka wait nahi karna padta -->
-    <div id='cv-upcoming-wrap'>
-      <div id='cv-upcoming-hero'>
-        <div id='cv-upcoming-track'>
-          <div class='cv-uh-skel'></div>
-        </div>
-        <button class='cv-uh-arrow' id='cv-uh-prev' aria-label='Previous movie'>&#10094;</button>
-        <button class='cv-uh-arrow' id='cv-uh-next' aria-label='Next movie'>&#10095;</button>
-        <div id='cv-upcoming-dots'></div>
+    <div class='cv-fh-right'>
+      <div class='cv-fh-posters'>
+        <img id='cv-featured-img2' class='cv-fh-poster back' alt='' decoding='async' loading='lazy' width='118' height='172'/>
+        <img id='cv-featured-img' class='cv-fh-poster front' alt='' decoding='async' fetchpriority='high' loading='eager' width='130' height='188'/>
       </div>
-    </div>
-
-    <div id='cv-featured-bg'></div>
-    <div id='cv-featured-poster-wrap'>
-      <img alt='' decoding='async' fetchpriority='high' loading='eager' id='cv-featured-img' src=''/>
-    </div>
-    <div id='cv-featured-overlay'></div>
-    <div id='cv-featured-info'>
-      <div id='cv-featured-badge' style='display:none!important'><img alt='CineNova' id='cv-featured-logo-img' src='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png'/></div>
-
-      <div id='cv-featured-actions'>
-        <img alt='CineNova' id='cv-featured-logo-actions' src='https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png' style='height:clamp(40px,5vw,70px);width:auto;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.7));display:block;'/>
-      </div>
-    </div>
-    <div id='cv-featured-right'>
-        <svg fill='none' id='cv-mute-icon' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24'><polygon points='11,5 6,9 2,9 2,15 6,15 11,19'/><line x1='23' x2='17' y1='9' y2='15'/><line x1='17' x2='23' y1='9' y2='15'/></svg>
     </div>
     <div id='cv-featured-dots'></div>
+    <!-- legacy stubs so old JS refs don't crash -->
+    <div id='cv-featured-bg' style='display:none'></div>
+    <div id='cv-featured-poster-wrap' style='display:none'></div>
+    <div id='cv-featured-overlay' style='display:none'></div>
+    <div id='cv-featured-info' style='display:none'></div>
+    <div id='cv-featured-right' style='display:none'></div>
   </div>
 </div>
 
 <!-- ══ NOW SHOWING HERO (new — posters only, auto-rotating) ══ -->
-<div id='cv-ns-hero' style='display:none'>
+<div id='cv-ns-hero' style='display:none!important' aria-hidden='true'>
   <div id='cv-ns-hero-title'>🎬 Now Showing</div>
   <div id='cv-ns-stack'>
     <div class='cv-ns-skel'></div>
@@ -5125,6 +5184,10 @@ function setupInfiniteScroll() {
 
 // ══════════════════════════════════
 // CINENOVA CINEMATIC BANNER INTRO
+// CN_INTRO_DISABLED — removed for performance
+if(true){try{var _bi=document.getElementById('cv-banner-intro');if(_bi)_bi.remove();}catch(e){}}
+if(false){
+// CINENOVA CINEMATIC BANNER INTRO
 // ══════════════════════════════════
 (function() {
   var intro = document.getElementById('cv-banner-intro');
@@ -5519,6 +5582,8 @@ function setupInfiniteScroll() {
 })();
 
 // ══════════════════════════════════
+} // end if(false) intro disabled
+
 // FEATURED BANNER — AUTO SLIDER (10 sec)
 // ══════════════════════════════════
 var featuredList = [];
@@ -5530,7 +5595,23 @@ var _cvNsPool = [];
 var _cvNsOffset = 0;
 var _cvNsTimer = null;
 
+
+// ── HERO CLEANUP: intro + Now Showing disabled ──
+(function(){
+  try {
+    var nsh = document.getElementById('cv-ns-hero');
+    if (nsh) { nsh.style.display = 'none'; nsh.innerHTML = ''; }
+    var bi = document.getElementById('cv-banner-intro');
+    if (bi) bi.remove();
+    var up = document.getElementById('cv-upcoming-wrap');
+    if (up) up.style.display = 'none';
+  } catch(e) {}
+})();
+window._cvNsHeroEnabled = false;
+
 function buildNsHero() {
+  return; // Now Showing removed
+
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
   if (window._cvNsHeroEnabled === false) {
@@ -5750,168 +5831,121 @@ function featuredGoTo(idx) {
 function featuredShowSlide(idx) {
   var m = featuredList[idx];
   if (!m) return;
-
   var wrap = document.getElementById('cv-featured-wrap');
   var isCustom = wrap && wrap._customMode && m._custom;
 
   var img = document.getElementById('cv-featured-img');
-  var bg  = document.getElementById('cv-featured-bg');
-  var posterWrap = document.getElementById('cv-featured-poster-wrap');
-  var infoEl = document.getElementById('cv-featured-info');
+  var img2 = document.getElementById('cv-featured-img2');
+  var titleEl = document.getElementById('cv-featured-title');
+  var descEl = document.getElementById('cv-featured-desc');
+  var metaEl = document.getElementById('cv-featured-meta');
+  var playBtn = document.getElementById('cv-featured-play');
+  var dlBtn = document.getElementById('cv-featured-dl');
+  var infoBtn = document.getElementById('cv-featured-info-btn');
   var actionsEl = document.getElementById('cv-featured-actions');
-  var titleEl  = document.getElementById('cv-featured-title');
-  var descEl   = document.getElementById('cv-featured-desc');
-  var metaEl   = document.getElementById('cv-featured-meta');
-  var ageEl    = document.getElementById('cv-featured-age');
 
   if (isCustom) {
-    // ── CUSTOM IMAGE SLIDE MODE ──
-    // Hide movie-specific UI
-    if (infoEl)    infoEl.style.display = 'none';
+    if (titleEl) titleEl.textContent = 'CineNova';
+    if (descEl) { descEl.textContent = ''; descEl.style.display = 'none'; }
+    if (metaEl) metaEl.innerHTML = '';
     if (actionsEl) actionsEl.style.display = 'none';
-    if (ageEl)     ageEl.style.display = 'none';
-    document.getElementById('cv-featured-mute') && (document.getElementById('cv-featured-mute').style.display = 'none');
-    document.getElementById('cv-featured-badge') && (document.getElementById('cv-featured-badge').style.display = 'none');
-    document.getElementById('cv-featured-logo-actions') && (document.getElementById('cv-featured-logo-actions').style.display = 'none');
-
-    // Full bleed image
-    if (img) {
+    if (img && m.thumbnail) {
       img.src = m.thumbnail;
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;';
-      // Ken Burns animation
-      img.style.animation = 'none';
-      void img.offsetWidth; // reflow
-      img.style.animation = 'cvBannerKenBurns 6s ease-in-out forwards';
+      img.style.display = 'block';
     }
-    if (bg) {
-      bg.style.backgroundImage = 'url(' + m.thumbnail + ')';
-      bg.style.opacity = '1';
+    if (img2 && m.thumbnail) {
+      img2.src = m.thumbnail;
+      img2.style.display = 'block';
     }
-    if (posterWrap) posterWrap.style.display = 'none';
-
-    // Stylish overlay text (image number / caption)
-    var customCap = document.getElementById('cv-custom-caption');
-    if (!customCap) {
-      customCap = document.createElement('div');
-      customCap.id = 'cv-custom-caption';
-      customCap.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:28px 32px 24px;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.4) 60%,transparent 100%);z-index:5;pointer-events:none;';
-      var card = document.getElementById('cv-featured-card');
-      if (card) card.appendChild(customCap);
-    }
-    customCap.style.display = 'block';
-    customCap.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:flex-end;">' +
-        '<div style="font-size:0.7rem;color:rgba(255,255,255,0.7);letter-spacing:1px;background:rgba(0,0,0,0.55);padding:3px 9px;border-radius:10px;">' + (idx+1) + ' / ' + featuredList.length + '</div>' +
-      '</div>';
-
-    // Animated neon progress bar
-    var pbar = document.getElementById('cv-custom-pbar');
-    if (!pbar) {
-      pbar = document.createElement('div');
-      pbar.id = 'cv-custom-pbar';
-      pbar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:linear-gradient(to right,#e50914,#ff6b35,#e50914);z-index:10;width:0%;border-radius:0 2px 2px 0;box-shadow:0 0 8px #e50914;';
-      var card = document.getElementById('cv-featured-card');
-      if (card) card.appendChild(pbar);
-    }
-    pbar.style.transition = 'none';
-    pbar.style.width = '0%';
-    void pbar.offsetWidth;
-    pbar.style.transition = 'width 6s linear';
-    pbar.style.width = '100%';
-
-    return; // done for custom mode
+    return;
   }
 
-  // ── NORMAL MOVIE SLIDE MODE ──
-  // Restore hidden elements
-  if (infoEl)    infoEl.style.display = '';
-  if (actionsEl) actionsEl.style.display = '';
-  if (ageEl)     ageEl.style.display = '';
-  document.getElementById('cv-featured-mute') && (document.getElementById('cv-featured-mute').style.display = '');
-  if (posterWrap) posterWrap.style.display = '';
-  var customCap2 = document.getElementById('cv-custom-caption');
-  if (customCap2) customCap2.style.display = 'none';
-  var pbar2 = document.getElementById('cv-custom-pbar');
-  if (pbar2) { pbar2.style.transition='none'; pbar2.style.width='0%'; }
-
-  if (img) { img.style.cssText = ''; img.style.animation = 'none'; }
-
-  // Poster image (full bleed)
-  if (m.thumbnail) {
-    img.src = m.thumbnail;
-    img.style.display = 'block';
-    if (bg) bg.style.backgroundImage = 'url(' + m.thumbnail + ')';
-  } else {
-    img.style.display = 'none';
-    if (bg) bg.style.background = '#111';
-  }
-
-  // Title
+  if (actionsEl) actionsEl.style.display = 'flex';
   if (titleEl) titleEl.textContent = m.title || 'Untitled';
 
-  // Description
+  // Description — short
   if (descEl) {
-    if (m.description) {
-      descEl.textContent = m.description;
+    var d = (m.description || '').trim();
+    if (d) {
+      descEl.textContent = d.length > 140 ? d.slice(0, 137) + '…' : d;
       descEl.style.display = '-webkit-box';
     } else {
+      descEl.textContent = '';
       descEl.style.display = 'none';
     }
   }
 
-  // Meta
+  // Meta chips — compact
   if (metaEl) {
-    var metaParts = [];
-    if (m.year)     metaParts.push({t:'year',v:m.year});
-    if (m.rating)   metaParts.push({t:'rating',v:'★ ' + m.rating});
-    if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
-    if (m.language) metaParts.push({t:'lang',v:m.language});
-    if (m.quality)  metaParts.push({t:'qual',v:m.quality});
-    metaEl.innerHTML = metaParts.map(function(p,i) {
-      return (i>0?'<span class="cv-feat-meta-dot"></span>':'')+
-        '<span class="cv-feat-meta-item">'+escHtml(p.v)+'</span>';
-    }).join('');
+    var chips = [];
+    if (m.year) chips.push('<span class="cv-fh-chip">' + escHtml(String(m.year)) + '</span>');
+    if (m.rating) chips.push('<span class="cv-fh-chip r">★ ' + escHtml(String(m.rating)) + '</span>');
+    if (m.quality) {
+      var q = String(m.quality).split(/[\/|,]/)[0].trim();
+      if (q.length > 12) q = q.slice(0, 12);
+      chips.push('<span class="cv-fh-chip q">' + escHtml(q) + '</span>');
+    }
+    if (m.genre) {
+      var g = String(m.genre).split(/[,|]/)[0].trim();
+      chips.push('<span class="cv-fh-chip">' + escHtml(g.charAt(0).toUpperCase() + g.slice(1)) + '</span>');
+    }
+    metaEl.innerHTML = chips.join('');
   }
 
-  // Age rating removed
-
-  // Mute button
-  var muteBtn = document.getElementById('cv-featured-mute');
-  if (muteBtn && !muteBtn._init) {
-    muteBtn._init = true;
-    muteBtn._muted = true;
-    muteBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      muteBtn._muted = !muteBtn._muted;
-      var icon = document.getElementById('cv-mute-icon');
-      if (icon) {
-        icon.innerHTML = muteBtn._muted
-          ? '<polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'
-          : '<polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M19.07,4.93a10,10,0,0,1,0,14.14"/><path d="M15.54,8.46a5,5,0,0,1,0,7.07"/>';
-      }
-    });
+  // Posters — front + back (next item or same)
+  var thumb = m.thumbnail || '';
+  var nextM = featuredList[(idx + 1) % Math.max(featuredList.length, 1)];
+  var thumb2 = (nextM && nextM.thumbnail && nextM._key !== m._key) ? nextM.thumbnail : thumb;
+  if (img) {
+    if (thumb) {
+      img.src = (typeof cvThumb === 'function') ? cvThumb(thumb) : thumb;
+      img.alt = (m.title || 'Movie') + ' Poster';
+      img.style.display = 'block';
+    } else {
+      img.removeAttribute('src');
+      img.style.display = 'none';
+    }
+  }
+  if (img2) {
+    if (thumb2) {
+      img2.src = (typeof cvThumb === 'function') ? cvThumb(thumb2) : thumb2;
+      img2.style.display = 'block';
+    } else {
+      img2.style.display = 'none';
+    }
   }
 
   // Buttons
-  (function(key) {
-    var card = document.getElementById('cv-featured-card');
-    card.onclick = null;
-    var playBtn = document.getElementById('cv-featured-play');
-    if (playBtn) {
-      playBtn.onclick = function(e) {
-        e.stopPropagation();
-        if (m.videoUrl) playVideo(m.videoUrl, m.title || 'Now Playing');
-        else openModal(key);
-      };
-    }
-    var infoBtn = document.getElementById('cv-featured-info-btn');
-    if (infoBtn) {
-      infoBtn.onclick = function(e) {
-        e.stopPropagation();
-        openModal(key);
-      };
-    }
-  })(m._key);
+  var key = m._key;
+  if (playBtn) {
+    playBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (m.videoUrl) playVideo(m.videoUrl, m.title || 'Now Playing');
+      else openModal(key);
+    };
+  }
+  if (dlBtn) {
+    dlBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openModal(key);
+      // try scroll to download area after open
+      setTimeout(function() {
+        try {
+          var dl = document.getElementById('cv-modal-downloads') || document.querySelector('.cv-dl-section,#cv-dl-list');
+          if (dl) dl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (err) {}
+      }, 350);
+    };
+  }
+  if (infoBtn) {
+    infoBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openModal(key);
+    };
+  }
 }
 
 // ══════════════════════════════════
@@ -5928,7 +5962,7 @@ function updateSlidersVisibility(cat) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-    if (nsLatest) nsLatest.style.display = '';
+    if (nsLatest) nsLatest.style.display = 'none'; // Just Uploaded removed
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
       // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
