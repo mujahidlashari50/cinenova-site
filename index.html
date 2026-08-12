@@ -351,7 +351,7 @@ body{text-rendering:optimizeSpeed}
   text-shadow:0 2px 10px rgba(0,0,0,0.8);
 }
 /* Crossfade on auto-rotate */
-.cv-ns-poster.cv-ns-fading{opacity:0!important;transform:scale(0.94)!important}
+.cv-ns-poster.cv-ns-fading{opacity:1!important;transform:none!important}
 .cv-ns-skel{position:absolute;inset:0;border-radius:16px;background:linear-gradient(90deg,#1a1a1a 25%,#242424 37%,#1a1a1a 63%);background-size:400% 100%;animation:cv-skel-shine 1.4s ease infinite}
 @keyframes cv-skel-shine{0%{background-position:100% 0}100%{background-position:-100% 0}}
 @media(max-width:900px){
@@ -3518,6 +3518,25 @@ body{
 @media(prefers-reduced-motion:reduce){
   .cv-card,.cv-pill,.cv-dl-btn{transition:none!important}
 }
+
+/* ══ ANTI-BLINK + REMOVE INTRO / NOW SHOWING ══ */
+#cv-banner-intro, #cn-bi-rays, #cn-bi-scanlines, #cn-bi-circles,
+#cn-bi-logo-wrap, #cn-bi-progress, #cn-bi-skip, #cn-bi-tap,
+#cv-ns-hero, #cv-ns-stack, #cv-ns-hero-title { display:none !important; visibility:hidden !important; height:0 !important; min-height:0 !important; overflow:hidden !important; pointer-events:none !important; }
+/* Reduce flash on grid updates */
+#cv-grid { contain: layout style; }
+.cv-card { content-visibility: auto; contain-intrinsic-size: auto 280px; }
+/* Kill aggressive pulse blinks that feel like page blink */
+.cvf-live-dot { animation: none !important; opacity: 1 !important; }
+@keyframes cvfblink { 0%,100%{opacity:1;} 50%{opacity:1;} }
+/* Smooth image load — no pop */
+.cv-card img, .cv-poster img {
+  background: #1a1a1a;
+  opacity: 1;
+  transition: none !important;
+}
+/* No FOUC white flash */
+html, body { background: #141414 !important; }
 </style>
 </head>
 <body>
@@ -3785,59 +3804,9 @@ function cvOpenInBrowser() {
   }catch(e){}})();</script>
   <div id='cv-featured-card'>
 
-    <!-- &#9552;&#9552;&#9552; CINENOVA CINEMATIC BANNER INTRO &#9552;&#9552;&#9552; -->
-    <div id='cv-banner-intro'>
-      <div id='cn-bi-rays'>
-        <div class='cn-bi-ray' style='transform:rotate(-85deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(-45deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(-5deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(35deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(75deg) translateY(-50%)'></div>
-        <div class='cn-bi-ray' style='transform:rotate(115deg) translateY(-50%)'></div>
-      </div>
-      <div id='cn-bi-scanlines'></div>
-      <div id='cn-bi-circles'>
-        <div class='cn-bi-ring'></div>
-        <div class='cn-bi-ring'></div>
-        <div class='cn-bi-ring'></div>
-      </div>
-      <div id='cn-bi-logo-wrap'>
-        <div id='cn-bi-glow'></div>
-        <svg alt='CineNova' aria-label='CineNova' id='cn-bi-logo-svg' role='img' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
-          <defs>
-            <linearGradient id='cnCircBi' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
-            <radialGradient cx='32%' cy='24%' id='cnShineBi' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
-            <linearGradient id='cnPlayBi' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ffffff'/><stop offset='100%' stop-color='#cfcfcf'/></linearGradient>
-            <linearGradient id='cnSilverBi' x1='0%' x2='0%' y1='0%' y2='100%'>
-              <stop offset='0%' stop-color='#ffffff'/><stop offset='20%' stop-color='#dcdcdc'/><stop offset='38%' stop-color='#7a7a7a'/><stop offset='52%' stop-color='#ffffff'/><stop offset='68%' stop-color='#5c5c5c'/><stop offset='85%' stop-color='#c8c8c8'/><stop offset='100%' stop-color='#3d3d3d'/>
-            </linearGradient>
-            <linearGradient id='cnRedChromeBi' x1='0%' x2='0%' y1='0%' y2='100%'>
-              <stop offset='0%' stop-color='#ff9a90'/><stop offset='20%' stop-color='#ff4d4d'/><stop offset='38%' stop-color='#8a0209'/><stop offset='52%' stop-color='#ff6b6b'/><stop offset='68%' stop-color='#6e0309'/><stop offset='85%' stop-color='#ff5c5c'/><stop offset='100%' stop-color='#420205'/>
-            </linearGradient>
-          </defs>
-          <circle cx='33' cy='36' fill='#4a0307' r='30'/>
-          <circle cx='33' cy='33' fill='url(#cnCircBi)' r='30'/>
-          <circle cx='33' cy='33' fill='url(#cnShineBi)' r='30'/>
-          <path d='M24 19 L24 47 L48 33 Z' fill='#000000' opacity='0.3' transform='translate(1.5,2)'/>
-          <path d='M24 19 L24 47 L48 33 Z' fill='url(#cnPlayBi)'/>
-          <g transform='skewX(-11)'>
-            <text fill='#000000' font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' opacity='0.55' x='79' y='50'>CineNova</text>
-            <text font-family='Arial Black, Impact, sans-serif' font-size='39' font-weight='900' stroke='#1a0a0a' stroke-width='0.75' x='75' y='47'><tspan fill='url(#cnSilverBi)'>Cine</tspan><tspan fill='url(#cnRedChromeBi)'>Nova</tspan></text>
-            <rect fill='url(#cnRedChromeBi)' height='3' opacity='0.85' rx='1.5' width='168' x='75' y='54'/>
-          </g>
-        </svg>
-        <div id='cn-bi-tagline'>STREAM &#160;&#183;&#160; WATCH &#160;&#183;&#160; ENJOY</div>
-      </div>
-      <div id='cn-bi-progress'>
-        <div id='cn-bi-prog-bar'><div id='cn-bi-prog-fill'></div></div>
-      </div>
-      <div id='cn-bi-tap' onclick='cnBiTapStart._userGesture=true;cnBiTapStart()'>
-        <div id='cn-bi-tap-inner'>
-          <div id='cn-bi-tap-icon'>&#9654;</div>
-          <div id='cn-bi-tap-text'>TAP TO PLAY</div>
-        </div>
-      </div>
-    </div>
+    
+<!-- BANNER INTRO REMOVED (no blink, clean load) -->
+
     <!-- &#9552;&#9552;&#9552; END CINENOVA BANNER INTRO &#9552;&#9552;&#9552; -->
 
     <!-- UPCOMING MOVIES HERO SLIDER — display:none nahi rakhte ab, taake ye
@@ -3874,13 +3843,9 @@ function cvOpenInBrowser() {
   </div>
 </div>
 
-<!-- ══ NOW SHOWING HERO (new — posters only, auto-rotating) ══ -->
-<div id='cv-ns-hero' style='display:none'>
-  <div id='cv-ns-hero-title'>🎬 Now Showing</div>
-  <div id='cv-ns-stack'>
-    <div class='cv-ns-skel'></div>
-  </div>
-</div>
+
+<!-- NOW SHOWING HERO REMOVED (user request) -->
+
 
 <!-- JUST UPLOADED strip removed (PERF-v8 / user request) -->
 <script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){var h=document.getElementById('cv-ns-hero');if(h)h.style.display='none';}}catch(e){}})();</script>
@@ -4569,7 +4534,7 @@ function _cvOnFirebaseReady() {
     }
 
     // Now Showing (hero poster stack) toggle — default ON agar admin ne set nahi kiya
-    window._cvNsHeroEnabled = (sl.nowShowing !== false && sl.nowShowing !== 'false');
+    window._cvNsHeroEnabled = false; /* always off — NS removed */
     if (!window._cvNsHeroEnabled) {
       var nsHeroEl = document.getElementById('cv-ns-hero');
       if (nsHeroEl) nsHeroEl.style.display = 'none';
@@ -4581,7 +4546,7 @@ function _cvOnFirebaseReady() {
         if (nsHeroElOn && !(pNs.get('cat') || pNs.get('genre'))) nsHeroElOn.style.display = '';
       } catch(e) { if (nsHeroElOn) nsHeroElOn.style.display = ''; }
       if (typeof buildNsHero === 'function' && allData && allData.length && selCat === 'all' && selGenre === '') {
-        buildNsHero();
+        /* buildNsHero removed */
       }
     }
 
@@ -4957,6 +4922,18 @@ function fetchFirebasePage(isFirst, _retryCount) {
     }
 
     if (isFirst) {
+      // ANTI-BLINK: agar cache pehle se same data dikha raha hai to grid mat todo
+      var _sameAsCache = false;
+      try {
+        if (allData && allData.length && newItems && newItems.length === allData.length) {
+          _sameAsCache = true;
+          for (var _si = 0; _si < Math.min(12, newItems.length); _si++) {
+            if (!newItems[_si] || !allData[_si] || newItems[_si]._key !== allData[_si]._key) {
+              _sameAsCache = false; break;
+            }
+          }
+        }
+      } catch (_se) { _sameAsCache = false; }
       allData = newItems;
       idbClear();
     } else {
@@ -4980,7 +4957,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
       buildTrending();
       buildTsSlider();
       buildFeatured();
-      buildNsHero();
+      /* buildNsHero removed */
       buildNsLatest();
       // Attach realtime watchers now that allData is populated from Firebase
       watchNewMovies();
@@ -5027,8 +5004,7 @@ function _cvDebouncedRefresh() {
     buildTrending();
     buildTsSlider();
     buildFeatured();
-    buildNsHero();
-    buildNsLatest();
+    /* buildNsHero/Latest removed */
   }, 300);
 }
 
@@ -5231,7 +5207,7 @@ function setupInfiniteScroll() {
   var cnBiDone = false;
   var cnBiProgTmr = null;
 
-  function cnBiEnd() {
+  function cnBiEnd() { return; /* INTRO REMOVED */
     if (cnBiDone) return;
     cnBiDone = true;
     clearInterval(cnBiProgTmr);
@@ -5245,7 +5221,7 @@ function setupInfiniteScroll() {
 
   window.cnBiSkip = function() { cnBiEnd(); };
 
-  function cnBiRays(show) {
+  function cnBiRays(show) { return; /* INTRO REMOVED */
     document.querySelectorAll('.cn-bi-ray').forEach(function(r, i) {
       setTimeout(function() {
         r.style.transition = 'opacity ' + (show ? 1.4 : 0.7) + 's ease';
@@ -5254,14 +5230,14 @@ function setupInfiniteScroll() {
     });
   }
 
-  function cnBiProgress(ms) {
+  function cnBiProgress(ms) { return; /* INTRO REMOVED */
     var fill = document.getElementById('cn-bi-prog-fill'), s = Date.now();
     cnBiProgTmr = setInterval(function() {
       fill.style.width = Math.min(100, ((Date.now() - s) / ms) * 100) + '%';
     }, 50);
   }
 
-  function cnBiSparks(n, col) {
+  function cnBiSparks(n, col) { return; /* INTRO REMOVED */
     var rect = intro.getBoundingClientRect();
     var cx = rect.width / 2, cy = rect.height / 2;
     for (var i = 0; i < n; i++) (function(i) {
@@ -5294,7 +5270,7 @@ function setupInfiniteScroll() {
   var cnBiMusicCtx = null;
   var cnBiStarted = false;
 
-  window.cnBiTapStart = function() {
+  window.cnBiTapStart = function() { return; /* INTRO REMOVED */
     if (cnBiStarted) return;
     cnBiStarted = true;
 
@@ -5316,7 +5292,7 @@ function setupInfiniteScroll() {
     }
 
     /* start animation sequence */
-    cnBiRunSequence();
+    /*cnBiRunSequence()*/void 0;
   };
 
   /* PERF-v8: mobile/slow devices — shorter cinematic intro so LCP/Speed Index improve.
@@ -5333,7 +5309,7 @@ function setupInfiniteScroll() {
   }, cnBiFast ? 80 : 150);
 
   /* Controls + progress shown after tap */
-  function cnBiRunSequence() {
+  function /*cnBiRunSequence()*/void 0 { return; /* INTRO REMOVED */
     if (cnBiFast) {
       /* Compact mobile sequence ~1.6s then end */
       setTimeout(function() {
@@ -5423,7 +5399,7 @@ function setupInfiniteScroll() {
      CINENOVA — FULL CINEMATIC SCORE
      Hollywood-style: drums + strings + brass + choir
   ═══════════════════════════════════════════ */
-  function cnBiTaDum(ctx) {
+  function cnBiTaDum(ctx) { return; /* INTRO REMOVED */
     var t = ctx.currentTime;
     var sr = ctx.sampleRate;
 
@@ -5646,7 +5622,7 @@ var _cvNsPool = [];
 var _cvNsOffset = 0;
 var _cvNsTimer = null;
 
-function buildNsHero() {
+function buildNsHero() { return; /* NS REMOVED */
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
   if (window._cvNsHeroEnabled === false) {
@@ -5677,7 +5653,7 @@ function buildNsHero() {
 
   if (_cvNsTimer) clearInterval(_cvNsTimer);
   if (_cvNsPool.length > 1) {
-    _cvNsTimer = setInterval(_cvNsRotate, 3800);
+    _cvNsTimer = null /* NS removed */;
   }
 }
 
@@ -5688,7 +5664,7 @@ function _cvNsPick(offset) {
   return picks;
 }
 
-function _cvNsRender(fadeIn) {
+function _cvNsRender(fadeIn) { return; /* NS REMOVED */
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
   var picks = _cvNsPick(_cvNsOffset);
@@ -5720,7 +5696,7 @@ function _cvNsRender(fadeIn) {
   }
 }
 
-function _cvNsRotate() {
+function _cvNsRotate() { return; /* NS REMOVED */
   var stack = document.getElementById('cv-ns-stack');
   if (!stack || _cvNsPool.length < 2) return;
   var posters = stack.querySelectorAll('.cv-ns-poster');
@@ -5732,7 +5708,7 @@ function _cvNsRotate() {
 }
 
 // ══ JUST UPLOADED STRIP — DISABLED (removed from theme) ══
-function buildNsLatest() {
+function buildNsLatest() { return; /* NS REMOVED */
   var wrap = document.getElementById('cv-ns-latest-wrap');
   if (wrap) wrap.style.display = 'none';
   return;
