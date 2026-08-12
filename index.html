@@ -6273,7 +6273,54 @@ function cvScrollToMotd() {
 
 function buildTrending() {
   cvBuildMotd();
-  trendingItems = allData.filter(function(m) { return m.trending && !cvIsAdultItem(m); });
+  // Local filter first (instant from allData)
+  var localTrend = allData.filter(function(m) { return m.trending && !cvIsAdultItem(m); });
+  // Sort newest first
+  localTrend.sort(function(a,b){ return (b.addedAt||0)-(a.addedAt||0); });
+  trendingItems = localTrend;
+  _cvRenderTrendingTrack();
+  // FULL catalog se trending fetch — panel se ON kiye sab dikhen (sirf loaded page nahi)
+  _cvFetchAllTrending();
+}
+
+// Cache so we don't re-query every renderGrid
+var _cvTrendingFetched = false;
+var _cvTrendingFetchBusy = false;
+
+function _cvFetchAllTrending() {
+  if (!db || _cvTrendingFetchBusy) return;
+  // Agar pehle se 15+ local trending hain to query skip (kaafi hain)
+  if (_cvTrendingFetched && trendingItems && trendingItems.length >= 15) return;
+  _cvTrendingFetchBusy = true;
+  try {
+    db.ref('movies').orderByChild('trending').equalTo(true).limitToLast(60).once('value', function(snap) {
+      _cvTrendingFetchBusy = false;
+      _cvTrendingFetched = true;
+      if (!snap.exists()) return;
+      var map = {};
+      (trendingItems || []).forEach(function(m){ if(m && m._key) map[m._key]=m; });
+      snap.forEach(function(ch) {
+        var m = ch.val() || {};
+        m._key = ch.key;
+        if (cvIsAdultItem(m)) return;
+        map[m._key] = m;
+      });
+      var list = Object.keys(map).map(function(k){ return map[k]; });
+      list.sort(function(a,b){ return (b.addedAt||0)-(a.addedAt||0); });
+      // Max 40 cards — slider heavy na ho
+      trendingItems = list.slice(0, 40);
+      _cvRenderTrendingTrack();
+    }, function(err) {
+      _cvTrendingFetchBusy = false;
+      // Index missing / permission — silent fallback to local allData filter
+      try { console.warn('trending query', err && err.message); } catch(e) {}
+    });
+  } catch (e) {
+    _cvTrendingFetchBusy = false;
+  }
+}
+
+function _cvRenderTrendingTrack() {
   var wrap = document.getElementById('cv-trending-wrap');
   var track = document.getElementById('cv-trending-track');
   if (!trendingItems.length || !wrap || !track) { if(wrap) wrap.style.display='none'; return; }
@@ -6301,7 +6348,7 @@ function buildTrending() {
     '</a>';
   };
 
-  var items = trendingItems.slice(0, 20);
+  var items = trendingItems.slice(0, 40);
   trendingCloneCount = Math.min(4, items.length);
 
   var html = '';
