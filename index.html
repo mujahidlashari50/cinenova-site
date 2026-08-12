@@ -7965,6 +7965,7 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
     }
   } catch (e) {}
   var title = (m && m.title) ? m.title : '';
+  var packUrl = '';
   if (m && m.episodes && season && episode) {
     var epList = Array.isArray(m.episodes) ? m.episodes : Object.values(m.episodes || {});
     var ep = epList.find(function(e) {
@@ -7972,14 +7973,32 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
     });
     if (ep) {
       if (ep.title) title = title ? (title + ' — ' + ep.title) : ep.title;
+      // Pixeldrain direct
       var epFields = [ep.vlcUrl, ep.videoUrl, ep.videoSourceUrl, ep.dlSourceUrl, ep.dl720, ep.dl1080, ep.dl480];
       for (var i = 0; i < epFields.length; i++) {
         var pd = cnPixeldrainApiUrl(epFields[i]);
         if (pd) { cnOpenInVlc(pd, title); return; }
       }
+      // HDFun / MMSHD pack URL (unique per episode group)
+      for (var j = 0; j < epFields.length; j++) {
+        var u = epFields[j];
+        if (u && /hdfun\.in|mmshd\.com|\/dl\//i.test(String(u))) {
+          packUrl = String(u);
+          break;
+        }
+      }
+      if (!packUrl) {
+        packUrl = ep.videoSourceUrl || ep.dlSourceUrl || ep.dl1080 || ep.dl720 || ep.dl480 || '';
+      }
     }
   }
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || ''), title);
+  // Play worker with season/episode — worker episode-specific source use kare
+  var goUrl = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
+  if (packUrl && /hdfun\.in|mmshd\.com|\/dl\//i.test(packUrl)) {
+    // src pass so worker resolves THIS pack, not parent page
+    goUrl += (goUrl.indexOf('?') >= 0 ? '&' : '?') + 'src=' + encodeURIComponent(packUrl);
+  }
+  cnOpenInVlc(goUrl, title);
 }
 
 
@@ -8063,10 +8082,15 @@ function cvPlayEp(idx) {
 function cvEpDl(idx) {
   var items = (window._cvEpDlRegistry || {})[idx] || [];
   if (!items.length) return;
+  // Single quality → seedha us episode pack link pe jao (parent movie nahi)
+  if (items.length === 1) {
+    cvEpDlGo(idx, items[0].q || '1080p');
+    return;
+  }
   var html = '';
   items.forEach(function(item) {
     var q = item.q || '480p';
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownloadAndGo(\'' + escJs(q) + '\')">' +
+    html += '<div class="cv-dl-quality-btn" onclick="cvEpDlGo(' + idx + ',\'' + escJs(q) + '\')">' +
       '<div class="cv-dl-quality-label">' +
         '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
         '<span>Download ' + escHtml(q) + '</span>' +
@@ -8076,6 +8100,49 @@ function cvEpDl(idx) {
   });
   document.getElementById('cv-dl-popup-options').innerHTML = html;
   document.getElementById('cv-dl-popup').classList.add('open');
+}
+
+/* Episode pack DL — har episode ki APNI link (01-05, 06-10…) */
+function cvEpDlGo(idx, quality) {
+  var items = (window._cvEpDlRegistry || {})[idx] || [];
+  var item = null;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].q === quality) { item = items[i]; break; }
+  }
+  if (!item) item = items[0];
+  if (!item || !item.url) {
+    try { cvTrackDownloadAndGo(quality || '1080p'); } catch (e) {}
+    return;
+  }
+  try { cvTrackDownload(quality || '1080p'); } catch (e) {}
+  try { closeDlPopup(); } catch (e) {}
+
+  var key = window._cvCurrentKey || '';
+  var url = item.url;
+  var m = null;
+  try {
+    if (typeof allData !== 'undefined' && allData) {
+      m = allData.find(function(x) { return x._key === key; });
+    }
+  } catch (e) {}
+  var ep = null;
+  if (m && m.episodes) {
+    var list = Array.isArray(m.episodes) ? m.episodes : Object.values(m.episodes);
+    ep = list[idx] || null;
+  }
+
+  // Download worker — episode season/ep + optional src (pack URL)
+  var WORKER_DL_BASE = 'https://download.cinenova.site/dl';
+  var params = new URLSearchParams();
+  if (key) params.set('id', key);
+  params.set('q', quality || '1080p');
+  if (ep) {
+    if (ep.season) params.set('s', String(ep.season));
+    if (ep.episode != null && ep.episode !== '') params.set('e', String(ep.episode));
+  }
+  // Critical: pack ki asli /dl/ URL bhejo taake worker parent page na use kare
+  if (url) params.set('src', url);
+  window.location.href = WORKER_DL_BASE + '?' + params.toString();
 }
 
 var _cvDlPopupCancelEl = document.getElementById('cv-dl-popup-cancel');
