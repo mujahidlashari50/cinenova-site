@@ -3525,7 +3525,8 @@ body{
 #cv-ns-hero, #cv-ns-stack, #cv-ns-hero-title { display:none !important; visibility:hidden !important; height:0 !important; min-height:0 !important; overflow:hidden !important; pointer-events:none !important; }
 /* Reduce flash on grid updates */
 #cv-grid { contain: layout style; }
-.cv-card { content-visibility: auto; contain-intrinsic-size: auto 280px; }
+.cv-card { contain: layout style; }
+#cv-grid { min-height: 420px; }
 /* Kill aggressive pulse blinks that feel like page blink */
 .cvf-live-dot { animation: none !important; opacity: 1 !important; }
 @keyframes cvfblink { 0%,100%{opacity:1;} 50%{opacity:1;} }
@@ -3537,6 +3538,17 @@ body{
 }
 /* No FOUC white flash */
 html, body { background: #141414 !important; }
+
+/* Category switch — no layout collapse / blink */
+#cv-grid {
+  min-height: 480px;
+  will-change: auto;
+}
+#cv-grid .cv-card {
+  backface-visibility: hidden;
+}
+/* Disable shimmer on already-loaded cards */
+.cv-card img { background: #1f1f1f; }
 </style>
 </head>
 <body>
@@ -7001,10 +7013,15 @@ function cvRenderPage() {
   for (var i = 0; i < pageItems.length; i++) {
     frag.appendChild(makeCard(pageItems[i]));
   }
-  grid.innerHTML = '';
-  grid.appendChild(frag);
+  // ANTI-BLINK: single atomic replace — blank frame nahi aata
+  if (typeof grid.replaceChildren === 'function') {
+    grid.replaceChildren(frag);
+  } else {
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+    grid.appendChild(frag);
+  }
 
-  // Page top pe scroll karo (smoothly)
+  // Sirf page > 1 pe scroll (category switch pe jump/blink nahi)
   var catsEl = document.getElementById('cv-cats');
   var scrollTarget = catsEl ? catsEl.getBoundingClientRect().top + window.pageYOffset - 4 : 0;
   if (cvCurrentPage > 1) {
@@ -8179,10 +8196,8 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
 
     renderGrid();
     cvUpdateCategorySEO(cat, isGenre);
-    // Category/genre select hote hi poore grid section tak smooth scroll —
-    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
-    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
-    requestAnimationFrame(cvScrollToCatSection);
+    // ANTI-BLINK: category switch pe auto-scroll band — jump/flash nahi hota
+    // requestAnimationFrame(cvScrollToCatSection);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
