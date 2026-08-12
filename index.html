@@ -6204,12 +6204,10 @@ function cvBuildMotd() {
     wrap.style.display = 'none';
     var oEl0 = document.getElementById('cv-motd-outer'); if (oEl0) oEl0.style.display = 'none';
     var nEl0 = document.getElementById('cv-nav-motd-btn'); if (nEl0) nEl0.style.display = 'none';
+    if (window._cvMotdTimer) { clearInterval(window._cvMotdTimer); window._cvMotdTimer = null; }
     return;
   }
   db.ref('motd').once('value').then(function(snap) {
-    // ✅ RACE FIX — ye fetch async hai; agar isi ke chalte hue admin ne
-    // MOTD OFF kar diya (flag change ho gaya), to yahan dobara check karo
-    // warna purani fetch complete hote hi section wapas show ho jata tha.
     if (window._cvMotdEnabled === false) {
       wrap.style.display = 'none';
       var oElX = document.getElementById('cv-motd-outer'); if (oElX) oElX.style.display = 'none';
@@ -6218,46 +6216,70 @@ function cvBuildMotd() {
     }
     var d = snap.val() || {};
     var today = new Date().toISOString().substring(0, 10);
-    var isManual = d.manualDate === today && d.manualKey;
-    var m = null;
-    if (isManual) {
-      m = allData.find(function(x) { return x._key === d.manualKey; });
+    var keys = [];
+    if (Array.isArray(d.manualKeys) && d.manualKeys.length && d.manualDate === today) {
+      keys = d.manualKeys.slice(0, 4);
+    } else if (d.manualDate === today && d.manualKey) {
+      keys = [d.manualKey];
     }
-    if (!m) {
-      var pool = allData.filter(function(x) { return !cvIsAdultItem(x) && (x.downloadCount || 0) > 0; });
-      pool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
-      m = pool[0];
+    var pool = [];
+    keys.forEach(function(k) {
+      var m = allData.find(function(x) { return x._key === k; });
+      if (m && !cvIsAdultItem(m)) pool.push(m);
+    });
+    if (!pool.length) {
+      var auto = allData.filter(function(x) { return !cvIsAdultItem(x) && (x.downloadCount || 0) > 0; });
+      auto.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
+      if (auto[0]) pool = [auto[0]];
     }
     var outerEl = document.getElementById('cv-motd-outer');
     var navBtnEl = document.getElementById('cv-nav-motd-btn');
-    if (!m) { wrap.style.display = 'none'; if (outerEl) outerEl.style.display = 'none'; if (navBtnEl) navBtnEl.style.display = 'none'; return; }
-
-    var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
-    var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(x); }).join(' · ');
-    var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
-    wrap.innerHTML =
-      '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
-        (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
-        '<div id="cv-motd-overlay"></div>' +
-        '<div id="cv-motd-content">' +
-          (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
-          '<div style="flex:1;min-width:0">' +
-            '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY</div>' +
-            '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
-            (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
+    if (!pool.length) {
+      wrap.style.display = 'none';
+      if (outerEl) outerEl.style.display = 'none';
+      if (navBtnEl) navBtnEl.style.display = 'none';
+      return;
+    }
+    function paint(m) {
+      if (!m) return;
+      var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
+      var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(x); }).join(' · ');
+      var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
+      wrap.innerHTML =
+        '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
+          (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
+          '<div id="cv-motd-overlay"></div>' +
+          '<div id="cv-motd-content">' +
+            (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
+            '<div style="flex:1;min-width:0">' +
+              '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY' + (pool.length > 1 ? ' · ' + pool.length + ' rotating' : '') + '</div>' +
+              '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
+              (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
+            '</div>' +
+            '<div id="cv-motd-btn">▶ Watch</div>' +
           '</div>' +
-          '<div id="cv-motd-btn">▶ Watch</div>' +
-        '</div>' +
-      '</a>';
+        '</a>';
+    }
+    paint(pool[0]);
     wrap.style.display = 'block';
     if (outerEl) outerEl.style.display = 'block';
     if (navBtnEl) navBtnEl.style.display = 'flex';
+    if (window._cvMotdTimer) { clearInterval(window._cvMotdTimer); window._cvMotdTimer = null; }
+    if (pool.length > 1) {
+      var rotSec = (d.rotateSec && d.rotateSec >= 5) ? d.rotateSec : 10;
+      var idxM = 0;
+      window._cvMotdTimer = setInterval(function() {
+        idxM = (idxM + 1) % pool.length;
+        paint(pool[idxM]);
+      }, rotSec * 1000);
+    }
   }).catch(function() {
     wrap.style.display = 'none';
     var oEl = document.getElementById('cv-motd-outer'); if (oEl) oEl.style.display = 'none';
     var nEl = document.getElementById('cv-nav-motd-btn'); if (nEl) nEl.style.display = 'none';
   });
 }
+
 
 function cvScrollToMotd() {
   var el = document.getElementById('cv-motd-outer');
