@@ -36,13 +36,35 @@
 <script id='cv-jsonld-movie' type='application/ld+json'></script>
 <script id='cv-jsonld-breadcrumb' type='application/ld+json'></script>
 
-<!-- Google Analytics -->
+<!-- Google Analytics GA4 -->
 <script async='async' src='https://www.googletagmanager.com/gtag/js?id=G-N67Y5B8T2Z'></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-N67Y5B8T2Z');
+  gtag('config', 'G-N67Y5B8T2Z', {
+    send_page_view: true,
+    anonymize_ip: false,
+    cookie_flags: 'SameSite=None;Secure',
+    page_title: document.title,
+    page_location: location.href
+  });
+  // Explicit page_view — kuch browsers pe config alone miss ho jata hai
+  gtag('event', 'page_view', {
+    page_title: document.title,
+    page_location: location.href,
+    page_path: location.pathname + location.search
+  });
+  // Modal / SPA-style opens ke liye helper
+  window.cvGaPage = function(path, title) {
+    try {
+      gtag('event', 'page_view', {
+        page_title: title || document.title,
+        page_location: location.origin + (path || location.pathname),
+        page_path: path || (location.pathname + location.search)
+      });
+    } catch (e) {}
+  };
 </script>
 
 <!-- SITEMAP for Google -->
@@ -7319,6 +7341,14 @@ function showError(msg) {
 function openModal(key) {
   var m = allData.find(function(x) { return x._key === key; });
   if (!m) return;
+  try {
+    if (typeof cvGaPage === 'function') {
+      var slug = m.seoSlug || (m.title || key);
+      cvGaPage('/movie/' + slug, m.title || 'Movie');
+    } else if (typeof gtag === 'function') {
+      gtag('event', 'select_content', { content_type: 'movie', item_id: key });
+    }
+  } catch (e) {}
 
   // Adult movie ko direct slug/link se bhi kabhi bina verification ke mat
   // kholo — sirf grid se hide karna kaafi nahi (koi seedha URL guess/share
