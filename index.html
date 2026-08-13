@@ -8295,17 +8295,40 @@ if (_cvDlPopupEl) _cvDlPopupEl.onclick = function(e) {
 //    Sabhi devices (mobile/tablet/desktop) par khud offsetHeight se
 //    kaam karta hai, isliye har screen size par sahi rehta hai. ──
 function cvScrollToCatSection() {
-  var grid = document.getElementById('cv-grid');
-  if (!grid) return;
-  var nav = document.getElementById('cv-nav');
-  var cats = document.getElementById('cv-cats');
-  var offset = (nav ? nav.offsetHeight : 0) + (cats ? cats.offsetHeight : 0);
-  // Prefer scroll to category pills row so user sees filter + first posts
-  var anchor = cats || grid;
-  var top = anchor.getBoundingClientRect().top + window.pageYOffset - (nav ? nav.offsetHeight : 0) - 4;
-  // Mobile: instant (smooth kabhi-kabhi adhura ruk jata hai)
-  var smooth = !(window.matchMedia && window.matchMedia('(max-width:700px)').matches);
-  window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
+  try {
+    var grid = document.getElementById('cv-grid') || document.getElementById('cv-movies') || document.querySelector('.cv-grid');
+    if (!grid) return;
+    var nav = document.getElementById('cv-nav');
+    var cats = document.getElementById('cv-cats');
+    // Sticky header heights — grid iske neeche chipak ke dikhe
+    var offset = 10;
+    if (nav) offset += nav.offsetHeight || 0;
+    if (cats) {
+      var cs = window.getComputedStyle(cats);
+      if (cs.position === 'sticky' || cs.position === 'fixed' || cats.getBoundingClientRect().top < 120) {
+        offset += cats.offsetHeight || 0;
+      }
+    }
+    var rect = grid.getBoundingClientRect();
+    var top = rect.top + window.pageYOffset - offset;
+    if (top < 0) top = 0;
+    // Always instant — smooth mobile/desktop dono pe unreliable tha
+    window.scrollTo(0, top);
+    // Layout shift (featured hide) ke baad ek baar aur
+    setTimeout(function() {
+      var g2 = document.getElementById('cv-grid');
+      if (!g2) return;
+      var off2 = 10;
+      var n2 = document.getElementById('cv-nav');
+      var c2 = document.getElementById('cv-cats');
+      if (n2) off2 += n2.offsetHeight || 0;
+      if (c2) off2 += c2.offsetHeight || 0;
+      var t2 = g2.getBoundingClientRect().top + window.pageYOffset - off2;
+      if (Math.abs((window.pageYOffset || 0) - Math.max(0, t2)) > 40) {
+        window.scrollTo(0, Math.max(0, t2));
+      }
+    }, 120);
+  } catch (e) {}
 }
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
   pill.addEventListener('click', function() {
@@ -8333,10 +8356,11 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
 
     renderGrid();
     cvUpdateCategorySEO(cat, isGenre);
-    // Category posts samne laao — grid tak smooth scroll
-    requestAnimationFrame(function() {
-      requestAnimationFrame(cvScrollToCatSection);
-    });
+    try { updateSlidersVisibility(isGenre ? 'genre' : cat); } catch (e) {}
+    // Force posts into view (double rAF + timeout inside fn)
+    cvScrollToCatSection();
+    setTimeout(cvScrollToCatSection, 50);
+    setTimeout(cvScrollToCatSection, 200);
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
