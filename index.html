@@ -8300,8 +8300,12 @@ function cvScrollToCatSection() {
   var nav = document.getElementById('cv-nav');
   var cats = document.getElementById('cv-cats');
   var offset = (nav ? nav.offsetHeight : 0) + (cats ? cats.offsetHeight : 0);
-  var top = grid.getBoundingClientRect().top + window.pageYOffset - offset - 6;
-  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  // Prefer scroll to category pills row so user sees filter + first posts
+  var anchor = cats || grid;
+  var top = anchor.getBoundingClientRect().top + window.pageYOffset - (nav ? nav.offsetHeight : 0) - 4;
+  // Mobile: instant (smooth kabhi-kabhi adhura ruk jata hai)
+  var smooth = !(window.matchMedia && window.matchMedia('(max-width:700px)').matches);
+  window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
 }
 document.querySelectorAll('.cv-pill').forEach(function(pill) {
   pill.addEventListener('click', function() {
@@ -8329,8 +8333,10 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
 
     renderGrid();
     cvUpdateCategorySEO(cat, isGenre);
-    // ANTI-BLINK: category switch pe auto-scroll band — jump/flash nahi hota
-    // requestAnimationFrame(cvScrollToCatSection);
+    // Category posts samne laao — grid tak smooth scroll
+    requestAnimationFrame(function() {
+      requestAnimationFrame(cvScrollToCatSection);
+    });
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
