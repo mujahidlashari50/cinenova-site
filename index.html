@@ -5052,12 +5052,16 @@ function fetchFirebasePage(isFirst, _retryCount) {
     }
 
     if('requestIdleCallback' in window){requestIdleCallback(function(){idbSaveAll(allData);});}else{setTimeout(function(){idbSaveAll(allData);},50);}
-    // SCROLL FIX: category bulk-load ke dauran har page pe grid mat banao — scroll atak jata hai
-    if (isFirst || !window._cvCatLoadInterval) {
-      renderGrid(isFirst);
+    // Category load: debounced render — posts dikhte rahein, scroll zyada na atke
+    if (isFirst) {
+      renderGrid(true);
+    } else if (window._cvCatLoadInterval || (selCat && selCat !== 'all') || selGenre) {
+      clearTimeout(window._cvCatRenderT);
+      window._cvCatRenderT = setTimeout(function() {
+        renderGrid(false);
+      }, 350);
     } else {
-      // sirf footer count soft update
-      try { if (typeof cvUpdateFooterStats === 'function') cvUpdateFooterStats(); } catch(e) {}
+      renderGrid(false);
     }
     showLoadingMore(false);
     if (!isFirst && cvPendingGoToPage) {
@@ -7140,7 +7144,7 @@ function cvBuildFilteredList() {
       if (!q) return true;
       return title.indexOf(q) > -1 || cvFuzzyTitleMatch(title, q);
     }
-    var catMatch = (selCat === 'all' ? true : cat === selCat);
+    var catMatch = (selCat === 'all' ? true : cat === selCat || cat.toLowerCase() === String(selCat||'').toLowerCase());
     if (!catMatch) return false;
     if (!q) return true;
     return title.indexOf(q) > -1 ||
@@ -7162,6 +7166,14 @@ function cvRenderPage() {
   if (!grid) return;
 
   if (!cvFilteredList.length) {
+    var stillLoading = (typeof allLoaded !== 'undefined' && !allLoaded && selCat !== 'watchlist');
+    if (stillLoading) {
+      grid.innerHTML = '<div class="cv-empty"><p>⏳</p><p>Loading movies...</p><small style="color:#7d7d7d">Please wait</small></div>';
+      cvRenderPagination(0);
+      // ensure background load is running
+      try { if (typeof _cvLoadAllForCategory === 'function' && selCat && selCat !== 'all') _cvLoadAllForCategory(); } catch(e) {}
+      return;
+    }
     grid.innerHTML = selCat === 'watchlist'
       ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
       : allData.length === 0
@@ -8424,7 +8436,16 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     updateSlidersVisibility(isGenre ? 'genre' : cat);
 
     // Auto-load remaining Firebase pages so category shows all movies
-    if (!allLoaded && cat !== 'all') {
+    if (!allLoaded && !isGenre && cat !== 'all') {
+      _cvLoadAllForCategory();
+      // posts aate hi dikhao (load complete ka wait mat karo)
+      var _tries = 0;
+      var _catPoll = setInterval(function() {
+        _tries++;
+        renderGrid(false);
+        if (allLoaded || _tries > 40) clearInterval(_catPoll);
+      }, 800);
+    } else if (!allLoaded && isGenre) {
       _cvLoadAllForCategory();
     }
     });
@@ -8450,8 +8471,10 @@ function _cvLoadAllForCategory() {
     } else if (!isLoadingMore) {
       showLoadingMore(true);
       fetchFirebasePage(false);
+      // har page ke baad category posts update
+      setTimeout(function(){ try { renderGrid(false); } catch(e){} }, 400);
     }
-  }, 1400);
+  }, 900);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
