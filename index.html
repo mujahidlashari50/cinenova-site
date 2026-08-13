@@ -94,7 +94,10 @@
 <link crossorigin='' href='https://fonts.gstatic.com' rel='preconnect'/>
 <link crossorigin='' href='https://fonts.googleapis.com' rel='preconnect'/>
 <link crossorigin='' href='https://image.tmdb.org' rel='preconnect'/>
-<link crossorigin='' href='https://cinenova-8987c-default-rtdb.firebaseio.com' rel='preconnect'/>
+<link crossorigin='' href='https://chsetbvabowidbyncock.supabase.co' rel='preconnect'/>
+<!-- SUPABASE CLIENT -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <link href='https://www.gstatic.com' rel='dns-prefetch'/>
 <link href='https://api.themoviedb.org' rel='dns-prefetch'/>
 <link href='https://wsrv.nl' rel='dns-prefetch'/>
@@ -108,7 +111,7 @@
 <link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/ media="print" onload="this.media='all'"><noscript><link as='style' href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' onload='this.rel=&apos;stylesheet&apos;' rel='preload'/></noscript>
 <noscript><link href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' rel='stylesheet'/ media="print" onload="this.media='all'"><noscript><link href='https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Outfit:wght@400;700;800&amp;display=swap' rel='stylesheet'/></noscript></noscript>
 
-<!-- Firebase loaded dynamically after page renders - non-blocking -->
+<!-- Supabase client loaded -->
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -4187,22 +4190,39 @@ function cvOpenInBrowser() {
 //<![CDATA[
 
 // ══════════════════════════════════
-// FIREBASE CONFIG (loaded dynamically - non-blocking)
+// SUPABASE CONFIG (replaces Firebase)
 // ══════════════════════════════════
-var firebaseConfig = {
-  apiKey: "AIzaSyACX5MktMm99R2ThEbfrtwrh5ZAzT5tCM0",
-  authDomain: "cinenova-8987c.firebaseapp.com",
-  databaseURL: "https://cinenova-8987c-default-rtdb.firebaseio.com",
-  projectId: "cinenova-8987c",
-  storageBucket: "cinenova-8987c.firebasestorage.app",
-  messagingSenderId: "387796185004",
-  appId: "1:387796185004:web:080b4544e1fb53a1cd9409",
-  measurementId: "G-N67Y5B8T2Z"
-};
+var SUPABASE_URL = 'https://chsetbvabowidbyncock.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_w0-cw6Vx5j5u_GVozoWDEg_SUGbtFBL';
+var supabaseClient = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch (e) { console.error('Supabase init error', e); }
 
-// db will be set after Firebase loads dynamically
-var db = null;
-var _cvFirebaseLoaded = false;
+// Compatibility shims so old Firebase code does not crash
+var firebaseConfig = {};
+var db = {
+  ref: function() {
+    return {
+      push: function() { return { then: function(fn){ if(fn) fn(); return { catch: function(){} }; }, catch: function(){} }; },
+      set: function() { return { then: function(fn){ if(fn) fn(); return { catch: function(){} }; }, catch: function(){} }; },
+      once: function() { return Promise.resolve({ val: function(){ return null; }, key: null }); },
+      on: function() {},
+      off: function() {},
+      orderByKey: function(){ return this; },
+      orderByChild: function(){ return this; },
+      equalTo: function(){ return this; },
+      limitToLast: function(){ return this; },
+      limitToFirst: function(){ return this; },
+      endAt: function(){ return this; },
+      startAt: function(){ return this; },
+      transaction: function(fn){ return Promise.resolve(); }
+    };
+  }
+};
+var _cvFirebaseLoaded = true;
 
 // ══════════════════════════════════
 // 🐞 ERROR LOGGING SYSTEM
@@ -4309,62 +4329,11 @@ setTimeout(function() {
   if (!window._cvFirebaseLoaded) cvShowLoadFailure();
 }, 12000);
 
-// Load Firebase scripts dynamically (non-render-blocking)
+// SUPABASE ready — no Firebase SDK needed
 (function() {
-  function _cvLoadScript(src, cb) {
-    var s = document.createElement('script');
-    s.src = src;
-    s.async = true;
-    s.onload = cb;
-    s.onerror = cb; // continue even if error
-    document.head.appendChild(s);
-  }
-  // International region fallback: try gstatic first, then jsDelivr CDN
-  var _fbCDN1 = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js';
-  var _fbCDN2 = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-app-compat.min.js';
-  function _cvLoadFirebaseWithFallback(url, fallback, cb) {
-    var done = false;
-    var s = document.createElement('script');
-    s.src = url;
-    s.async = false;
-    var timer = setTimeout(function() {
-      if (done) return;
-      done = true;
-      document.head.removeChild(s);
-      var s2 = document.createElement('script');
-      s2.src = fallback;
-      s2.async = false;
-      s2.onload = cb; s2.onerror = cb;
-      document.head.appendChild(s2);
-    }, 5000);
-    s.onload = function() { if (done) return; done = true; clearTimeout(timer); cb(); };
-    s.onerror = function() { if (done) return; done = true; clearTimeout(timer);
-      var s2 = document.createElement('script');
-      s2.src = fallback; s2.async = false;
-      s2.onload = cb; s2.onerror = cb;
-      document.head.appendChild(s2);
-    };
-    document.head.appendChild(s);
-  }
-  _cvLoadFirebaseWithFallback(_fbCDN1, _fbCDN2, function() {
-    try {
-      if (typeof firebase !== 'undefined' && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    } catch(e) {}
-    if (typeof firebase === 'undefined') { cvShowLoadFailure(); return; } // dono CDN fail — turant bata do
-    // Database SDK only — earning/auth system removed
-    _cvLoadFirebaseWithFallback('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.min.js', function() {
-      try {
-        if (typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
-          db = firebase.database();
-          _cvFirebaseLoaded = true;
-          cvFlushErrorQueue();
-          if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady();
-        } else {
-          cvShowLoadFailure();
-        }
-      } catch(e) { cvShowLoadFailure(); }
-    });
-  });
+  _cvFirebaseLoaded = true;
+  try { if (typeof cvFlushErrorQueue === 'function') cvFlushErrorQueue(); } catch(e) {}
+  try { if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady(); } catch(e) {}
 })();
 
 // ── STATUS (only show if not empty) ──
@@ -4903,162 +4872,101 @@ function loadMoviesFirstPage() {
   });
 }
 
-function fetchFirebasePage(isFirst, _retryCount) {
+function mapSupabaseMovie(m) {
+  return {
+    _key: m.firebase_key || String(m.id),
+    title: m.title,
+    description: m.description,
+    thumbnail: m.thumbnail,
+    category: m.category,
+    genre: m.genre,
+    year: m.year,
+    language: m.language,
+    quality: m.quality,
+    rating: m.rating,
+    trending: m.trending,
+    seoSlug: m.seo_slug,
+    seoTitle: m.seo_title,
+    seoDesc: m.seo_desc,
+    seoKeywords: m.seo_keywords,
+    download480p: m.download_480p,
+    download720p: m.download_720p,
+    download1080p: m.download_1080p,
+    download4k: m.download_4k,
+    size: m.size,
+    screenshots: m.screenshots,
+    videoSourceUrl: m.video_source_url,
+    sourcePageUrl: m.source_page_url,
+    views: m.views || 0,
+    downloadCount: m.download_count || 0,
+    addedAt: m.added_at || 0,
+    episodes: m.episodes || [],
+    links: m.download_links || {},
+    download1080p: m.download_1080p,
+    download720p: m.download_720p,
+    download480p: m.download_480p
+  };
+}
+
+var lastAddedAtCursor = null;
+
+async function fetchFirebasePage(isFirst, _retryCount) {
   if (isLoadingMore || (allLoaded && !isFirst)) return;
-  // PERF/CRASH FIX: agar Firebase abhi load hi nahi hui (slow/blocked
-  // network — bilkul wahi users jinke liye site "nahi chalti" thi), to
-  // db.ref() call karne se seedha crash ho jata tha (TypeError: Cannot
-  // read properties of null). Ab bas thodi der wait karke khud retry
-  // karta hai jab tak Firebase ready na ho jaye — koi crash nahi.
-  if (!db) {
+  if (!supabaseClient) {
     setTimeout(function() { fetchFirebasePage(isFirst, _retryCount); }, 400);
     return;
   }
   isLoadingMore = true;
   _retryCount = _retryCount || 0;
-
-  var query = db.ref('movies').orderByKey().limitToLast(PAGE_SIZE);
-  if (!isFirst && lastFirebaseKey) {
-    query = db.ref('movies').orderByKey().endAt(lastFirebaseKey).limitToLast(PAGE_SIZE + 1);
-  }
-
-  // Connection timeout — 10 seconds (pehle 6s tha, jo normal connections pe bhi
-  // bohat jaldi trigger ho jata tha). Ab pehli baar timeout hone par khud hi ek
-  // baar background mein retry karte hain — sirf dusri baar bhi fail ho to hi
-  // user ko manual "Reload" wala dead-end dikhate hain.
-  var fetchTimeout = null;
-  var didRespond = false;
-  if (isFirst) {
-    fetchTimeout = setTimeout(function() {
-      if (didRespond) return;
-      isLoadingMore = false;
-      var hasCachedContent = allData && allData.length > 0;
-      if (_retryCount < 1) {
-        // Cache se content pehle se dikh raha ho to grid ko touch hi mat karo —
-        // sirf background mein khamoshi se retry karo.
-        if (!hasCachedContent) {
-          var gridRetry = document.getElementById('cv-grid');
-          if (gridRetry) gridRetry.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Taking longer than usual, retrying...<br/><small style="color:#7d7d7d">Please wait a moment</small></p></div>';
-        }
-        fetchFirebasePage(true, _retryCount + 1);
-      } else if (!hasCachedContent) {
-        var grid = document.getElementById('cv-grid');
-        if (grid) grid.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Connection is slow<br/><small style="color:#7d7d7d">Check your internet connection — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
-      }
-    }, 18000);
-  }
-
-  query.once('value', function(snap) {
-    didRespond = true;
-    if (fetchTimeout) clearTimeout(fetchTimeout);
+  try {
+    var q = supabaseClient.from('movies').select('*').order('added_at', { ascending: false }).limit(PAGE_SIZE);
+    if (!isFirst && lastAddedAtCursor) {
+      q = q.lt('added_at', lastAddedAtCursor);
+    }
+    var res = await q;
     isLoadingMore = false;
-    showLoadingMore(false);
-    if (!snap.exists()) {
-      allLoaded = true;
-      if (isFirst && allData.length === 0) {
-        document.getElementById('cv-grid').innerHTML =
-          '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>';
+    if (res.error) {
+      console.error(res.error);
+      if (isFirst && (!allData || !allData.length)) {
+        var g = document.getElementById('cv-grid');
+        if (g) g.innerHTML = '<div class="cv-empty"><p>❌</p><p>Load error<br/><small style="color:#7d7d7d">' + (res.error.message||'') + '</small></p></div>';
       }
       return;
     }
-
-    var newItems = [];
-    snap.forEach(function(child) {
-      var item = child.val();
-      item._key = child.key;
-      newItems.push(item);
-    });
-
-    if (!isFirst && newItems.length > 0) {
-      // Remove the overlapping key (endAt includes it)
-      newItems = newItems.filter(function(m) { return m._key !== lastFirebaseKey; });
-    }
-
-    if (newItems.length < PAGE_SIZE) {
+    var data = res.data || [];
+    if (!data.length) {
       allLoaded = true;
+      if (isFirst && (!allData || !allData.length)) {
+        var g2 = document.getElementById('cv-grid');
+        if (g2) g2.innerHTML = '<div class="cv-empty"><p>🎬</p><p>No movies found</p></div>';
+      }
+      return;
     }
-
-    if (newItems.length > 0) {
-      lastFirebaseKey = newItems[0]._key; // Oldest key for next page
-      newItems.reverse(); // Newest first
-    }
-
+    var newItems = data.map(mapSupabaseMovie);
     if (isFirst) {
-      // ANTI-BLINK: agar cache pehle se same data dikha raha hai to grid mat todo
-      var _sameAsCache = false;
-      try {
-        if (allData && allData.length && newItems && newItems.length === allData.length) {
-          _sameAsCache = true;
-          for (var _si = 0; _si < Math.min(12, newItems.length); _si++) {
-            if (!newItems[_si] || !allData[_si] || newItems[_si]._key !== allData[_si]._key) {
-              _sameAsCache = false; break;
-            }
-          }
-        }
-      } catch (_se) { _sameAsCache = false; }
       allData = newItems;
-      idbClear();
     } else {
-      // Append, dedupe
-      var existingKeys = {};
-      allData.forEach(function(m) { existingKeys[m._key] = true; });
-      newItems.forEach(function(m) {
-        if (!existingKeys[m._key]) allData.push(m);
-      });
+      var seen = {};
+      allData.forEach(function(x){ seen[x._key]=true; });
+      newItems.forEach(function(x){ if(!seen[x._key]) allData.push(x); });
     }
-
-    if('requestIdleCallback' in window){requestIdleCallback(function(){idbSaveAll(allData);});}else{setTimeout(function(){idbSaveAll(allData);},50);}
-    // Category load: debounced render — posts dikhte rahein, scroll zyada na atke
-    if (isFirst) {
-      renderGrid(true);
-    } else if (window._cvCatLoadInterval || (selCat && selCat !== 'all') || selGenre) {
-      clearTimeout(window._cvCatRenderT);
-      window._cvCatRenderT = setTimeout(function() {
-        renderGrid(false);
-      }, 350);
-    } else {
-      renderGrid(false);
+    lastAddedAtCursor = newItems[newItems.length-1].addedAt;
+    if (newItems.length < PAGE_SIZE) allLoaded = true;
+    try { if (typeof idbSaveAll === 'function') idbSaveAll(allData); } catch(e){}
+    if (typeof renderGrid === 'function') renderGrid();
+    if (typeof buildTrending === 'function') buildTrending();
+    if (typeof buildTsSlider === 'function') buildTsSlider();
+    if (typeof buildFeatured === 'function') buildFeatured();
+    if (typeof showStatus === 'function') showStatus('', '');
+    if (isFirst && typeof watchNewMovies === 'function') watchNewMovies();
+    if (isFirst && window._cvUrlRestorePending) {
+      window._cvUrlRestorePending = false;
+      if (typeof cvRestoreFromUrl === 'function') cvRestoreFromUrl();
     }
-    showLoadingMore(false);
-    if (!isFirst && cvPendingGoToPage) {
-      var _cvTargetPage = cvPendingGoToPage;
-      cvPendingGoToPage = null;
-      cvGoPage(_cvTargetPage);
-    }
-    if (isFirst) {
-      buildTrending();
-      buildTsSlider();
-      buildFeatured();
-      /* buildNsHero removed */
-      buildNsLatest();
-      // Attach realtime watchers now that allData is populated from Firebase
-      watchNewMovies();
-      // URL restore — shared link pe movie/category open karo
-      if (window._cvUrlRestorePending) {
-        window._cvUrlRestorePending = false;
-        cvRestoreFromUrl();
-      }
-    }
-
-  }, function(err) {
-    didRespond = true;
-    if (fetchTimeout) clearTimeout(fetchTimeout);
+  } catch (err) {
     isLoadingMore = false;
-    showLoadingMore(false);
-    if (isFirst) {
-      // Auto retry once after 3 seconds
-      setTimeout(function() {
-        isLoadingMore = false;
-        fetchFirebasePage(true, _retryCount + 1);
-      }, 3000);
-      if (!allData || allData.length === 0) {
-        var gridErr = document.getElementById('cv-grid');
-        if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#7d7d7d">' + (err.message||'Firebase error') + '</small></p></div>';
-      }
-    } else {
-      showStatus('❌ Load error: ' + err.message, '#e50914');
-    }
-  });
+    console.error(err);
+  }
 }
 
 // Realtime listeners — no delay, catch all changes instantly
@@ -5081,6 +4989,25 @@ function _cvDebouncedRefresh() {
 }
 
 function watchNewMovies() {
+  if (_cvWatchersAttached) return;
+  _cvWatchersAttached = true;
+  // Supabase realtime (optional)
+  try {
+    if (supabaseClient) {
+      supabaseClient.channel('movies-ch')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'movies' }, function(payload) {
+          try {
+            var item = mapSupabaseMovie(payload.new);
+            if (!allData.some(function(m){ return m._key === item._key; })) {
+              allData.unshift(item);
+              if (typeof _cvDebouncedRefresh === 'function') _cvDebouncedRefresh();
+            }
+          } catch(e) {}
+        })
+        .subscribe();
+    }
+  } catch(e) {}
+  return; // skip old Firebase watchers
   if (_cvWatchersAttached) return;
   _cvWatchersAttached = true;
 
@@ -6356,36 +6283,26 @@ var _cvTrendingFetched = false;
 var _cvTrendingFetchBusy = false;
 
 function _cvFetchAllTrending() {
-  if (!db || _cvTrendingFetchBusy) return;
-  // Agar pehle se 15+ local trending hain to query skip (kaafi hain)
+  if (!supabaseClient || _cvTrendingFetchBusy) return;
   if (_cvTrendingFetched && trendingItems && trendingItems.length >= 15) return;
   _cvTrendingFetchBusy = true;
-  try {
-    db.ref('movies').orderByChild('trending').equalTo(true).limitToLast(60).once('value', function(snap) {
+  supabaseClient.from('movies').select('*').eq('trending', true).order('added_at', { ascending: false }).limit(60)
+    .then(function(res) {
       _cvTrendingFetchBusy = false;
       _cvTrendingFetched = true;
-      if (!snap.exists()) return;
+      if (res.error || !res.data) return;
       var map = {};
       (trendingItems || []).forEach(function(m){ if(m && m._key) map[m._key]=m; });
-      snap.forEach(function(ch) {
-        var m = ch.val() || {};
-        m._key = ch.key;
+      res.data.forEach(function(row) {
+        var m = mapSupabaseMovie(row);
         if (cvIsAdultItem(m)) return;
         map[m._key] = m;
       });
       var list = Object.keys(map).map(function(k){ return map[k]; });
       list.sort(function(a,b){ return (b.addedAt||0)-(a.addedAt||0); });
-      // Max 40 cards — slider heavy na ho
       trendingItems = list.slice(0, 40);
       _cvRenderTrendingTrack();
-    }, function(err) {
-      _cvTrendingFetchBusy = false;
-      // Index missing / permission — silent fallback to local allData filter
-      try { console.warn('trending query', err && err.message); } catch(e) {}
-    });
-  } catch (e) {
-    _cvTrendingFetchBusy = false;
-  }
+    }).catch(function(){ _cvTrendingFetchBusy = false; });
 }
 
 function _cvRenderTrendingTrack() {
