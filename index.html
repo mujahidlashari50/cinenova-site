@@ -3805,7 +3805,8 @@ function cvOpenInBrowser() {
 <!-- NAVIGATION -->
 <nav id='cv-nav'>
   <a href='/' id='cv-logo' style='display:flex;align-items:center;text-decoration:none'>
-    <svg alt='CineNova' aria-label='CineNova' role='img' style='height:44px;width:auto;display:block' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
+    <img id='cv-logo-img' alt='CineNova' style='height:44px;width:auto;display:none;object-fit:contain;transition:opacity 0.4s ease;' src=''/>
+    <svg id='cv-logo-svg-fallback' alt='CineNova' aria-label='CineNova' role='img' style='height:44px;width:auto;display:block' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
       <defs>
         <linearGradient id='cnCircHd' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
         <radialGradient cx='32%' cy='24%' id='cnShineHd' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
@@ -10606,6 +10607,100 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
       }
     });
   }, {passive:true});
+})();
+//]]>
+</script>
+
+<!-- ══ LOGO AUTO-ROTATE (from Admin Logo Manager) ══ -->
+<script>
+//<![CDATA[
+(function(){
+  var _cvLogoList = [];
+  var _cvLogoIdx = 0;
+  var _cvLogoTimer = null;
+  var ROTATE_MS = 12000;
+
+  function cvApplyLogo(url) {
+    if (!url) return;
+    var img = document.getElementById('cv-logo-img');
+    var fallback = document.getElementById('cv-logo-svg-fallback');
+    if (img) {
+      img.style.opacity = '0';
+      setTimeout(function(){
+        img.onload = function(){
+          img.style.display = 'block';
+          img.style.opacity = '1';
+          if (fallback) fallback.style.display = 'none';
+        };
+        img.onerror = function(){
+          img.style.display = 'none';
+          if (fallback) fallback.style.display = 'block';
+        };
+        img.src = url;
+      }, 200);
+    }
+    var feat = document.getElementById('cv-featured-logo-actions');
+    if (feat) { feat.src = url; feat.style.display = 'block'; }
+    var feat2 = document.getElementById('cv-featured-logo-img');
+    if (feat2) feat2.src = url;
+  }
+
+  function cvLogoNext() {
+    if (!_cvLogoList.length) return;
+    _cvLogoIdx = (_cvLogoIdx + 1) % _cvLogoList.length;
+    cvApplyLogo(_cvLogoList[_cvLogoIdx]);
+  }
+
+  function cvStartLogoRotate(list) {
+    _cvLogoList = (list || []).filter(function(u){ return u && typeof u === 'string' && u.length > 5; });
+    if (!_cvLogoList.length) {
+      var img = document.getElementById('cv-logo-img');
+      var fallback = document.getElementById('cv-logo-svg-fallback');
+      if (img) img.style.display = 'none';
+      if (fallback) fallback.style.display = 'block';
+      return;
+    }
+    _cvLogoIdx = 0;
+    cvApplyLogo(_cvLogoList[0]);
+    clearInterval(_cvLogoTimer);
+    if (_cvLogoList.length > 1) {
+      _cvLogoTimer = setInterval(function(){
+        if (document.hidden) return;
+        cvLogoNext();
+      }, ROTATE_MS);
+    }
+  }
+
+  function cvLoadSiteLogos() {
+    function tryDb() {
+      if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
+        db.ref('settings/siteLogos').once('value', function(snap) {
+          var val = snap.val();
+          var urls = [];
+          if (val && Array.isArray(val)) {
+            val.forEach(function(l) {
+              if (l && l.enabled !== false && l.url) urls.push(l.url);
+            });
+          }
+          cvStartLogoRotate(urls);
+        });
+        return true;
+      }
+      return false;
+    }
+    if (tryDb()) return;
+    var tries = 0;
+    var t = setInterval(function() {
+      tries++;
+      if (tryDb() || tries > 40) clearInterval(t);
+    }, 500);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(cvLoadSiteLogos, 1200); });
+  } else {
+    setTimeout(cvLoadSiteLogos, 1200);
+  }
 })();
 //]]>
 </script>
