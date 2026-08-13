@@ -242,6 +242,30 @@ body{text-rendering:optimizeSpeed}
 }
 #cv-nav::after{display:none}
 #cv-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+#cv-logo img.cv-logo-rotating,
+#cv-logo #cv-logo-img{
+  height:36px !important;
+  width:auto !important;
+  max-width:150px !important;
+  object-fit:contain !important;
+  object-position:left center !important;
+}
+@media(min-width:769px){
+  #cv-logo img.cv-logo-rotating,
+  #cv-logo #cv-logo-img{
+    height:48px !important;
+    max-width:220px !important;
+  }
+  #cv-logo #cv-logo-svg-fallback{height:48px !important;}
+}
+@media(max-width:480px){
+  #cv-logo img.cv-logo-rotating,
+  #cv-logo #cv-logo-img{
+    height:32px !important;
+    max-width:130px !important;
+  }
+  #cv-logo #cv-logo-svg-fallback{height:32px !important;}
+}
 #cv-logo span{
   font-family:'Arial Black',Impact,Arial,sans-serif;font-size:1.7rem;letter-spacing:3px;font-weight:900;
   color:#e50914;
@@ -3805,8 +3829,8 @@ function cvOpenInBrowser() {
 <!-- NAVIGATION -->
 <nav id='cv-nav'>
   <a href='/' id='cv-logo' style='display:flex;align-items:center;text-decoration:none'>
-    <img id='cv-logo-img' alt='CineNova' style='height:44px;width:auto;display:none;object-fit:contain;transition:opacity 0.4s ease;' src=''/>
-    <svg id='cv-logo-svg-fallback' alt='CineNova' aria-label='CineNova' role='img' style='height:44px;width:auto;display:block' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
+    <img id='cv-logo-img' alt='CineNova' class='cv-logo-rotating' style='height:36px;width:auto;max-width:150px;display:none;object-fit:contain;object-position:left center;transition:opacity 0.4s ease;' src=''/>
+    <svg id='cv-logo-svg-fallback' alt='CineNova' aria-label='CineNova' role='img' style='height:36px;width:auto;display:block' viewBox='0 0 300 70' xmlns='http://www.w3.org/2000/svg'>
       <defs>
         <linearGradient id='cnCircHd' x1='0%' x2='100%' y1='0%' y2='100%'><stop offset='0%' stop-color='#ff4d40'/><stop offset='50%' stop-color='#e50914'/><stop offset='100%' stop-color='#6e0309'/></linearGradient>
         <radialGradient cx='32%' cy='24%' id='cnShineHd' r='65%'><stop offset='0%' stop-color='#ffffff' stop-opacity='0.65'/><stop offset='35%' stop-color='#ffffff' stop-opacity='0.1'/><stop offset='100%' stop-color='#ffffff' stop-opacity='0'/></radialGradient>
@@ -10672,6 +10696,14 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   }
 
   function cvLoadSiteLogos() {
+    // Built-in SVG logos (same quality as original site logo)
+    var _defaults = [
+      "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%2070%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g1%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff4d40%22/%3E%3Cstop%20offset%3D%2250%25%22%20stop-color%3D%22%23e50914%22/%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%236e0309%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id%3D%22s1%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fff%22/%3E%3Cstop%20offset%3D%2240%25%22%20stop-color%3D%22%23aaa%22/%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23fff%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id%3D%22r1%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff6b6b%22/%3E%3Cstop%20offset%3D%2250%25%22%20stop-color%3D%22%23e50914%22/%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%236e0309%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2236%22%20r%3D%2230%22%20fill%3D%22%234a0307%22/%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2233%22%20r%3D%2230%22%20fill%3D%22url%28%23g1%29%22/%3E%3Cpath%20d%3D%22M24%2019%20L24%2047%20L48%2033%20Z%22%20fill%3D%22%23fff%22/%3E%3Ctext%20x%3D%2275%22%20y%3D%2247%22%20font-family%3D%22Arial%20Black%2CImpact%2Csans-serif%22%20font-size%3D%2239%22%20font-weight%3D%22900%22%3E%3Ctspan%20fill%3D%22url%28%23s1%29%22%3ECine%3C/tspan%3E%3Ctspan%20fill%3D%22url%28%23r1%29%22%3ENova%3C/tspan%3E%3C/text%3E%3Crect%20x%3D%2275%22%20y%3D%2254%22%20width%3D%22168%22%20height%3D%223%22%20rx%3D%221.5%22%20fill%3D%22url%28%23r1%29%22/%3E%3C/svg%3E",
+      "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%2070%22%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2235%22%20r%3D%2228%22%20fill%3D%22%23e50914%22/%3E%3Cpath%20d%3D%22M25%2022%20L25%2048%20L47%2035%20Z%22%20fill%3D%22%23fff%22/%3E%3Ctext%20x%3D%2275%22%20y%3D%2248%22%20font-family%3D%22Arial%20Black%2CImpact%2Csans-serif%22%20font-size%3D%2240%22%20font-weight%3D%22900%22%3E%3Ctspan%20fill%3D%22%23ffffff%22%3ECine%3C/tspan%3E%3Ctspan%20fill%3D%22%23e50914%22%3ENova%3C/tspan%3E%3C/text%3E%3C/svg%3E",
+      "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%2070%22%3E%3Cdefs%3E%3Cfilter%20id%3D%22n%22%3E%3CfeGaussianBlur%20stdDeviation%3D%221.5%22%20result%3D%22b%22/%3E%3CfeMerge%3E%3CfeMergeNode%20in%3D%22b%22/%3E%3CfeMergeNode%20in%3D%22SourceGraphic%22/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2235%22%20r%3D%2226%22%20fill%3D%22none%22%20stroke%3D%22%23e50914%22%20stroke-width%3D%223%22%20filter%3D%22url%28%23n%29%22/%3E%3Cpath%20d%3D%22M25%2022%20L25%2048%20L47%2035%20Z%22%20fill%3D%22%23fff%22%20filter%3D%22url%28%23n%29%22/%3E%3Ctext%20x%3D%2275%22%20y%3D%2248%22%20font-family%3D%22Arial%20Black%2CImpact%2Csans-serif%22%20font-size%3D%2238%22%20font-weight%3D%22900%22%20filter%3D%22url%28%23n%29%22%3E%3Ctspan%20fill%3D%22%23ffffff%22%3ECine%3C/tspan%3E%3Ctspan%20fill%3D%22%23ff2d2d%22%3ENova%3C/tspan%3E%3C/text%3E%3C/svg%3E",
+      "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20320%2070%22%3E%3Ccircle%20cx%3D%2235%22%20cy%3D%2235%22%20r%3D%2228%22%20fill%3D%22%232a2a2a%22%20stroke%3D%22%23888%22%20stroke-width%3D%223%22/%3E%3Ccircle%20cx%3D%2235%22%20cy%3D%2235%22%20r%3D%2210%22%20fill%3D%22%23e50914%22/%3E%3Cpath%20d%3D%22M31%2028%20L31%2042%20L42%2035%20Z%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2218%22%20r%3D%224%22%20fill%3D%22%23555%22/%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2218%22%20r%3D%224%22%20fill%3D%22%23555%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2252%22%20r%3D%224%22%20fill%3D%22%23555%22/%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2252%22%20r%3D%224%22%20fill%3D%22%23555%22/%3E%3Ctext%20x%3D%2278%22%20y%3D%2248%22%20font-family%3D%22Arial%20Black%2CImpact%2Csans-serif%22%20font-size%3D%2238%22%20font-weight%3D%22900%22%3E%3Ctspan%20fill%3D%22%23ddd%22%3ECine%3C/tspan%3E%3Ctspan%20fill%3D%22%23e50914%22%3ENova%3C/tspan%3E%3C/text%3E%3C/svg%3E",
+      "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%2070%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g5%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff6b5a%22/%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%239a0008%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id%3D%22s5%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fff%22/%3E%3Cstop%20offset%3D%2250%25%22%20stop-color%3D%22%23999%22/%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23eee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2233%22%20r%3D%2230%22%20fill%3D%22url%28%23g5%29%22/%3E%3Cpath%20d%3D%22M24%2019%20L24%2047%20L48%2033%20Z%22%20fill%3D%22%23fff%22/%3E%3Ctext%20x%3D%2275%22%20y%3D%2247%22%20font-family%3D%22Arial%20Black%2CImpact%2Csans-serif%22%20font-size%3D%2240%22%20font-weight%3D%22900%22%20letter-spacing%3D%22-1%22%3E%3Ctspan%20fill%3D%22url%28%23s5%29%22%3ECine%3C/tspan%3E%3Ctspan%20fill%3D%22%23e50914%22%3ENova%3C/tspan%3E%3C/text%3E%3C/svg%3E"
+    ];
     function tryDb() {
       if (typeof db !== 'undefined' && db && typeof db.ref === 'function') {
         db.ref('settings/siteLogos').once('value', function(snap) {
@@ -10682,8 +10714,8 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
               if (l && l.enabled !== false && l.url) urls.push(l.url);
             });
           }
-          cvStartLogoRotate(urls);
-        });
+          cvStartLogoRotate(urls.length ? urls : _defaults);
+        }, function(){ cvStartLogoRotate(_defaults); });
         return true;
       }
       return false;
@@ -10692,7 +10724,10 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
     var tries = 0;
     var t = setInterval(function() {
       tries++;
-      if (tryDb() || tries > 40) clearInterval(t);
+      if (tryDb() || tries > 40) {
+        clearInterval(t);
+        if (tries > 40) cvStartLogoRotate(_defaults);
+      }
     }, 500);
   }
 
