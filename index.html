@@ -353,59 +353,6 @@ body{text-rendering:optimizeSpeed}
   .cv-ns-p2-cap{font-size:0.68rem;padding:10px 10px 12px}
 }
 
-/* ══ JUST UPLOADED STRIP (below hero) ══ */
-#cv-ns-latest-wrap{
-  position:relative;padding:24px 4% 14px;background:#141414;
-  border-bottom:1px solid rgba(255,255,255,0.05);
-}
-#cv-ns-latest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-#cv-ns-latest-title{font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:0.2px}
-#cv-ns-latest-track-wrap{
-  overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;
-  padding:16px 0 14px;margin:-16px 0 -14px;
-}
-#cv-ns-latest-track-wrap::-webkit-scrollbar{height:5px}
-#cv-ns-latest-track{display:flex;gap:16px;padding:0 2px}
-.cv-ns-lcard{
-  display:block;color:inherit;text-decoration:none;
-  flex-shrink:0;width:140px;position:relative;cursor:pointer;
-  transition:transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
-}
-@media(hover:hover){
-  .cv-ns-lcard:hover,.cv-ns-lcard:focus-visible{transform:scale(1.16) translateY(-8px);z-index:20}
-}
-.cv-ns-lcard:active{transform:scale(0.96)}
-.cv-ns-lcard-img-wrap{
-  position:relative;border-radius:10px;overflow:hidden;aspect-ratio:2/3;
-  background:#1a1a1a;box-shadow:0 6px 18px rgba(0,0,0,0.4);
-  border:1px solid rgba(255,255,255,0.06);transition:box-shadow 0.32s,border-color 0.32s;
-}
-.cv-ns-lcard:hover .cv-ns-lcard-img-wrap{box-shadow:0 20px 44px rgba(0,0,0,0.7);border-color:var(--red)}
-.cv-ns-lcard-img{width:100%;height:100%;object-fit:cover;display:block}
-.cv-ns-lcard-new{
-  position:absolute;top:7px;left:7px;z-index:2;
-  background:linear-gradient(135deg,#e50914,#ff4500);color:#fff;
-  font-size:0.58rem;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;
-  padding:3px 8px;border-radius:5px;box-shadow:0 2px 10px rgba(229,9,20,0.5);
-}
-.cv-ns-lcard-title{
-  margin-top:8px;font-size:0.76rem;font-weight:700;color:#ccc;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 0.3s;
-}
-.cv-ns-lcard:hover .cv-ns-lcard-title{color:#fff}
-.cv-ns-lskel{
-  flex-shrink:0;width:140px;aspect-ratio:2/3;border-radius:10px;
-  background:linear-gradient(90deg,#1a1a1a 25%,#242424 37%,#1a1a1a 63%);
-  background-size:400% 100%;animation:cv-skel-shine 1.4s ease infinite;
-}
-@media(max-width:600px){
-  #cv-ns-latest-wrap{padding:20px 16px 12px}
-  #cv-ns-latest-title{font-size:1rem}
-  .cv-ns-lcard,.cv-ns-lskel{width:108px}
-  .cv-ns-lcard-title{font-size:0.7rem}
-  .cv-ns-lcard-new{font-size:0.52rem;padding:2px 6px}
-}
-
 /* ══ UPCOMING MOVIES HERO SLIDER ══ */
 #cv-upcoming-wrap{
   position:absolute;inset:0;z-index:5;
@@ -3398,7 +3345,7 @@ body{
 }
 
 /* ── SECTION TITLES — ember accent bar, no more plain grey line ── */
-.cv-section-title,.tmdb-section-title,#cv-ns-hero-title,#cv-ns-latest-title{
+.cv-section-title,.tmdb-section-title,#cv-ns-hero-title{
   letter-spacing:0.3px;
 }
 .cv-section-title{position:relative;padding-left:12px}
@@ -3786,19 +3733,7 @@ function cvOpenInBrowser() {
     <div class='cv-ns-skel'></div>
   </div>
 </div>
-
-<!-- ══ JUST UPLOADED STRIP (below new hero) ══ -->
-<div id='cv-ns-latest-wrap'>
-  <div id='cv-ns-latest-header'>
-    <div id='cv-ns-latest-title'>Just Uploaded</div>
-  </div>
-  <div id='cv-ns-latest-track-wrap'>
-    <div id='cv-ns-latest-track'>
-      <div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div><div class='cv-ns-lskel'></div>
-    </div>
-  </div>
-</div>
-<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';document.getElementById('cv-ns-latest-wrap').style.display='none';}}catch(e){}})();</script>
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';}}catch(e){}})();</script>
 
 <!-- MOVIE OF THE DAY -->
 <div id='cv-motd-outer' style='display:none'>
@@ -4187,7 +4122,6 @@ function cvShowLoadFailure() {
     if (uhSkel && uhSkel.parentElement) uhSkel.parentElement.innerHTML = '<div style="padding:16px;color:#777;font-size:0.8rem;text-align:center;width:100%">Load nahi hua — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></div>';
   } catch(e) {}
   try { var nsHero = document.getElementById('cv-ns-hero'); if (nsHero) nsHero.style.display = 'none'; } catch(e) {}
-  try { var latestWrap = document.getElementById('cv-ns-latest-wrap'); if (latestWrap) latestWrap.style.display = 'none'; } catch(e) {}
   try { var featuredWrap = document.getElementById('cv-featured-wrap'); if (featuredWrap) featuredWrap.style.display = 'none'; } catch(e) {}
 }
 setTimeout(function() {
@@ -4873,7 +4807,6 @@ function fetchFirebasePage(isFirst, _retryCount) {
       buildTsSlider();
       buildFeatured();
       buildNsHero();
-      buildNsLatest();
       // Attach realtime watchers now that allData is populated from Firebase
       watchNewMovies();
       // URL restore — shared link pe movie/category open karo
@@ -4925,7 +4858,6 @@ function _cvDebouncedRefresh() {
     buildTsSlider();
     buildFeatured();
     buildNsHero();
-    buildNsLatest();
   }, 300);
 }
 
@@ -5609,36 +5541,6 @@ function _cvNsRotate() {
   }, 380);
 }
 
-// ══ JUST UPLOADED STRIP — newest movies, NEW badge, hover-to-front ══
-function buildNsLatest() {
-  var track = document.getElementById('cv-ns-latest-track');
-  var wrap = document.getElementById('cv-ns-latest-wrap');
-  if (!track) return;
-  var picks = [];
-  for (var i = 0; i < allData.length && picks.length < 16; i++) {
-    var m = allData[i];
-    if (m && m.thumbnail && !cvIsAdultItem(m)) picks.push(m);
-  }
-  if (!picks.length) { if (wrap) wrap.style.display = 'none'; return; }
-  if (wrap) wrap.style.display = '';
-
-  var html = '';
-  for (var j = 0; j < picks.length; j++) {
-    var mv = picks[j];
-    var key = mv._key;
-    var thumb = cvThumb(mv.thumbnail);
-    var slug = mv.seoSlug || cvSlug(mv.title) || encodeURIComponent(key);
-    html += '<a class="cv-ns-lcard" href="/movie/' + escHtml(slug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(&quot;' + escJs(key) + '&quot;)" tabindex="0">' +
-              '<div class="cv-ns-lcard-img-wrap">' +
-                '<img alt="' + escHtml(mv.title || 'Movie') + '" class="cv-ns-lcard-img" loading="lazy" src="' + escHtml(thumb) + '"/>' +
-                '<span class="cv-ns-lcard-new">New</span>' +
-              '</div>' +
-              '<div class="cv-ns-lcard-title">' + escHtml(mv.title || 'Untitled') + '</div>' +
-            '</a>';
-  }
-  track.innerHTML = html;
-}
-
 function buildFeatured() {
   var wrap = document.getElementById('cv-featured-wrap');
   if (!wrap) return;
@@ -5913,13 +5815,11 @@ function updateSlidersVisibility(cat) {
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
   var nsHero = document.getElementById('cv-ns-hero');
-  var nsLatest = document.getElementById('cv-ns-latest-wrap');
 
   if (isHome) {
     // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-    if (nsLatest) nsLatest.style.display = '';
     if (featuredWrap) {
       // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
       // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
@@ -5932,7 +5832,6 @@ function updateSlidersVisibility(cat) {
     // Category pe sirf grid — sab hide
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
-    if (nsLatest) nsLatest.style.display = 'none';
     if (featuredWrap) {
       if (featuredWrap._adminEnabled === undefined) featuredWrap._adminEnabled = featuredWrap.style.display !== 'none';
       featuredWrap.style.display = 'none';
@@ -6484,7 +6383,7 @@ function cvRestorePageFromUrl() {
 // PAGINATION STATE
 // ══════════════════════════════════
 var cvCurrentPage = 1;
-var CV_PAGE_SIZE = 24;
+var CV_PAGE_SIZE = 36;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
@@ -7027,20 +6926,17 @@ function cvGoPage(page, fromPopstate) {
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
   var nsHero = document.getElementById('cv-ns-hero');
-  var nsLatest = document.getElementById('cv-ns-latest-wrap');
   if (page === 1) {
     // Sirf home (all) category pe show karo
     if (selCat === 'all' && selGenre === '') {
       if (trailersWrap) trailersWrap.style.display = '';
       if (featuredWrap) featuredWrap.style.display = (featuredWrap._adminEnabled !== false) ? 'block' : 'none';
       if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
-      if (nsLatest) nsLatest.style.display = '';
     }
   } else {
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (featuredWrap) featuredWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
-    if (nsLatest) nsLatest.style.display = 'none';
   }
 
   cvRenderPage();
