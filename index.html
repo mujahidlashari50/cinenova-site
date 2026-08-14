@@ -4210,6 +4210,14 @@ var allData = [];
 var selCat = 'all';
 var selGenre = ''; // genre filter: '' means no genre filter
 var searchQ = '';
+// EMPTY-STATE FLASH FIX: Firebase se pehla response aane se pehle agar
+// koi category/genre select ho jaye (jaise direct ?cat=xyz URL open karne
+// par), to allData abhi khaali hoti hai — pehle isse "No movies found /
+// Add data in Firebase" wala galat error dikh jata tha 2-3 second ke liye,
+// phir data aate hi sahi movies show hoti thin. Ab jab tak pehla Firebase
+// response nahi aata (ya category ki saari pages load nahi ho jatin),
+// error ki jagah skeleton (loading) dikhega.
+var cvFirstResponseReceived = false;
 
 // ══════════════════════════════════
 // ADULT 18+ AGE-GATE
@@ -4752,11 +4760,14 @@ function fetchFirebasePage(isFirst, _retryCount) {
     if (fetchTimeout) clearTimeout(fetchTimeout);
     isLoadingMore = false;
     showLoadingMore(false);
+    if (isFirst) cvFirstResponseReceived = true; // ab pata chal gaya DB mein kya hai
     if (!snap.exists()) {
       allLoaded = true;
       if (isFirst && allData.length === 0) {
         document.getElementById('cv-grid').innerHTML =
           '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>';
+      } else {
+        renderGrid(false); // category select thi lekin DB mein aur kuch nahi bacha — ab sahi "no results" dikhao
       }
       return;
     }
@@ -6333,6 +6344,7 @@ function cvRestoreFromUrl() {
       if (allPill) allPill.classList.add('active');
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
+      if (!allLoaded) _cvLoadAllForCategory();
       cvRestorePageFromUrl();
       window._cvRestoringFromUrl = false;
       return;
@@ -6743,6 +6755,23 @@ function cvRenderPage(silent) {
   if (!grid) return;
 
   if (!cvFilteredList.length) {
+    // EMPTY-STATE FLASH FIX: category/genre select hote hi agar Firebase
+    // data abhi poora load nahi hua (pehla response nahi aaya, ya is
+    // category ki baaki pages abhi load ho rahi hain), to galat "No movies
+    // found" error dikhane ke bajaye skeleton dikhao — jaise hi data aata
+    // hai, renderGrid() khud dobara call hota hai aur sahi movies dikh
+    // jati hain. Sirf watchlist (My List) is se exempt hai kyunke wo
+    // Firebase pagination pe depend nahi karti.
+    var cvIsFiltering = (selCat !== 'all' && selCat !== 'watchlist') || selGenre !== '';
+    var cvStillLoading = selCat !== 'watchlist' &&
+      (!cvFirstResponseReceived || (cvIsFiltering && !allLoaded));
+    if (cvStillLoading) {
+      grid.innerHTML =
+        "<div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>".repeat(8);
+      grid._cvCardMap = null; grid._cvLastKeys = null;
+      cvRenderPagination(0);
+      return;
+    }
     grid.innerHTML = selCat === 'watchlist'
       ? '<div class="cv-empty"><p>🔖</p><p>Your List is empty<br/><small style="color:#7d7d7d">Open any movie and tap the 🔖 icon to add it here</small></p></div>'
       : allData.length === 0
