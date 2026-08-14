@@ -4915,7 +4915,12 @@ function _cvDebouncedRefresh() {
     // Re-sort by addedAt before saving/rendering
     allData.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
     idbSaveAll(allData);
-    renderGrid(false);
+    // ✅ ANTI-BLINK FIX: 'true' = silent. Ye ek BACKGROUND data refresh hai
+    // (koi movie add/edit/delete hui kahin aur), user ne khud kuch click
+    // nahi kiya — isliye na to page scroll hona chahiye, na hi poora grid
+    // force-rebuild hona chahiye agar current page ki movies waise ki waise
+    // hain (cvRenderPage/cvPatchCard khud ye decide kar lenge).
+    renderGrid(false, true);
     buildTrending();
     buildTsSlider();
     buildFeatured();
@@ -6483,10 +6488,10 @@ var CV_PAGE_SIZE = 24;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
-function renderGrid(resetPage) {
+function renderGrid(resetPage, silent) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
-  cvRenderPage();
+  cvRenderPage(silent);
   cvUpdateFooterStats();
 }
 
@@ -6834,7 +6839,7 @@ function cvBuildFilteredList() {
   }
 }
 
-function cvRenderPage() {
+function cvRenderPage(silent) {
   var grid = document.getElementById('cv-grid');
   if (!grid) return;
 
@@ -6844,6 +6849,7 @@ function cvRenderPage() {
       : allData.length === 0
       ? '<div class="cv-empty"><p>🎬</p><p>No movies found<br/><small style="color:#7d7d7d">Add data in Firebase or check your connection</small></p></div>'
       : '<div class="cv-empty"><p>🔍</p><p>No results found</p></div>';
+    grid._cvCardMap = null; grid._cvLastKeys = null;
     cvRenderPagination(0);
     return;
   }
@@ -6854,22 +6860,80 @@ function cvRenderPage() {
 
   var start = (cvCurrentPage - 1) * CV_PAGE_SIZE;
   var pageItems = cvFilteredList.slice(start, start + CV_PAGE_SIZE);
+  var newKeys = pageItems.map(function(m) { return m._key; });
+
+  // ✅ ANTI-BLINK FIX: agar is page par ABHI bhi wahi movies hain, usi order
+  // mein, jo pehle se render hain (matlab sirf koi background Firebase
+  // refresh trigger hui, koi asal navigation nahi) — to poora grid dobara
+  // mat banao. Pehle har refresh par SAARI cards + SAARI images se-scratch
+  // reload hoti thi (grid.innerHTML='' + rebuild), jo screen par visible
+  // "flash/blink jaisa refresh" bana raha tha. Ab sirf jo field(s) actually
+  // badli hain (title/thumbnail/rating/meta) wahi in-place patch hoti hain,
+  // baaki DOM bilkul chhua tak nahi jata — koi image reload, koi flash nahi.
+  if (grid._cvLastKeys && grid._cvLastKeys.length === newKeys.length &&
+      grid._cvLastKeys.every(function(k, i) { return k === newKeys[i]; })) {
+    for (var i = 0; i < pageItems.length; i++) {
+      var existingCard = grid._cvCardMap && grid._cvCardMap[pageItems[i]._key];
+      if (existingCard) cvPatchCard(existingCard, pageItems[i]);
+    }
+    cvRenderPagination(totalPages);
+    return;
+  }
 
   var frag = document.createDocumentFragment();
+  var cardMap = {};
   for (var i = 0; i < pageItems.length; i++) {
-    frag.appendChild(makeCard(pageItems[i]));
+    var card = makeCard(pageItems[i]);
+    cardMap[pageItems[i]._key] = card;
+    frag.appendChild(card);
   }
   grid.innerHTML = '';
   grid.appendChild(frag);
+  grid._cvCardMap = cardMap;
+  grid._cvLastKeys = newKeys;
 
-  // Page top pe scroll karo (smoothly)
-  var catsEl = document.getElementById('cv-cats');
-  var scrollTarget = catsEl ? catsEl.getBoundingClientRect().top + window.pageYOffset - 4 : 0;
-  if (cvCurrentPage > 1) {
-    window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+  // Page top pe scroll karo (smoothly) — ✅ ANTI-BLINK FIX: sirf tab jab ye
+  // asal user pagination click ho (silent !== true). Pehle ye HAR render
+  // call par chalta tha — matlab agar user page 2/3 browse kar raha ho aur
+  // background mein koi Firebase update aa jaye, to user ko bina click kiye
+  // hi upar scroll kar diya jata tha, jo "refresh ho gaya" jaisa mehsoos
+  // hota tha.
+  if (!silent) {
+    var catsEl = document.getElementById('cv-cats');
+    var scrollTarget = catsEl ? catsEl.getBoundingClientRect().top + window.pageYOffset - 4 : 0;
+    if (cvCurrentPage > 1) {
+      window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+    }
   }
 
   cvRenderPagination(totalPages);
+}
+
+// Grid card ko poora dobara banaye bina uske fields ko in-place update karta
+// hai — sirf jo actually badla hai wahi DOM touch hota hai, image src bhi
+// sirf tab set hoti hai jab waqai badli ho (warna browser use dobara load
+// nahi karega, koi flash nahi).
+function cvPatchCard(card, m) {
+  try {
+    var titleEl = card.querySelector('.cv-card-title');
+    var newTitle = m.title || 'Untitled';
+    if (titleEl && titleEl.textContent !== newTitle) titleEl.textContent = newTitle;
+
+    var metaEl = card.querySelector('.cv-card-meta');
+    var newMeta = (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '');
+    if (metaEl && metaEl.textContent !== newMeta) metaEl.textContent = newMeta;
+
+    var imgEl = card.querySelector('.cv-card-img');
+    if (imgEl) {
+      var newThumb = cvThumb(m.thumbnail || '');
+      if (newThumb && imgEl.getAttribute('src') !== newThumb) imgEl.setAttribute('src', newThumb);
+    }
+
+    var badgeEl = card.querySelector('.cv-badge');
+    if (m.rating && badgeEl && badgeEl.textContent !== '⭐ ' + m.rating) {
+      badgeEl.textContent = '⭐ ' + m.rating;
+    }
+  } catch (e) {}
 }
 
 function cvRenderPagination(totalPages) {
