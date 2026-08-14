@@ -4348,7 +4348,7 @@ function cvAdultGoogleVerify() {
       selCat = 'adult'; selGenre = '';
       renderGrid();
       updateSlidersVisibility('adult');
-      if (!allLoaded) _cvLoadAllForCategory();
+      cvLoadCategoryData('adult', false);
       try { history.replaceState(null, '', location.pathname + '?cat=adult'); } catch (e) {}
 
       if (typeof _cvAdultGateOnSuccess === 'function') {
@@ -4628,6 +4628,62 @@ var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase r
 var lastFirebaseKey = null; // Firebase pagination cursor
 var allLoaded = false;      // All loaded?
 var isLoadingMore = false;  // Loading in progress?
+
+// ══════════════════════════════════
+// CATEGORY/GENRE INDEXED QUERY — direct Firebase query by category/genre
+// (orderByChild+equalTo) taake poora dataset download kiye bina, seedha
+// us category ki movies mil jayein. NOTE: Firebase console mein Realtime
+// Database > Rules mein ye index add karna zaroori hai warna slow warning
+// aayegi bade dataset par:
+//   "movies": { ".indexOn": ["category", "genre"] }
+// ══════════════════════════════════
+var cvCategoryCache = {}; // { "category:hollywood": [...], "genre:action": [...] }
+
+function cvFetchByIndex(field, value, cb) {
+  var cacheKey = field + ':' + value;
+  if (cvCategoryCache[cacheKey]) { cb(cvCategoryCache[cacheKey]); return; }
+  if (!db) { setTimeout(function() { cvFetchByIndex(field, value, cb); }, 400); return; }
+  db.ref('movies').orderByChild(field).equalTo(value).once('value', function(snap) {
+    var items = [];
+    if (snap.exists()) {
+      snap.forEach(function(child) {
+        var item = child.val();
+        item._key = child.key;
+        items.push(item);
+      });
+      items.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    }
+    cvCategoryCache[cacheKey] = items;
+    cb(items);
+  }, function() {
+    // Index missing ya query fail ho gayi — purane (poora dataset load
+    // karne wale) tareeqe pe khamoshi se fallback kar do, taake site kabhi
+    // na tootay chahe Firebase Rules mein index add kiya ho ya nahi.
+    cb(null);
+  });
+}
+
+// Category ya genre select hote hi direct indexed query se sirf uske
+// movies mangwao — is se allData mein turant merge ho jaate hain aur
+// user ko poora dataset load hone ka wait nahi karna padta.
+function cvLoadCategoryData(val, isGenre) {
+  if (!val || val === 'all') return;
+  var field = isGenre ? 'genre' : 'category';
+  cvFetchByIndex(field, val, function(items) {
+    if (items === null) {
+      _cvLoadAllForCategory(); // fallback — purana tareeqa
+      return;
+    }
+    var existingKeys = {};
+    allData.forEach(function(m) { existingKeys[m._key] = true; });
+    var added = false;
+    items.forEach(function(m) {
+      if (!existingKeys[m._key]) { allData.push(m); added = true; }
+    });
+    cvFirstResponseReceived = true;
+    if (added || !cvFilteredList.length) renderGrid(false);
+  });
+}
 
 // IndexedDB helpers
 var _idbInstance = null;
@@ -6344,7 +6400,7 @@ function cvRestoreFromUrl() {
       if (allPill) allPill.classList.add('active');
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
-      if (!allLoaded) _cvLoadAllForCategory();
+      cvLoadCategoryData(decoded, true);
       cvRestorePageFromUrl();
       window._cvRestoringFromUrl = false;
       return;
@@ -6362,7 +6418,7 @@ function cvRestoreFromUrl() {
       if (targetPill) targetPill.classList.add('active');
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
-      if (!allLoaded) _cvLoadAllForCategory();
+      cvLoadCategoryData(decoded, false);
     } else {
       // ✅ FIX — koi cat/genre param nahi hai, matlab ye Home hai (ya category
       // se back button dabake wapis Home aaye hain). Featured banner/trailers
@@ -6763,8 +6819,10 @@ function cvRenderPage(silent) {
     // jati hain. Sirf watchlist (My List) is se exempt hai kyunke wo
     // Firebase pagination pe depend nahi karti.
     var cvIsFiltering = (selCat !== 'all' && selCat !== 'watchlist') || selGenre !== '';
+    var cvCatKey = selGenre !== '' ? ('genre:' + selGenre) : (cvIsFiltering ? ('category:' + selCat) : null);
+    var cvCatCacheReady = !cvCatKey || !!cvCategoryCache[cvCatKey];
     var cvStillLoading = selCat !== 'watchlist' &&
-      (!cvFirstResponseReceived || (cvIsFiltering && !allLoaded));
+      (!cvFirstResponseReceived || (cvIsFiltering && !cvCatCacheReady && !allLoaded));
     if (cvStillLoading) {
       grid.innerHTML =
         "<div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>".repeat(8);
@@ -7955,9 +8013,10 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
     // Slider and TMDB — show only on Home (all)
     updateSlidersVisibility(isGenre ? 'genre' : cat);
 
-    // Auto-load remaining Firebase pages so category shows all movies
-    if (!allLoaded && cat !== 'all') {
-      _cvLoadAllForCategory();
+    // Category/genre ki movies seedha indexed query se mangwao — poora
+    // dataset download karne ka wait nahi karna padta.
+    if (cat !== 'all') {
+      cvLoadCategoryData(cat, isGenre);
     }
     });
 });
