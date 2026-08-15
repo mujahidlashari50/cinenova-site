@@ -3980,12 +3980,22 @@ function cvOpenInBrowser() {
     <div id='cv-mylist-modal-title'>My List</div>
     <p id='cv-mylist-modal-desc'>Save movies and series to your list. Sign in with Google to sync your list across devices &#8212; or use it on this device without signing in.</p>
 
-    <button id='cv-mylist-modal-google-btn' onclick='cvMyListModalSignIn()'>
-      <svg height='18' viewBox='0 0 18 18' width='18'><path d='M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.86 2.7-6.62z' fill='#4285F4'/><path d='M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z' fill='#34A853'/><path d='M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l2.99-2.33z' fill='#FBBC05'/><path d='M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z' fill='#EA4335'/></svg>
-      <span id='cv-mylist-modal-btn-label'>Sign in with Google</span>
-    </button>
-    <div id='cv-mylist-modal-error'></div>
-    <div id='cv-mylist-modal-skip' onclick='cvMyListModalContinueGuest()'>Continue without signing in &#8594;</div>
+    <!-- Guest / Sign-in panel -->
+    <div id='cv-mylist-guest-panel'>
+      <button id='cv-mylist-modal-google-btn' onclick='cvMyListModalSignIn()'>
+        <svg height='18' viewBox='0 0 18 18' width='18'><path d='M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.86 2.7-6.62z' fill='#4285F4'/><path d='M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z' fill='#34A853'/><path d='M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l2.99-2.33z' fill='#FBBC05'/><path d='M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z' fill='#EA4335'/></svg>
+        <span id='cv-mylist-modal-btn-label'>Sign in with Google</span>
+      </button>
+      <div id='cv-mylist-modal-error'></div>
+      <div id='cv-mylist-modal-skip' onclick='cvMyListModalContinueGuest()'>Continue without signing in &#8594;</div>
+    </div>
+
+    <!-- Signed-in account panel (logout yahan se) -->
+    <div id='cv-mylist-account-panel' style='display:none'>
+      <div id='cv-mylist-account-email' style='font-size:0.82rem;color:#93c5fd;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);border-radius:10px;padding:10px 12px;margin-bottom:14px;word-break:break-all'></div>
+      <button id='cv-mylist-view-btn' onclick='closeMyListModal();cvGoToWatchlistTab()' style='width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#3b82f6;border:none;border-radius:10px;padding:13px;font-size:0.88rem;font-weight:700;color:#fff;cursor:pointer;margin-bottom:10px'>🔖 View My List</button>
+      <button id='cv-mylist-logout-btn' onclick='cvMyListModalLogout()' style='width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);border-radius:10px;padding:13px;font-size:0.88rem;font-weight:700;color:#f87171;cursor:pointer'>Sign out</button>
+    </div>
   </div>
 </div>
 
@@ -6634,6 +6644,11 @@ function cvWatchlistSignOut() {
   window._cvSyncEmail = '';
   try { localStorage.removeItem('cv_sync_uid'); localStorage.removeItem('cv_sync_email'); } catch (e) {}
   cvUpdateSyncUI();
+  // Header icon title update (optional visual cue)
+  try {
+    var hdr = document.getElementById('cv-header-mylist-btn');
+    if (hdr) hdr.title = 'My List';
+  } catch (e) {}
 }
 
 // ══ MY LIST HEADER POPUP — adult gate se bilkul alag flow ══
@@ -6643,19 +6658,37 @@ function cvGoToWatchlistTab() {
 }
 
 function cvMyListHeaderClick() {
-  if (window._cvSyncUid) {
-    // Pehle se signed in — seedha List pe le jao, popup dikhane ki zaroorat nahi
-    cvGoToWatchlistTab();
-    return;
-  }
-  var savedUid = null;
-  try { savedUid = localStorage.getItem('cv_sync_uid'); } catch (e) {}
-  if (savedUid) {
-    // Session restore ho raha hoga (auto-sync) — thoda wait karke List pe le jao
-    cvGoToWatchlistTab();
-    return;
-  }
+  // Hamesha modal kholo — signed-in ho to account+logout, warna sign-in options
   openMyListModal();
+}
+
+function cvRefreshMyListModalUI() {
+  var guest = document.getElementById('cv-mylist-guest-panel');
+  var account = document.getElementById('cv-mylist-account-panel');
+  var title = document.getElementById('cv-mylist-modal-title');
+  var desc = document.getElementById('cv-mylist-modal-desc');
+  var icon = document.getElementById('cv-mylist-modal-icon');
+  var emailEl = document.getElementById('cv-mylist-account-email');
+  var signedIn = !!window._cvSyncUid;
+  if (!signedIn) {
+    try { signedIn = !!localStorage.getItem('cv_sync_uid'); } catch (e) {}
+  }
+  if (signedIn) {
+    if (guest) guest.style.display = 'none';
+    if (account) account.style.display = 'block';
+    if (title) title.textContent = 'Account';
+    if (desc) desc.textContent = 'You are signed in. Your My List syncs across devices.';
+    if (icon) icon.textContent = '👤';
+    var email = window._cvSyncEmail || '';
+    try { if (!email) email = localStorage.getItem('cv_sync_email') || ''; } catch (e) {}
+    if (emailEl) emailEl.textContent = email ? ('Signed in as ' + email) : 'Signed in with Google';
+  } else {
+    if (guest) guest.style.display = 'block';
+    if (account) account.style.display = 'none';
+    if (title) title.textContent = 'My List';
+    if (desc) desc.textContent = 'Save movies and series to your list. Sign in with Google to sync your list across devices — or use it on this device without signing in.';
+    if (icon) icon.textContent = '🔖';
+  }
 }
 
 function openMyListModal() {
@@ -6663,8 +6696,20 @@ function openMyListModal() {
   if (!modal) return;
   var errEl = document.getElementById('cv-mylist-modal-error');
   if (errEl) errEl.textContent = '';
+  cvRefreshMyListModalUI();
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function cvMyListModalLogout() {
+  cvWatchlistSignOut();
+  cvRefreshMyListModalUI();
+  // Modal band kar do after short feedback
+  try {
+    var emailEl = document.getElementById('cv-mylist-account-email');
+    if (emailEl) emailEl.textContent = 'Signed out';
+  } catch (e) {}
+  setTimeout(function() { closeMyListModal(); }, 400);
 }
 
 function closeMyListModal() {
