@@ -5400,66 +5400,164 @@ function cvTsSetupDrag(track, cardStep) {
 // MOVIE OF THE DAY — Firebase 'motd' node se manual override check karta hai,
 // warna sabse zyada downloads wali (non-adult) movie khud pick ho jati hai.
 // ══════════════════════════════════
+// MOVIE OF THE DAY — supports admin manualKeys (up to 4) + live updates
+// + fetch movie by key if not yet in allData (fixes "change nahi ho raha")
+var _cvMotdRotateTimer = null;
+var _cvMotdListenBound = false;
+var _cvMotdKeys = [];
+var _cvMotdIdx = 0;
+var _cvMotdCache = {}; // key -> movie object
+
+function cvMotdHide() {
+  var wrap = document.getElementById('cv-motd-wrap');
+  if (wrap) wrap.style.display = 'none';
+  var oEl = document.getElementById('cv-motd-outer'); if (oEl) oEl.style.display = 'none';
+  var nEl = document.getElementById('cv-nav-motd-btn'); if (nEl) nEl.style.display = 'none';
+  if (_cvMotdRotateTimer) { clearInterval(_cvMotdRotateTimer); _cvMotdRotateTimer = null; }
+}
+
+function cvMotdFindLocal(key) {
+  if (!key) return null;
+  if (_cvMotdCache[key]) return _cvMotdCache[key];
+  if (typeof allData !== 'undefined' && allData && allData.length) {
+    var m = allData.find(function(x) { return x._key === key; });
+    if (m) { _cvMotdCache[key] = m; return m; }
+  }
+  return null;
+}
+
+function cvMotdFetchKey(key, cb) {
+  var local = cvMotdFindLocal(key);
+  if (local) { cb(local); return; }
+  if (!db || !key) { cb(null); return; }
+  db.ref('movies/' + key).once('value').then(function(snap) {
+    if (!snap.exists()) { cb(null); return; }
+    var m = snap.val() || {};
+    m._key = key;
+    _cvMotdCache[key] = m;
+    // merge into allData so modal/open works
+    try {
+      if (typeof allData !== 'undefined') {
+        var exists = allData.some(function(x) { return x._key === key; });
+        if (!exists) allData.push(m);
+      }
+    } catch (e) {}
+    cb(m);
+  }).catch(function() { cb(null); });
+}
+
+function cvMotdRenderMovie(m) {
+  var wrap = document.getElementById('cv-motd-wrap');
+  if (!wrap || !m) return;
+  var outerEl = document.getElementById('cv-motd-outer');
+  var navBtnEl = document.getElementById('cv-nav-motd-btn');
+  var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
+  var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(String(x)); }).join(' · ');
+  var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
+  wrap.innerHTML =
+    '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
+      (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
+      '<div id="cv-motd-overlay"></div>' +
+      '<div id="cv-motd-content">' +
+        (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
+        '<div style="flex:1;min-width:0">' +
+          '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY</div>' +
+          '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
+          (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
+        '</div>' +
+        '<div id="cv-motd-btn">▶ Watch</div>' +
+      '</div>' +
+    '</a>';
+  wrap.style.display = 'block';
+  if (outerEl) outerEl.style.display = 'block';
+  if (navBtnEl) navBtnEl.style.display = 'flex';
+}
+
+function cvMotdShowKeys(keys, rotateSec) {
+  if (_cvMotdRotateTimer) { clearInterval(_cvMotdRotateTimer); _cvMotdRotateTimer = null; }
+  _cvMotdKeys = keys || [];
+  _cvMotdIdx = 0;
+  if (!_cvMotdKeys.length) { cvMotdHide(); return; }
+
+  function showAt(i) {
+    var key = _cvMotdKeys[i];
+    cvMotdFetchKey(key, function(m) {
+      if (!m) {
+        // skip missing key
+        if (_cvMotdKeys.length > 1) {
+          _cvMotdIdx = (_cvMotdIdx + 1) % _cvMotdKeys.length;
+          if (_cvMotdIdx !== i) showAt(_cvMotdIdx);
+          else cvMotdHide();
+        } else {
+          cvMotdHide();
+        }
+        return;
+      }
+      cvMotdRenderMovie(m);
+    });
+  }
+
+  showAt(0);
+  var sec = parseInt(rotateSec, 10) || 10;
+  if (sec < 5) sec = 5;
+  if (_cvMotdKeys.length > 1) {
+    _cvMotdRotateTimer = setInterval(function() {
+      if (document.hidden) return;
+      _cvMotdIdx = (_cvMotdIdx + 1) % _cvMotdKeys.length;
+      showAt(_cvMotdIdx);
+    }, sec * 1000);
+  }
+}
+
+function cvMotdAutoPickAndShow() {
+  var pool = (allData || []).filter(function(x) { return !cvIsAdultItem(x) && (x.downloadCount || 0) > 0; });
+  pool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
+  if (pool[0]) cvMotdRenderMovie(pool[0]);
+  else cvMotdHide();
+}
+
 function cvBuildMotd() {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !db) return;
   if (window._cvMotdEnabled === false) {
-    wrap.style.display = 'none';
-    var oEl0 = document.getElementById('cv-motd-outer'); if (oEl0) oEl0.style.display = 'none';
-    var nEl0 = document.getElementById('cv-nav-motd-btn'); if (nEl0) nEl0.style.display = 'none';
+    cvMotdHide();
     return;
   }
-  db.ref('motd').once('value').then(function(snap) {
-    // ✅ RACE FIX — ye fetch async hai; agar isi ke chalte hue admin ne
-    // MOTD OFF kar diya (flag change ho gaya), to yahan dobara check karo
-    // warna purani fetch complete hote hi section wapas show ho jata tha.
-    if (window._cvMotdEnabled === false) {
-      wrap.style.display = 'none';
-      var oElX = document.getElementById('cv-motd-outer'); if (oElX) oElX.style.display = 'none';
-      var nElX = document.getElementById('cv-nav-motd-btn'); if (nElX) nElX.style.display = 'none';
-      return;
-    }
+
+  function applySnap(snap) {
+    if (window._cvMotdEnabled === false) { cvMotdHide(); return; }
     var d = snap.val() || {};
     var today = new Date().toISOString().substring(0, 10);
-    var isManual = d.manualDate === today && d.manualKey;
-    var m = null;
+    var keys = [];
+    if (Array.isArray(d.manualKeys) && d.manualKeys.length) {
+      keys = d.manualKeys.filter(Boolean);
+    } else if (d.manualKey) {
+      keys = [d.manualKey];
+    }
+    // Manual only valid for today's date (admin sets manualDate)
+    var isManual = keys.length > 0 && d.manualDate === today;
     if (isManual) {
-      m = allData.find(function(x) { return x._key === d.manualKey; });
+      cvMotdShowKeys(keys, d.rotateSec || 10);
+      return;
     }
-    if (!m) {
-      var pool = allData.filter(function(x) { return !cvIsAdultItem(x) && (x.downloadCount || 0) > 0; });
-      pool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
-      m = pool[0];
-    }
-    var outerEl = document.getElementById('cv-motd-outer');
-    var navBtnEl = document.getElementById('cv-nav-motd-btn');
-    if (!m) { wrap.style.display = 'none'; if (outerEl) outerEl.style.display = 'none'; if (navBtnEl) navBtnEl.style.display = 'none'; return; }
+    // Automatic: top downloads
+    cvMotdAutoPickAndShow();
+  }
 
-    var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
-    var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(x); }).join(' · ');
-    var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
-    wrap.innerHTML =
-      '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
-        (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
-        '<div id="cv-motd-overlay"></div>' +
-        '<div id="cv-motd-content">' +
-          (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
-          '<div style="flex:1;min-width:0">' +
-            '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY</div>' +
-            '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
-            (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
-          '</div>' +
-          '<div id="cv-motd-btn">▶ Watch</div>' +
-        '</div>' +
-      '</a>';
-    wrap.style.display = 'block';
-    if (outerEl) outerEl.style.display = 'block';
-    if (navBtnEl) navBtnEl.style.display = 'flex';
-  }).catch(function() {
-    wrap.style.display = 'none';
-    var oEl = document.getElementById('cv-motd-outer'); if (oEl) oEl.style.display = 'none';
-    var nEl = document.getElementById('cv-nav-motd-btn'); if (nEl) nEl.style.display = 'none';
-  });
+  // Live listener — admin change turant website pe reflect
+  if (!_cvMotdListenBound) {
+    _cvMotdListenBound = true;
+    db.ref('motd').on('value', function(snap) {
+      applySnap(snap);
+    }, function() {
+      cvMotdAutoPickAndShow();
+    });
+  } else {
+    // already listening — one-shot refresh for initial paint
+    db.ref('motd').once('value').then(applySnap).catch(function() {
+      cvMotdAutoPickAndShow();
+    });
+  }
 }
 
 function cvScrollToMotd() {
