@@ -160,7 +160,6 @@ body{text-rendering:optimizeSpeed}
   /* Disable box-shadow pulse animations on mobile */
   .cv-tr-play{animation:none!important}
   .cv-trailers-live{animation:none!important}
-  .cv-maint-icon{animation:none!important}
 }
 /* Touch active state for cards instead of hover */
 @media(hover:none){
@@ -1416,19 +1415,6 @@ body{text-rendering:optimizeSpeed}
 /* ══ NOTICE BAR ══ */
 
 @keyframes noticepulse{0%,100%{opacity:1}50%{opacity:0.75}}
-
-/* ══ MAINTENANCE MODE ══ */
-#cv-maintenance-screen{
-  display:none;position:fixed;inset:0;z-index:99999;
-  background:linear-gradient(135deg,#0a0a0a 0%,#1a0000 100%);
-  flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:24px;
-}
-#cv-maintenance-screen.active{display:flex;}
-.cv-maint-icon{font-size:4rem;margin-bottom:20px;animation:noticepulse 2s infinite;}
-.cv-maint-title{font-family:'Bebas Neue',cursive;font-size:2.4rem;letter-spacing:2px;color:#e50914;margin-bottom:12px;}
-.cv-maint-msg{font-size:1rem;color:#b3b3b3;max-width:480px;line-height:1.6;margin-bottom:20px;}
-.cv-maint-time{background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.3);border-radius:8px;padding:10px 20px;color:#e5e5e5;font-size:0.88rem;}
 
 /* ══ ANNOUNCEMENT BAR — APP UPDATE NOTICE UPGRADE ══ */
 /* ══ FB/IG IN-APP BROWSER BANNER ══ */
@@ -3310,14 +3296,6 @@ function cvOpenInBrowser() {
 }
 </script>
 
-<!-- &#9552;&#9552; MAINTENANCE SCREEN &#9552;&#9552; -->
-<div id='cv-maintenance-screen'>
-  <div class='cv-maint-icon'>🔧</div>
-  <div class='cv-maint-title'>Under Maintenance</div>
-  <div class='cv-maint-msg' id='cv-maint-msg'>We are performing scheduled maintenance. We&#39;ll be back shortly!</div>
-  <div class='cv-maint-time' id='cv-maint-time' style='display:none'></div>
-</div>
-
 <!-- &#9552;&#9552; ANNOUNCEMENT BAR &#9552;&#9552; -->
 <div id='cv-ann-bar'>
   <div id='cv-ann-icon'>📢</div>
@@ -4263,41 +4241,12 @@ function cvWatchPushUpdates() {
   db.ref('pushUpdates').on('value', function(snap) {
     var d = snap.val() || {};
 
-    // 1. MAINTENANCE MODE
-    cvHandleMaintenance(d.maintenance || {});
-
-    // 2. ANNOUNCEMENT BAR
+    // 1. ANNOUNCEMENT BAR
     cvHandleAnnouncement(d.announcement || {});
 
     // 3. NEW CONTENT POPUP
     cvHandleNewContent(d.newContent || {});
   });
-}
-
-// ── Maintenance Handler ──
-function cvHandleMaintenance(m) {
-  var screen = document.getElementById('cv-maintenance-screen');
-  if (!screen) return;
-
-  if (m.active) {
-    // Show maintenance screen — hide everything else
-    screen.classList.add('active');
-    document.body.style.overflow = 'hidden';
-
-    var msgEl = document.getElementById('cv-maint-msg');
-    if (msgEl) msgEl.textContent = m.message || 'We are performing maintenance. Back soon!';
-
-    var timeEl = document.getElementById('cv-maint-time');
-    if (timeEl && m.backTime) {
-      timeEl.textContent = '⏰ Expected back: ' + m.backTime;
-      timeEl.style.display = 'block';
-    } else if (timeEl) {
-      timeEl.style.display = 'none';
-    }
-  } else {
-    screen.classList.remove('active');
-    document.body.style.overflow = '';
-  }
 }
 
 // ── Announcement Bar Handler ──
