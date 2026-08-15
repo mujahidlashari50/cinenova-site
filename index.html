@@ -6294,7 +6294,57 @@ function cvBuildFilteredList() {
       var bExact = (b.title || '').toLowerCase().indexOf(q) > -1 ? 0 : 1;
       return aExact - bExact;
     });
+  } else if (selCat === 'all') {
+    // HOME MIX: last bulk import ek category ki ho to pehle page usi se
+    // nahi bharta — categories ko round-robin interleave karo (har group
+    // andar newest pehle). Category pages / search pe yeh apply nahi.
+    cvFilteredList = cvInterleaveByCategory(cvFilteredList);
   }
+}
+
+// Home feed diversity — group by category, sort each by addedAt, then
+// round-robin so Hollywood/Bollywood/Animation/WebSeries mixed dikhein.
+function cvInterleaveByCategory(list) {
+  if (!list || list.length < 3) return list || [];
+  var groups = {};
+  var order = [];
+  for (var i = 0; i < list.length; i++) {
+    var m = list[i];
+    var c = ((m.category || 'other') + '').toLowerCase();
+    if (c === 'adult') c = 'other'; // adult already filtered out on home
+    if (!groups[c]) { groups[c] = []; order.push(c); }
+    groups[c].push(m);
+  }
+  // Only one category in whole DB — nothing to mix
+  if (order.length < 2) {
+    list.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    return list;
+  }
+  order.forEach(function(c) {
+    groups[c].sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+  });
+  // Prefer bigger categories slightly earlier in rotation start, but still cycle all
+  order.sort(function(a, b) { return groups[b].length - groups[a].length; });
+  var out = [];
+  var idxs = {};
+  order.forEach(function(c) { idxs[c] = 0; });
+  var remaining = list.length;
+  while (remaining > 0) {
+    var progressed = false;
+    for (var k = 0; k < order.length; k++) {
+      var cat = order[k];
+      var g = groups[cat];
+      var j = idxs[cat];
+      if (j < g.length) {
+        out.push(g[j]);
+        idxs[cat] = j + 1;
+        remaining--;
+        progressed = true;
+      }
+    }
+    if (!progressed) break;
+  }
+  return out;
 }
 
 function cvRenderPage(silent) {
