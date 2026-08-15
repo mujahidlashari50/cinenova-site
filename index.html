@@ -1312,85 +1312,13 @@ body{text-rendering:optimizeSpeed}
   display:block;border:none;
   background:#000;
 }
-/* Plyr.io overrides — dark theme fit (trailer/YouTube ke liye abhi bhi use hota hai) */
+/* Plyr.io overrides — dark theme fit */
 #cv-player-inner .plyr{width:100%;height:100%;--plyr-color-main:#e50914;--plyr-video-background:#000;--plyr-font-family:'Outfit',sans-serif;}
 #cv-player-inner .plyr--video{background:#000;}
 #cv-player-inner .plyr__control--overlaid{background:#e50914;border-radius:50%;}
 #cv-player-inner .plyr__control--overlaid:hover{background:#b0060f;}
 #cv-player-inner .plyr--full-ui input[type=range]{color:#e50914;}
 #cv-player-inner .plyr__menu__container .plyr__control[role=menuitemradio][aria-checked=true]::before{background:#e50914;}
-
-/* ══════════════════════════════════
-   CVP — Custom Netflix-style Player
-   (movie/episode direct video ke liye; trailer abhi bhi Plyr use karta hai)
-   ══════════════════════════════════ */
-.cvp-wrap{position:absolute;inset:0;background:#000;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;}
-.cvp-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;transition:filter 0.1s linear;}
-.cvp-gesture-layer{position:absolute;inset:0;display:flex;z-index:3;}
-.cvp-gzone{flex:1;height:100%;}
-.cvp-center-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);width:64px;height:64px;border-radius:50%;background:rgba(20,20,20,0.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:5;opacity:0;pointer-events:none;transition:opacity 0.2s,transform 0.2s;}
-.cvp-center-btn.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
-.cvp-center-btn svg{width:28px;height:28px;fill:#fff;}
-.cvp-skip-flash{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font-weight:800;font-size:0.78rem;opacity:0;z-index:6;pointer-events:none;background:rgba(0,0,0,0.55);border-radius:50%;width:78px;height:78px;justify-content:center;}
-.cvp-skip-flash svg{width:24px;height:24px;fill:#fff;}
-.cvp-skip-flash.cvp-left{left:12%;}
-.cvp-skip-flash.cvp-right{right:12%;}
-.cvp-skip-flash.show{animation:cvpSkipPulse 0.55s ease-out;}
-@keyframes cvpSkipPulse{0%{opacity:0;transform:translateY(-50%) scale(0.85);}30%{opacity:1;transform:translateY(-50%) scale(1);}100%{opacity:0;transform:translateY(-50%) scale(1);}}
-.cvp-gesture-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.6);color:#fff;padding:8px 16px;border-radius:20px;font-size:0.78rem;font-weight:700;z-index:6;opacity:0;pointer-events:none;transition:opacity 0.15s;display:flex;align-items:center;gap:8px;}
-.cvp-gesture-hint.show{opacity:1;}
-.cvp-gesture-hint-bar{width:70px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;overflow:hidden;}
-.cvp-gesture-hint-fill{height:100%;background:#fff;border-radius:2px;}
-.cvp-top-bar{position:absolute;top:0;left:0;right:0;padding:16px 16px 40px;background:linear-gradient(180deg,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.35) 60%,transparent 100%);z-index:4;display:flex;align-items:center;gap:12px;opacity:1;transition:opacity 0.25s;pointer-events:none;}
-.cvp-title{color:#fff;font-weight:800;font-size:0.95rem;letter-spacing:0.2px;text-shadow:0 1px 4px rgba(0,0,0,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cvp-bottom-bar{position:absolute;left:0;right:0;bottom:0;padding:34px 14px 12px;background:linear-gradient(0deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.5) 55%,transparent 100%);z-index:4;transition:opacity 0.25s,transform 0.25s;}
-.cvp-wrap.cvp-idle .cvp-top-bar,.cvp-wrap.cvp-idle .cvp-bottom-bar{opacity:0;pointer-events:none;}
-.cvp-wrap.cvp-idle{cursor:none;}
-.cvp-progress{position:relative;height:14px;display:flex;align-items:center;cursor:pointer;margin-bottom:6px;}
-.cvp-progress-track{position:relative;width:100%;height:3px;background:rgba(255,255,255,0.25);border-radius:2px;transition:height 0.12s;}
-.cvp-progress:hover .cvp-progress-track,.cvp-progress.dragging .cvp-progress-track{height:5px;}
-.cvp-buffered{position:absolute;top:0;left:0;height:100%;background:rgba(255,255,255,0.4);border-radius:2px;width:0%;}
-.cvp-played{position:absolute;top:0;left:0;height:100%;background:#e50914;border-radius:2px;width:0%;}
-.cvp-scrubber{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:#e50914;box-shadow:0 0 0 3px rgba(229,9,20,0.25);transform:translate(-50%,-50%) scale(0);left:0%;transition:transform 0.12s;}
-.cvp-progress:hover .cvp-scrubber,.cvp-progress.dragging .cvp-scrubber{transform:translate(-50%,-50%) scale(1);}
-.cvp-time-preview{position:absolute;bottom:20px;transform:translateX(-50%);background:rgba(10,10,10,0.95);color:#fff;font-size:0.7rem;font-weight:700;padding:3px 7px;border-radius:5px;opacity:0;pointer-events:none;transition:opacity 0.1s;white-space:nowrap;}
-.cvp-time-preview.show{opacity:1;}
-.cvp-controls-row{display:flex;align-items:center;gap:4px;}
-.cvp-btn{background:none;border:none;color:#fff;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border-radius:6px;transition:background 0.15s,transform 0.1s;padding:0;}
-.cvp-btn:hover{background:rgba(255,255,255,0.12);}
-.cvp-btn:active{transform:scale(0.9);}
-.cvp-btn svg{width:19px;height:19px;fill:#fff;}
-.cvp-btn.cvp-play-btn svg{width:21px;height:21px;}
-.cvp-skip-btn{position:relative;}
-.cvp-skip-btn span{position:absolute;bottom:1px;font-size:0.42rem;font-weight:800;left:50%;transform:translateX(-50%);}
-.cvp-time{color:#eee;font-size:0.72rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;margin:0 2px;}
-.cvp-spacer{flex:1;}
-.cvp-volume-wrap{display:flex;align-items:center;}
-.cvp-volume-slider{width:0;overflow:hidden;transition:width 0.18s;}
-.cvp-volume-wrap:hover .cvp-volume-slider,.cvp-volume-wrap.active .cvp-volume-slider{width:64px;}
-.cvp-volume-slider input{width:60px;accent-color:#e50914;cursor:pointer;}
-.cvp-menu{position:relative;}
-.cvp-menu-panel{position:absolute;bottom:44px;right:0;background:rgba(18,18,18,0.97);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;min-width:130px;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);max-height:220px;overflow-y:auto;}
-.cvp-menu-panel.show{display:block;}
-.cvp-menu-item{padding:8px 12px;font-size:0.76rem;color:#ddd;font-weight:600;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;white-space:nowrap;}
-.cvp-menu-item:hover{background:rgba(255,255,255,0.08);}
-.cvp-menu-item.active{color:#e50914;}
-.cvp-cc-btn.active{color:#e50914;}
-.cvp-cc-btn.active svg{fill:#e50914;}
-.cvp-brightness-overlay{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:2;transition:opacity 0.05s;}
-.cvp-key-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#aaa;font-size:0.65rem;padding:5px 10px;border-radius:14px;z-index:4;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
-.cvp-key-hint.show{opacity:1;}
-@media(max-width:600px){
-  .cvp-btn{width:32px;height:32px;}
-  .cvp-btn svg{width:16px;height:16px;}
-  .cvp-time{font-size:0.65rem;}
-  .cvp-title{font-size:0.82rem;}
-  .cvp-volume-wrap{display:none;} /* mobile — hardware volume buttons use hote hain */
-  .cvp-center-btn{width:56px;height:56px;}
-  .cvp-bottom-bar{padding:26px 8px 10px;}
-  .cvp-menu-panel{right:-4px;}
-}
-
 /* Spinner loader */
 #cv-player-loading{
   display:none;position:absolute;inset:0;
@@ -4654,12 +4582,12 @@ function cvHandleNewContent(nc) {
       btnEl.onclick = function(e) {
         e.preventDefault();
         cvCloseNcPopup();
-        // In-page player — movie key ho to worker, warna pixeldrain/vlcUrl
+        // Play worker / VLC — movie key ho to worker, warna pixeldrain/vlcUrl
         if (nc.movieKey && typeof cnGoToWatchWorker === 'function') {
           cnGoToWatchWorker(nc.movieKey, '');
-        } else if (nc.vlcUrl && typeof playVideo === 'function') {
+        } else if (nc.vlcUrl && typeof cnOpenInVlc === 'function') {
           var pd = (typeof cnPixeldrainApiUrl === 'function') ? cnPixeldrainApiUrl(nc.vlcUrl) : null;
-          playVideo(pd || nc.vlcUrl, nc.title || '');
+          cnOpenInVlc(pd || nc.vlcUrl);
         } else if (nc.link && nc.link !== '#') {
           window.location.href = nc.link;
         }
@@ -7225,7 +7153,7 @@ function openModal(key) {
     btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
   } else if (_watchInfo && _watchInfo.url) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(_watchInfo.url) + '\',\'' + escJs(m.title||'') + '\',\'' + escJs(m.subtitleUrl||'') + '\')">▶ Watch Now</button>';
+    btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\',\'' + escJs(m.title||'') + '\')">▶ Watch Now</button>';
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -7552,331 +7480,7 @@ function openMxPlayer(url, desktopUrl) {
   }
 }
 
-// ══════════════════════════════════
-// CVP — Custom Netflix-style Player Controller
-// (Plyr ki jagah apna banaya hua player — direct movie/episode videos ke
-// liye. Trailer/YouTube abhi bhi Plyr use karte hain, kyunki YouTube
-// provider Plyr mein already achi tarah kaam karta hai.)
-// Features: play/pause, ±10s skip (button + double-tap + J/L keys),
-// scrubbable progress bar with hover-preview, volume slider, playback
-// speed menu, subtitle (CC) toggle agar subtitleUrl mile, PiP,
-// fullscreen, full keyboard shortcuts, mobile swipe gestures
-// (right-side vertical swipe = volume, left-side = brightness), auto-hide
-// controls.
-// ══════════════════════════════════
-function cvBuildCustomPlayer(videoEl, wrapEl, opts) {
-  opts = opts || {};
-  var title = opts.title || '';
-  var subtitleUrl = opts.subtitleUrl || '';
-
-  var ccHtml = subtitleUrl ? '<button class="cvp-btn cvp-cc-btn" id="cvpCcBtn" title="Subtitles (C)">CC</button>' : '';
-
-  var chromeWrap = document.createElement('div');
-  chromeWrap.innerHTML =
-    '<div class="cvp-brightness-overlay"></div>' +
-    '<div class="cvp-gesture-layer">' +
-      '<div class="cvp-gzone" data-zone="left"></div>' +
-      '<div class="cvp-gzone" data-zone="center"></div>' +
-      '<div class="cvp-gzone" data-zone="right"></div>' +
-    '</div>' +
-    '<div class="cvp-center-btn" id="cvpCenterBtn">&#9654;</div>' +
-    '<div class="cvp-skip-flash cvp-left" id="cvpFlashLeft">&#9664;&#9664;<span>10s</span></div>' +
-    '<div class="cvp-skip-flash cvp-right" id="cvpFlashRight">&#9654;&#9654;<span>10s</span></div>' +
-    '<div class="cvp-gesture-hint" id="cvpGestureHint"><span id="cvpGestureHintIcon"></span><div class="cvp-gesture-hint-bar"><div class="cvp-gesture-hint-fill" id="cvpGestureHintFill"></div></div></div>' +
-    '<div class="cvp-key-hint" id="cvpKeyHint"></div>' +
-    '<div class="cvp-top-bar"><div class="cvp-title">' + escHtml(title) + '</div></div>' +
-    '<div class="cvp-bottom-bar">' +
-      '<div class="cvp-progress" id="cvpProgress"><div class="cvp-progress-track"><div class="cvp-buffered" id="cvpBuffered"></div><div class="cvp-played" id="cvpPlayed"></div></div><div class="cvp-scrubber" id="cvpScrubber"></div><div class="cvp-time-preview" id="cvpTimePreview">0:00</div></div>' +
-      '<div class="cvp-controls-row">' +
-        '<button class="cvp-btn cvp-play-btn" id="cvpPlayBtn" title="Play/Pause (Space)">&#9654;</button>' +
-        '<button class="cvp-btn cvp-skip-btn" id="cvpBackBtn" title="-10s (J)">&#8634;<span>10</span></button>' +
-        '<button class="cvp-btn cvp-skip-btn" id="cvpFwdBtn" title="+10s (L)">&#8635;<span>10</span></button>' +
-        '<div class="cvp-volume-wrap" id="cvpVolWrap"><button class="cvp-btn" id="cvpMuteBtn" title="Mute (M)">&#128266;</button><div class="cvp-volume-slider"><input type="range" id="cvpVolSlider" min="0" max="1" step="0.05" value="1"></div></div>' +
-        '<span class="cvp-time" id="cvpTime">0:00 / 0:00</span>' +
-        '<div class="cvp-spacer"></div>' +
-        ccHtml +
-        '<div class="cvp-menu" id="cvpSpeedMenu"><button class="cvp-btn" id="cvpSpeedBtn" title="Speed" style="font-size:0.68rem;font-weight:800;">1x</button><div class="cvp-menu-panel" id="cvpSpeedPanel"></div></div>' +
-        '<button class="cvp-btn" id="cvpPipBtn" title="Picture-in-Picture">&#11036;</button>' +
-        '<button class="cvp-btn" id="cvpFsBtn" title="Fullscreen (F)">&#9974;</button>' +
-      '</div>' +
-    '</div>';
-  while (chromeWrap.firstChild) wrapEl.appendChild(chromeWrap.firstChild);
-
-  if (subtitleUrl) {
-    var track = document.createElement('track');
-    track.kind = 'subtitles'; track.src = subtitleUrl; track.srclang = 'en'; track.label = 'English';
-    videoEl.appendChild(track);
-  }
-
-  var $ = function(id) { return document.getElementById(id); };
-  var playBtn = $('cvpPlayBtn'), centerBtn = $('cvpCenterBtn'), backBtn = $('cvpBackBtn'), fwdBtn = $('cvpFwdBtn'),
-      muteBtn = $('cvpMuteBtn'), volSlider = $('cvpVolSlider'), timeEl = $('cvpTime'),
-      ccBtn = $('cvpCcBtn'), speedBtn = $('cvpSpeedBtn'), speedPanel = $('cvpSpeedPanel'),
-      pipBtn = $('cvpPipBtn'), fsBtn = $('cvpFsBtn'), progress = $('cvpProgress'), buffered = $('cvpBuffered'),
-      played = $('cvpPlayed'), scrubber = $('cvpScrubber'), timePreview = $('cvpTimePreview'),
-      flashLeft = $('cvpFlashLeft'), flashRight = $('cvpFlashRight'), gestureHint = $('cvpGestureHint'),
-      gestureHintFill = $('cvpGestureHintFill'), gestureHintIcon = $('cvpGestureHintIcon'), keyHint = $('cvpKeyHint'),
-      brightnessOv = wrapEl.querySelector('.cvp-brightness-overlay'),
-      gzLeft = wrapEl.querySelector('.cvp-gzone[data-zone="left"]'),
-      gzCenter = wrapEl.querySelector('.cvp-gzone[data-zone="center"]'),
-      gzRight = wrapEl.querySelector('.cvp-gzone[data-zone="right"]');
-
-  function fmt(t) {
-    if (!isFinite(t) || t < 0) t = 0;
-    var h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = Math.floor(t % 60);
-    return (h > 0 ? h + ':' + (m < 10 ? '0' : '') + m : m) + ':' + (s < 10 ? '0' : '') + s;
-  }
-
-  function updatePlayIcon() { playBtn.innerHTML = videoEl.paused ? '&#9654;' : '&#10074;&#10074;'; }
-  function togglePlay() { if (videoEl.paused) videoEl.play().catch(function() {}); else videoEl.pause(); }
-
-  function flashCenter(html) {
-    centerBtn.innerHTML = html;
-    centerBtn.classList.add('show');
-    clearTimeout(centerBtn._t);
-    centerBtn._t = setTimeout(function() { centerBtn.classList.remove('show'); }, 500);
-  }
-  function flashSkip(el) { el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
-
-  playBtn.onclick = togglePlay;
-  videoEl.addEventListener('play', updatePlayIcon);
-  videoEl.addEventListener('pause', updatePlayIcon);
-
-  backBtn.onclick = function() { videoEl.currentTime = Math.max(0, videoEl.currentTime - 10); flashSkip(flashLeft); };
-  fwdBtn.onclick = function() { videoEl.currentTime = Math.min(videoEl.duration || 1e9, videoEl.currentTime + 10); flashSkip(flashRight); };
-
-  videoEl.volume = 1;
-  function updateVolIcon() { muteBtn.innerHTML = (videoEl.muted || videoEl.volume === 0) ? '&#128263;' : '&#128266;'; volSlider.value = videoEl.muted ? 0 : videoEl.volume; }
-  volSlider.oninput = function() { videoEl.volume = parseFloat(volSlider.value); videoEl.muted = videoEl.volume === 0; updateVolIcon(); };
-  muteBtn.onclick = function() { videoEl.muted = !videoEl.muted; updateVolIcon(); };
-  updateVolIcon();
-
-  videoEl.addEventListener('timeupdate', function() {
-    if (!progress.classList.contains('dragging')) {
-      var pct = videoEl.duration ? (videoEl.currentTime / videoEl.duration * 100) : 0;
-      played.style.width = pct + '%';
-      scrubber.style.left = pct + '%';
-    }
-    timeEl.textContent = fmt(videoEl.currentTime) + ' / ' + fmt(videoEl.duration || 0);
-  });
-  videoEl.addEventListener('progress', function() {
-    try {
-      if (videoEl.buffered.length && videoEl.duration) {
-        buffered.style.width = (videoEl.buffered.end(videoEl.buffered.length - 1) / videoEl.duration * 100) + '%';
-      }
-    } catch (e) {}
-  });
-  videoEl.addEventListener('loadedmetadata', function() {
-    timeEl.textContent = fmt(videoEl.currentTime) + ' / ' + fmt(videoEl.duration || 0);
-  });
-
-  var dragging = false;
-  function pctFromX(clientX) {
-    var rect = progress.getBoundingClientRect();
-    return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-  }
-  function showPreview(clientX) {
-    var pct = pctFromX(clientX);
-    var rect = progress.getBoundingClientRect();
-    timePreview.style.left = (clientX - rect.left) + 'px';
-    timePreview.textContent = fmt(pct * (videoEl.duration || 0));
-    timePreview.classList.add('show');
-  }
-  progress.addEventListener('mousemove', function(e) { showPreview(e.clientX); });
-  progress.addEventListener('mouseleave', function() { if (!dragging) timePreview.classList.remove('show'); });
-  progress.addEventListener('mousedown', function(e) {
-    dragging = true; progress.classList.add('dragging');
-    var pct = pctFromX(e.clientX);
-    played.style.width = (pct * 100) + '%'; scrubber.style.left = (pct * 100) + '%';
-    showPreview(e.clientX);
-  });
-  document.addEventListener('mousemove', function(e) {
-    if (!dragging) return;
-    var pct = pctFromX(e.clientX);
-    played.style.width = (pct * 100) + '%'; scrubber.style.left = (pct * 100) + '%';
-    showPreview(e.clientX);
-  });
-  document.addEventListener('mouseup', function(e) {
-    if (!dragging) return;
-    dragging = false; progress.classList.remove('dragging');
-    videoEl.currentTime = pctFromX(e.clientX) * (videoEl.duration || 0);
-    timePreview.classList.remove('show');
-  });
-  progress.addEventListener('touchstart', function(e) {
-    dragging = true; progress.classList.add('dragging');
-    var t = e.touches[0]; var pct = pctFromX(t.clientX);
-    played.style.width = (pct * 100) + '%'; scrubber.style.left = (pct * 100) + '%';
-    showPreview(t.clientX);
-  }, { passive: true });
-  progress.addEventListener('touchmove', function(e) {
-    if (!dragging) return;
-    var t = e.touches[0]; var pct = pctFromX(t.clientX);
-    played.style.width = (pct * 100) + '%'; scrubber.style.left = (pct * 100) + '%';
-    showPreview(t.clientX);
-  }, { passive: true });
-  progress.addEventListener('touchend', function(e) {
-    if (!dragging) return;
-    dragging = false; progress.classList.remove('dragging');
-    var t = e.changedTouches[0];
-    videoEl.currentTime = pctFromX(t.clientX) * (videoEl.duration || 0);
-    timePreview.classList.remove('show');
-  });
-
-  var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-  var speedHtml = '';
-  for (var si = 0; si < speeds.length; si++) {
-    speedHtml += '<div class="cvp-menu-item' + (speeds[si] === 1 ? ' active' : '') + '" data-speed="' + speeds[si] + '">' + speeds[si] + 'x</div>';
-  }
-  speedPanel.innerHTML = speedHtml;
-  speedBtn.onclick = function(e) { e.stopPropagation(); speedPanel.classList.toggle('show'); };
-  speedPanel.onclick = function(e) {
-    var item = e.target;
-    while (item && !item.getAttribute('data-speed') && item !== speedPanel) item = item.parentNode;
-    if (!item || item === speedPanel) return;
-    var s = parseFloat(item.getAttribute('data-speed'));
-    videoEl.playbackRate = s;
-    speedBtn.textContent = s + 'x';
-    for (var k = 0; k < speedPanel.children.length; k++) speedPanel.children[k].classList.remove('active');
-    item.classList.add('active');
-    speedPanel.classList.remove('show');
-  };
-  document.addEventListener('click', function() { speedPanel.classList.remove('show'); });
-
-  if (ccBtn) {
-    ccBtn.onclick = function() {
-      var tt = videoEl.textTracks[0];
-      if (!tt) return;
-      if (tt.mode === 'showing') { tt.mode = 'hidden'; ccBtn.classList.remove('active'); }
-      else { tt.mode = 'showing'; ccBtn.classList.add('active'); }
-    };
-  }
-
-  if (!('pictureInPictureEnabled' in document) || !document.pictureInPictureEnabled) {
-    pipBtn.style.display = 'none';
-  } else {
-    pipBtn.onclick = function() {
-      if (document.pictureInPictureElement) document.exitPictureInPicture().catch(function() {});
-      else videoEl.requestPictureInPicture().catch(function() {});
-    };
-  }
-
-  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
-  fsBtn.onclick = function() {
-    if (isFs()) {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    } else if (wrapEl.requestFullscreen) {
-      wrapEl.requestFullscreen();
-    } else if (wrapEl.webkitRequestFullscreen) {
-      wrapEl.webkitRequestFullscreen();
-    } else if (videoEl.webkitEnterFullscreen) {
-      videoEl.webkitEnterFullscreen(); // iOS Safari native fullscreen
-    }
-  };
-
-  var idleTimer;
-  function showControls() {
-    wrapEl.classList.remove('cvp-idle');
-    clearTimeout(idleTimer);
-    if (!videoEl.paused) idleTimer = setTimeout(function() { wrapEl.classList.add('cvp-idle'); }, 3000);
-  }
-  wrapEl.addEventListener('mousemove', showControls);
-  wrapEl.addEventListener('touchstart', showControls, { passive: true });
-  videoEl.addEventListener('play', showControls);
-  videoEl.addEventListener('pause', function() { wrapEl.classList.remove('cvp-idle'); clearTimeout(idleTimer); });
-  showControls();
-
-  // Center/side zones: single click/tap = play-pause (center) ya controls
-  // dikhao; double-tap left/right = ±10s skip (YouTube/Netflix jaisa)
-  var lastTapTime = 0, lastTapZone = null, tapTimer = null;
-  function handleTap(zone) {
-    var now = Date.now();
-    if (zone !== 'center' && lastTapZone === zone && (now - lastTapTime) < 320) {
-      clearTimeout(tapTimer);
-      if (zone === 'left') { videoEl.currentTime = Math.max(0, videoEl.currentTime - 10); flashSkip(flashLeft); }
-      else { videoEl.currentTime = Math.min(videoEl.duration || 1e9, videoEl.currentTime + 10); flashSkip(flashRight); }
-      lastTapTime = 0; lastTapZone = null;
-    } else {
-      lastTapTime = now; lastTapZone = zone;
-      clearTimeout(tapTimer);
-      tapTimer = setTimeout(function() {
-        if (zone === 'center') { togglePlay(); flashCenter(videoEl.paused ? '&#9654;' : '&#10074;&#10074;'); }
-        showControls();
-      }, 300);
-    }
-  }
-  gzCenter.addEventListener('click', function() { handleTap('center'); });
-  gzLeft.addEventListener('click', function() { handleTap('left'); });
-  gzRight.addEventListener('click', function() { handleTap('right'); });
-
-  // Mobile vertical-swipe gestures: right zone = volume, left zone = brightness
-  var swipeStartY = null, swipeStartVal = null, swipeZone = null;
-  function onTouchStartGesture(e, zone) {
-    var t = e.touches[0];
-    swipeStartY = t.clientY; swipeZone = zone;
-    swipeStartVal = zone === 'right' ? videoEl.volume : (1 - parseFloat(brightnessOv.style.opacity || 0) / 0.85);
-  }
-  function onTouchMoveGesture(e) {
-    if (swipeStartY === null) return;
-    var t = e.touches[0];
-    var dy = swipeStartY - t.clientY;
-    if (Math.abs(dy) < 12) return;
-    var delta = dy / 200;
-    if (swipeZone === 'right') {
-      var newVol = Math.min(1, Math.max(0, swipeStartVal + delta));
-      videoEl.volume = newVol; videoEl.muted = newVol === 0;
-      updateVolIcon();
-      gestureHintIcon.innerHTML = '&#128266;'; gestureHintFill.style.width = (newVol * 100) + '%';
-      gestureHint.classList.add('show');
-    } else {
-      var newBright = Math.min(1, Math.max(0, swipeStartVal + delta));
-      brightnessOv.style.opacity = (1 - newBright) * 0.85;
-      gestureHintIcon.textContent = '\u2600'; gestureHintFill.style.width = (newBright * 100) + '%';
-      gestureHint.classList.add('show');
-    }
-    e.preventDefault();
-  }
-  function onTouchEndGesture() { swipeStartY = null; gestureHint.classList.remove('show'); }
-  gzRight.addEventListener('touchstart', function(e) { onTouchStartGesture(e, 'right'); }, { passive: true });
-  gzLeft.addEventListener('touchstart', function(e) { onTouchStartGesture(e, 'left'); }, { passive: true });
-  gzRight.addEventListener('touchmove', onTouchMoveGesture, { passive: false });
-  gzLeft.addEventListener('touchmove', onTouchMoveGesture, { passive: false });
-  gzRight.addEventListener('touchend', onTouchEndGesture);
-  gzLeft.addEventListener('touchend', onTouchEndGesture);
-
-  // Keyboard shortcuts — jab tak player khula hai
-  function showKeyHint(msg) {
-    keyHint.textContent = msg;
-    keyHint.classList.add('show');
-    clearTimeout(keyHint._t);
-    keyHint._t = setTimeout(function() { keyHint.classList.remove('show'); }, 900);
-  }
-  function keyHandler(e) {
-    var tag = (document.activeElement && document.activeElement.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    var handled = true;
-    if (e.key === ' ' || e.key === 'k' || e.key === 'K') { togglePlay(); flashCenter(videoEl.paused ? '&#9654;' : '&#10074;&#10074;'); }
-    else if (e.key === 'ArrowLeft' || e.key === 'j' || e.key === 'J') { videoEl.currentTime = Math.max(0, videoEl.currentTime - 10); flashSkip(flashLeft); }
-    else if (e.key === 'ArrowRight' || e.key === 'l' || e.key === 'L') { videoEl.currentTime = Math.min(videoEl.duration || 1e9, videoEl.currentTime + 10); flashSkip(flashRight); }
-    else if (e.key === 'ArrowUp') { videoEl.volume = Math.min(1, videoEl.volume + 0.1); updateVolIcon(); showKeyHint('Volume ' + Math.round(videoEl.volume * 100) + '%'); }
-    else if (e.key === 'ArrowDown') { videoEl.volume = Math.max(0, videoEl.volume - 0.1); updateVolIcon(); showKeyHint('Volume ' + Math.round(videoEl.volume * 100) + '%'); }
-    else if (e.key === 'm' || e.key === 'M') { videoEl.muted = !videoEl.muted; updateVolIcon(); }
-    else if (e.key === 'f' || e.key === 'F') { fsBtn.click(); }
-    else if (e.key === 'c' || e.key === 'C') { if (ccBtn) ccBtn.click(); }
-    else { handled = false; }
-    if (handled) { e.preventDefault(); showControls(); }
-  }
-  document.addEventListener('keydown', keyHandler);
-
-  updatePlayIcon();
-
-  return {
-    destroy: function() { document.removeEventListener('keydown', keyHandler); }
-  };
-}
-
-
-function playVideo(url, title, subtitleUrl) {
+function playVideo(url, title) {
   if (!url) return;
   var inner = document.getElementById('cv-player-inner');
   var loading = document.getElementById('cv-player-loading');
@@ -7885,14 +7489,10 @@ function playVideo(url, title, subtitleUrl) {
   // Set title
   if (titleEl) titleEl.textContent = title || 'Now Playing';
 
-  // Destroy old player instances (Plyr aur hamara custom player dono)
+  // Destroy old Plyr instance
   if (window._cvPlyrInst) {
     try { window._cvPlyrInst.destroy(); } catch(e) {}
     window._cvPlyrInst = null;
-  }
-  if (window._cvCustomPlayerInst) {
-    try { window._cvCustomPlayerInst.destroy(); } catch(e) {}
-    window._cvCustomPlayerInst = null;
   }
 
   // Show loading
@@ -7903,8 +7503,7 @@ function playVideo(url, title, subtitleUrl) {
   var isPixeldrain = /pixeldrain\.com\/(?:u|api\/file)\/([a-zA-Z0-9]+)/i.test(url);
   var isR2Cloud = /\.r2\.dev\//i.test(url);
   var isWorkerVideo = /download\.cinenova\.site\/video/i.test(url);
-  var isPlayWorkerGo = /play\.cinenova\.site\/go/i.test(url); // Watch Now → play worker redirect → asal video file
-  var isDirectVideo = /\.(mp4|webm|m3u8)(\?|$)/i.test(url) || /googleusercontent\.com/i.test(url) || /googlevideo\.com/i.test(url) || /drive\.google\.com\/uc/i.test(url) || isR2Cloud || isWorkerVideo || isPlayWorkerGo;
+  var isDirectVideo = /\.(mp4|webm|m3u8)(\?|$)/i.test(url) || /googleusercontent\.com/i.test(url) || /googlevideo\.com/i.test(url) || /drive\.google\.com\/uc/i.test(url) || isR2Cloud || isWorkerVideo;
 
   // Content build turant shuru — koi artificial wait nahi. Spinner
   // sirf uss waqt tak dikhta hai jab tak asal video/iframe khud
@@ -7939,42 +7538,35 @@ function playVideo(url, title, subtitleUrl) {
         + '<a href="' + pdRawUrl + '" target="_blank" rel="noopener" style="color:#888;font-size:0.78rem;text-decoration:underline;">Ya seedha download/open karne ki koshish karo</a>'
         + '</div>';
     } else if (isDirectVideo) {
-      // ── Direct MP4/WebM/MKV(r2.dev)/Worker-video/Play-worker — apna
-      // Netflix-style custom player (Plyr ki jagah) ──
+      // ── Direct MP4/WebM/MKV(r2.dev)/Worker-video — Plyr native video player ──
       // Safety-net: agar video 12 second mein play/stall na ho (jaisa
       // .mkv/HEVC kabhi kisi browser mein nahi chalta), "Direct Video
       // Kholen" fallback button dikha do — bina kisi manual kaam ke,
       // khud-ba-khud detect ho jata hai.
       var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
       inner.style.position = 'relative';
-      var cvpWrap = document.createElement('div');
-      cvpWrap.className = 'cvp-wrap';
-      var cvpVid = document.createElement('video');
-      cvpVid.id = 'cv-plyr-vid';
-      cvpVid.playsInline = true;
-      cvpVid.setAttribute('webkit-playsinline', '');
-      cvpVid.setAttribute('src', url);
-      cvpWrap.appendChild(cvpVid);
-      inner.appendChild(cvpWrap);
-
-      var fbWrap = document.createElement('div');
-      fbWrap.id = 'cv-video-fallback';
-      fbWrap.style.cssText = 'display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);color:#fff;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:8;';
-      fbWrap.innerHTML = '<div style="font-size:0.95rem;margin-bottom:14px;max-width:320px;">⚠️ This video can\'t load directly in this browser (format compatibility)</div>'
-        + '<button onclick="window.open(\'' + url.replace(/'/g,"\\'") + '\',\'_blank\')" style="padding:12px 24px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">▶ Direct Video Kholen</button>';
-      inner.appendChild(fbWrap);
-
-      if (window._cvCustomPlayerInst) { try { window._cvCustomPlayerInst.destroy(); } catch(e) {} }
-      window._cvCustomPlayerInst = cvBuildCustomPlayer(cvpVid, cvpWrap, {
-        title: title || '',
-        subtitleUrl: subtitleUrl || ''
-      });
-
-      if (!isIOS) { cvpVid.play().catch(function(){}); }
-
-      var stallTimer = setTimeout(function(){ fbWrap.style.display = 'flex'; }, 12000);
-      cvpVid.addEventListener('playing', function(){ clearTimeout(stallTimer); fbWrap.style.display = 'none'; });
-      cvpVid.addEventListener('error', function(){ clearTimeout(stallTimer); fbWrap.style.display = 'flex'; });
+      inner.innerHTML = '<video id="cv-plyr-vid" controls playsinline webkit-playsinline style="width:100%;height:100%;display:block;object-fit:contain;background:#000"><source src="' + url + '"></video>'
+        + '<div id="cv-video-fallback" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);color:#fff;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:5;">'
+        + '<div style="font-size:0.95rem;margin-bottom:14px;max-width:320px;">⚠️ This video can\'t load directly in this browser (format compatibility)</div>'
+        + '<button onclick="window.open(\'' + url.replace(/'/g,"\\'") + '\',\'_blank\')" style="padding:12px 24px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">▶ Direct Video Kholen</button>'
+        + '</div>';
+      if (window.Plyr) {
+        window._cvPlyrInst = new Plyr('#cv-plyr-vid', {
+          controls: ['play-large','play','rewind','fast-forward','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
+          settings: ['quality','speed','loop'],
+          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+          ratio: '16:9',
+          autoplay: !isIOS,
+          playsinline: true
+        });
+      }
+      var vidEl = document.getElementById('cv-plyr-vid');
+      var fbEl = document.getElementById('cv-video-fallback');
+      var stallTimer = setTimeout(function(){ if (fbEl) fbEl.style.display = 'flex'; }, 12000);
+      if (vidEl) {
+        vidEl.addEventListener('playing', function(){ clearTimeout(stallTimer); if (fbEl) fbEl.style.display = 'none'; });
+        vidEl.addEventListener('error', function(){ clearTimeout(stallTimer); if (fbEl) fbEl.style.display = 'flex'; });
+      }
     } else if (url.indexOf('youtube.com/embed') > -1) {
       // ── YouTube — Plyr YouTube provider ──
       var ytId = (url.split('/embed/')[1] || '').split('?')[0];
@@ -8000,14 +7592,10 @@ function playVideo(url, title, subtitleUrl) {
 }
 
 function closePlayer() {
-  // Destroy Plyr aur custom player instances
+  // Destroy Plyr instance
   if (window._cvPlyrInst) {
     try { window._cvPlyrInst.destroy(); } catch(e) {}
     window._cvPlyrInst = null;
-  }
-  if (window._cvCustomPlayerInst) {
-    try { window._cvCustomPlayerInst.destroy(); } catch(e) {}
-    window._cvCustomPlayerInst = null;
   }
   document.getElementById('cv-player-inner').innerHTML = '';
   var loading = document.getElementById('cv-player-loading');
@@ -8194,17 +7782,36 @@ function cnResolveWatchTarget(m, movieKey) {
   return null;
 }
 
-// VLC/MX/m3u wala external-app flow hata diya — ab "Watch Now" seedha
-// hamare apne stylish in-page Plyr player (playVideo()) mein khulta hai,
-// mobile aur desktop dono par same experience: fullscreen, speed control,
-// quality menu, PIP — sab kuch browser ke andar hi, koi external app
-// launch nahi hoti.
+function cnOpenInVlc(httpsUrl, title) {
+  if (!httpsUrl) return;
+  var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
+  var isAndroid = /Android/i.test(navigator.userAgent);
+  var bare = httpsUrl.replace(/^https?:\/\//i, '');
+  var t = (title || '').replace(/[^\w\s\-\.\u0600-\u06FF\u0900-\u097F]/g, ' ').trim().slice(0, 80);
 
+  if (isAndroid) {
+    // Final CDN URL + title extra (MX/VLC dikhate hain)
+    var intent = 'intent://' + bare
+      + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/*;';
+    if (t) intent += 'S.title=' + encodeURIComponent(t) + ';';
+    intent += 'S.browser_fallback_url=' + encodeURIComponent(httpsUrl) + ';end';
+    window.location.href = intent;
+    return;
+  }
+  if (isIOS) {
+    var cb = 'vlc-x-callback://x-callback-url/stream?url=' + encodeURIComponent(httpsUrl);
+    if (t) cb += '&filename=' + encodeURIComponent(t);
+    window.location.href = cb;
+    setTimeout(function() { window.location.href = 'vlc://' + bare; }, 500);
+    return;
+  }
+  // Desktop: seedha final file URL VLC protocol pe (worker proxy nahi)
+  window.location.href = 'vlc://' + bare;
+}
 
 // Play worker se FINAL direct URL lao → VLC seedha CDN pe (kam buffering)
-// Watch Now → hamare in-page Plyr player mein seedha khulta hai
-// (mobile/desktop dono same) — /go URL worker cache pe instant 302,
-// warna resolve karke redirect, video tag khud follow kar leta hai.
+// Watch Now → FORAN VLC (no toast, no wait for JSON)
+// VLC ko seedha /go URL: worker cache pe instant 302, warna resolve karke redirect
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
   var m = null;
@@ -8213,7 +7820,6 @@ function cnGoToWatchWorker(movieKey, quality) {
       m = allData.find(function(x) { return x._key === movieKey; });
     }
   } catch (e) {}
-  var subUrl = (m && m.subtitleUrl) || ''; // CC button — agar panel mein subtitle link ho
   // Pixeldrain: local — zero worker wait
   if (m) {
     var fields = [m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
@@ -8221,13 +7827,13 @@ function cnGoToWatchWorker(movieKey, quality) {
     for (var i = 0; i < fields.length; i++) {
       var pd = cnPixeldrainApiUrl(fields[i]);
       if (pd) {
-        playVideo(pd, m.title || '', subUrl);
+        cnOpenInVlc(pd, m.title || '');
         return;
       }
     }
   }
-  // In-page player khol do — /go?id= (default 720p smooth)
-  playVideo(cnPlayGoUrl(movieKey, quality || '720p', '', ''), (m && m.title) || '', subUrl);
+  // Foran VLC open — /go?id= (default 720p smooth)
+  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', '', ''), (m && m.title) || '');
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
@@ -8239,7 +7845,6 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
     }
   } catch (e) {}
   var title = (m && m.title) ? m.title : '';
-  var subUrl = '';
   if (m && m.episodes && season && episode) {
     var epList = Array.isArray(m.episodes) ? m.episodes : Object.values(m.episodes || {});
     var ep = epList.find(function(e) {
@@ -8247,15 +7852,14 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
     });
     if (ep) {
       if (ep.title) title = title ? (title + ' — ' + ep.title) : ep.title;
-      subUrl = ep.subtitleUrl || m.subtitleUrl || ''; // CC button
       var epFields = [ep.vlcUrl, ep.videoUrl, ep.videoSourceUrl, ep.dlSourceUrl, ep.dl720, ep.dl1080, ep.dl480];
       for (var i = 0; i < epFields.length; i++) {
         var pd = cnPixeldrainApiUrl(epFields[i]);
-        if (pd) { playVideo(pd, title, subUrl); return; }
+        if (pd) { cnOpenInVlc(pd, title); return; }
       }
     }
   }
-  playVideo(cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || ''), title, subUrl);
+  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || ''), title);
 }
 
 
