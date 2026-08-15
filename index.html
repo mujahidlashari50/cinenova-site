@@ -8493,8 +8493,8 @@ function cvUhLoadData() {
   if (!wrap) return;
   var today = new Date().toISOString().slice(0, 10);
   var future = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  var url1 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1';
-  var url2 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=IN&page=1';
+  var url1 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=US&page=1';
+  var url2 = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=IN&page=1';
   // Bollywood (Hindi) aur Tollywood (Telugu) upcoming — TMDB ka /movie/upcoming endpoint
   // region-based hai, isliye Hindi/Telugu movies usme reliably nahi aatin. Discover endpoint
   // ko original-language + future release date filter ke sath use karke unhe explicitly fetch karte hain.
@@ -8540,7 +8540,7 @@ cvUhLoadData();
 setTimeout(function() {
   // Hollywood — Now Playing (English)
   tmdbFetch(
-    'https://api.themoviedb.org/3/movie/now_playing?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1',
+    'https://api.themoviedb.org/3/movie/now_playing?api_key=' + TMDB_KEY + '&language=en-US&region=US&page=1',
     'tmdb-hollywood'
   );
   // Bollywood — Now Playing (Hindi)
@@ -8708,9 +8708,9 @@ function loadTrailers() {
   var today = new Date().toISOString().slice(0, 10);
   var future = new Date(Date.now() + 90*24*60*60*1000).toISOString().slice(0, 10);
   // Hollywood upcoming
-  var hwUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=US&page=1';
+  var hwUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=US&page=1';
   // India region upcoming
-  var hdUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US®ion=IN&page=1';
+  var hdUrl = 'https://api.themoviedb.org/3/movie/upcoming?api_key=' + TMDB_KEY + '&language=en-US&region=IN&page=1';
   // Extra: popular upcoming
   var exUrl = 'https://api.themoviedb.org/3/discover/movie?api_key=' + TMDB_KEY + '&language=en-US&sort_by=popularity.desc&primary_release_date.gte=' + today + '&primary_release_date.lte=' + future + '&with_release_type=3|2&page=1';
   var hw = fetch(hwUrl).then(function(r){return r.json();}).catch(function(){return {results:[]};});
@@ -9318,7 +9318,12 @@ function cvThumb(url) {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 // ===== Cast Row (storyline ke neeche) =====
 // Post ka title SEO-friendly hota hai jese "Desert Warrior (2026) (Hindi Dubbed) Dual Audio..."
