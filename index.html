@@ -707,6 +707,23 @@ function cvLoadCategoryData(val, isGenre) {
     });
     cvFirstResponseReceived = true;
     if (added || !cvFilteredList.length) renderGrid(false);
+    // ✅ CASE-MISMATCH FIX: Firebase 'equalTo' exact-match query hai — agar
+    // admin panel mein category/genre "Bollywood" jaisi mixed-case save hui
+    // ho aur pill se lowercase 'bollywood' query ho, to indexed query 0
+    // items dega (galat "No movies found" dikhega) chahe movies maujood
+    // hon. Client-side filter (cvBuildFilteredList) case-insensitive hai,
+    // isliye agar is category ka koi bhi movie abhi tak allData mein load
+    // nahi hua, poora dataset background mein bhi load karo — taake asli
+    // (case-insensitive) match mil jaye. Sirf ek baar per category trigger
+    // hota hai (already-tried set se guard).
+    if (!items.length && !allLoaded) {
+      window._cvCaseFallbackTried = window._cvCaseFallbackTried || {};
+      var _cfKey = field + ':' + val;
+      if (!window._cvCaseFallbackTried[_cfKey]) {
+        window._cvCaseFallbackTried[_cfKey] = true;
+        _cvLoadAllForCategory();
+      }
+    }
   });
 }
 
