@@ -325,26 +325,24 @@ function hideAdultGate() {
   }
 }
 
-document.getElementById('cv-adult-gate-checkbox').addEventListener('change', function() {
-  var checkrow = document.getElementById('cv-adult-gate-checkrow');
-  var btn = document.getElementById('cv-adult-gate-google-btn');
-  if (this.checked) {
-    if (checkrow) checkrow.classList.add('checked');
-    if (btn) btn.classList.add('enabled');
-  } else {
-    if (checkrow) checkrow.classList.remove('checked');
-    if (btn) btn.classList.remove('enabled');
-  }
-});
-document.getElementById('cv-adult-gate').addEventListener('click', function(e) {
-  if (e.target === this) hideAdultGate();
-});
-document.getElementById('cv-mylist-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeMyListModal();
-});
-document.getElementById('cv-report-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeReportModal();
-});
+(function(){
+  var _cb = document.getElementById('cv-adult-gate-checkbox');
+  if (!_cb) return;
+  _cb.addEventListener('change', function() {
+    var checkrow = document.getElementById('cv-adult-gate-checkrow');
+    var btn = document.getElementById('cv-adult-gate-google-btn');
+    if (this.checked) {
+      if (checkrow) checkrow.classList.add('checked');
+      if (btn) btn.classList.add('enabled');
+    } else {
+      if (checkrow) checkrow.classList.remove('checked');
+      if (btn) btn.classList.remove('enabled');
+    }
+  });
+})();
+(function(){ var _el = document.getElementById('cv-adult-gate'); if (_el) _el.addEventListener('click', function(e) { if (e.target === this) hideAdultGate(); }); })();
+(function(){ var _el = document.getElementById('cv-mylist-modal'); if (_el) _el.addEventListener('click', function(e) { if (e.target === this) closeMyListModal(); }); })();
+(function(){ var _el = document.getElementById('cv-report-modal'); if (_el) _el.addEventListener('click', function(e) { if (e.target === this) closeReportModal(); }); })();
 
 function _cvLoadFirebaseAuth(cb) {
   if (_cvFirebaseAuthLoaded && typeof firebase !== 'undefined' && firebase.auth) { cb(); return; }
@@ -1624,7 +1622,7 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')""><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
@@ -4094,7 +4092,8 @@ function cvMoveSugFocus(dropdownEl, dir) {
 }
 
 // Desktop search input
-document.getElementById('cv-search').addEventListener('input', function() {
+var _cvSearchEl = document.getElementById('cv-search');
+if (_cvSearchEl) _cvSearchEl.addEventListener('input', function() {
   clearTimeout(searchTimer);
   var val = this.value;
   var clr = document.getElementById('cv-search-clear');
@@ -4124,7 +4123,7 @@ document.getElementById('cv-search').addEventListener('input', function() {
 });
 
 // Desktop keyboard nav
-document.getElementById('cv-search').addEventListener('keydown', function(e) {
+if (_cvSearchEl) _cvSearchEl.addEventListener('keydown', function(e) {
   var dd = document.getElementById('cv-search-dropdown');
   if (!dd || !dd.classList.contains('open')) return;
   if (e.key === 'ArrowDown') { e.preventDefault(); cvMoveSugFocus(dd, 1); }
@@ -4754,7 +4753,8 @@ function closeLightbox() {
 }
 
 // Click background to close
-document.getElementById('cv-lightbox').addEventListener('click', function(e) {
+var _cvLbEl = document.getElementById('cv-lightbox');
+if (_cvLbEl) _cvLbEl.addEventListener('click', function(e) {
   if (e.target === this || e.target === document.getElementById('cv-lb-img-wrap')) closeLightbox();
 });
 
@@ -4770,6 +4770,7 @@ document.addEventListener('keydown', function(e) {
 // Touch swipe support
 (function() {
   var lb = document.getElementById('cv-lightbox');
+  if (!lb) return;
   var startX = 0, startY = 0;
   lb.addEventListener('touchstart', function(e) {
     startX = e.touches[0].clientX;
@@ -5235,7 +5236,8 @@ function cvFallbackCopy(text) {
 }
 
 // Close share sheet on background tap
-document.getElementById('cv-share-sheet').addEventListener('click', function(e) {
+var _cvShareEl = document.getElementById('cv-share-sheet');
+if (_cvShareEl) _cvShareEl.addEventListener('click', function(e) {
   if (e.target === this) cvCloseShare();
 });
 
@@ -5332,7 +5334,7 @@ function cvRenderCast(cast, callKey) {
     var name = c.name || '';
     var role = c.character || '';
     html += '<div class="cv-cast-card">'
-      + '<div class="cv-cast-photo-wrap"><img class="cv-cast-photo" src="' + photo + '" alt="' + escJs(name) + '" loading="lazy" onerror="this.src=\'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png\'"/></div>'
+      + '<div class="cv-cast-photo-wrap"><img class="cv-cast-photo" src="' + photo + '" alt="' + escHtml(name) + '" loading="lazy" onerror="this.src=\'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png\'"/></div>'
       + '<div class="cv-cast-name">' + name + '</div>'
       + (role ? '<div class="cv-cast-role">' + role + '</div>' : '')
       + '</div>';
