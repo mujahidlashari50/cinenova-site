@@ -4844,22 +4844,38 @@ function cvLogAnalyticsVisit(movieKey, todayDate) {
     ip: ''
   };
 
-  // Fetch IP + Location from free API
+  // Fetch IP + Location — ipapi.co ka free quota aksar 403/CORS deta tha
+  // (khali visitData save ho jata tha but console mein error aata tha).
+  // Ab ipwho.is primary hai (zyada reliable free tier, HTTPS, no key) aur
+  // agar wo bhi fail ho to geojs.io fallback — dono fail hon to bhi visit
+  // (Unknown location ke sath) save ho jati hai, kabhi block nahi hoti.
+  function _cvSaveVisit() { try { db.ref('analytics/visits').push(visitData); } catch(e) {} }
   try {
-    fetch('https://ipapi.co/json/')
+    fetch('https://ipwho.is/')
       .then(function(r) { return r.json(); })
       .then(function(geo) {
-        visitData.country = geo.country_name || 'Unknown';
-        visitData.city    = geo.city         || 'Unknown';
-        visitData.ip      = geo.ip           || '';
-        db.ref('analytics/visits').push(visitData);
+        if (geo && geo.success !== false) {
+          visitData.country = geo.country || 'Unknown';
+          visitData.city    = geo.city    || 'Unknown';
+          visitData.ip      = geo.ip      || '';
+          _cvSaveVisit();
+        } else {
+          throw new Error('ipwho.is unsuccessful');
+        }
       })
       .catch(function() {
-        // Record visit even if location not found
-        db.ref('analytics/visits').push(visitData);
+        fetch('https://get.geojs.io/v1/ip/geo.json')
+          .then(function(r) { return r.json(); })
+          .then(function(geo) {
+            visitData.country = geo.country || 'Unknown';
+            visitData.city    = geo.city    || 'Unknown';
+            visitData.ip      = geo.ip      || '';
+            _cvSaveVisit();
+          })
+          .catch(_cvSaveVisit);
       });
   } catch(e) {
-    db.ref('analytics/visits').push(visitData);
+    _cvSaveVisit();
   }
 
   // ── Online presence ping (har 30s) ──
