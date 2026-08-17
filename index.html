@@ -4524,12 +4524,19 @@ function fetchFirebasePage(isFirst, _retryCount) {
   // db.ref() call karne se seedha crash ho jata tha (TypeError: Cannot
   // read properties of null). Ab bas thodi der wait karke khud retry
   // karta hai jab tak Firebase ready na ho jaye — koi crash nahi.
+  _retryCount = _retryCount || 0;
   if (!db) {
-    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount); }, 400);
+    if (_retryCount > 40) { // ~16s
+      isLoadingMore = false;
+      if (isFirst && (!allData || !allData.length) && typeof cvShowLoadFailure === 'function') {
+        cvShowLoadFailure();
+      }
+      return;
+    }
+    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount + 1); }, 400);
     return;
   }
   isLoadingMore = true;
-  _retryCount = _retryCount || 0;
 
   var query = db.ref('movies').orderByKey().limitToLast(PAGE_SIZE);
   if (!isFirst && lastFirebaseKey) {
@@ -4640,17 +4647,21 @@ function fetchFirebasePage(isFirst, _retryCount) {
     isLoadingMore = false;
     showLoadingMore(false);
     if (isFirst) {
-      // Auto retry once after 3 seconds
-      setTimeout(function() {
-        isLoadingMore = false;
-        fetchFirebasePage(true, _retryCount + 1);
-      }, 3000);
-      if (!allData || allData.length === 0) {
-        var gridErr = document.getElementById('cv-grid');
-        if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#7d7d7d">' + (err.message||'Firebase error') + '</small></p></div>';
+      if (_retryCount < 3) {
+        setTimeout(function() {
+          isLoadingMore = false;
+          fetchFirebasePage(true, _retryCount + 1);
+        }, 2500);
+        if (!allData || allData.length === 0) {
+          var gridErr = document.getElementById('cv-grid');
+          if (gridErr) gridErr.innerHTML = '<div class="cv-empty"><p>🔄</p><p>Connection issue — retrying...<br/><small style="color:#7d7d7d">' + (err.message||'Firebase error') + '</small></p></div>';
+        }
+      } else if (!allData || allData.length === 0) {
+        var gridFail = document.getElementById('cv-grid');
+        if (gridFail) gridFail.innerHTML = '<div class="cv-empty"><p>⚡</p><p>Site load nahi ho saka<br/><small style="color:#7d7d7d">Internet check karein — <a href="javascript:location.reload()" style="color:#e50914">Reload</a></small></p></div>';
       }
     } else {
-      showStatus('❌ Load error: ' + err.message, '#e50914');
+      showStatus('❌ Load error: ' + (err.message||''), '#e50914');
     }
   });
 }
@@ -5960,29 +5971,60 @@ function cvLevenshtein(a, b) {
 }
 
 function cvFuzzyTitleMatch(title, q) {
-  if (!q || q.length < 2) return false;
+  // Strict: only for typos on real words (min length 4)
+  if (!q || q.length < 4) return false;
   var t = (title || '').toLowerCase();
   if (t.indexOf(q) > -1) return true;
-  var qWords = q.split(/\s+/).filter(Boolean);
-  var tWords = t.split(/[^a-z0-9]+/).filter(Boolean);
-  // Pura query vs pura title — chote naam ke liye
-  var fullThresh = q.length <= 4 ? 1 : (q.length <= 7 ? 2 : 3);
-  if (cvLevenshtein(q, t) <= fullThresh + 1) return true;
-  // Lafz-by-lafz match — taake "ieron man" jaise typo bhi "iron man" se match ho
+  var qWords = q.split(/\s+/).filter(function(w){ return w.length >= 4; });
+  if (!qWords.length) return false;
+  var tWords = t.split(/[^a-z0-9]+/).filter(function(w){ return w.length >= 3; });
+  var matched = 0;
   for (var i = 0; i < qWords.length; i++) {
     var qw = qWords[i];
-    if (qw.length < 2) continue;
-    var wThresh = qw.length <= 4 ? 1 : (qw.length <= 7 ? 2 : 3);
+    var wThresh = qw.length <= 5 ? 1 : 2;
+    var ok = false;
     for (var j = 0; j < tWords.length; j++) {
-      if (cvLevenshtein(qw, tWords[j]) <= wThresh) return true;
+      if (tWords[j].indexOf(qw) === 0 || qw.indexOf(tWords[j]) === 0) { ok = true; break; }
+      if (cvLevenshtein(qw, tWords[j]) <= wThresh) { ok = true; break; }
     }
+    if (ok) matched++;
   }
-  return false;
+  // saare meaningful words match hone chahiye
+  return matched === qWords.length && matched > 0;
 }
 
-// ══════════════════════════════════
-// WATCHLIST / MY LIST (device localStorage me save hota hai)
-// ══════════════════════════════════
+/** Search score — higher = better match (title only) */
+function cvSearchScore(m, q) {
+  if (!q) return 0;
+  var title = (m.title || '').toLowerCase().trim();
+  if (!title) return 0;
+  var year = String(m.year || '');
+  // Exact title
+  if (title === q) return 1000;
+  // Starts with query
+  if (title.indexOf(q) === 0) return 900;
+  // Title contains full query as substring
+  if (title.indexOf(q) > -1) return 800 - Math.min(title.indexOf(q), 50);
+  // All query words present in title (order free)
+  var qWords = q.split(/\s+/).filter(Boolean);
+  if (qWords.length > 1) {
+    var allIn = true;
+    for (var i = 0; i < qWords.length; i++) {
+      if (title.indexOf(qWords[i]) === -1) { allIn = false; break; }
+    }
+    if (allIn) return 700;
+  }
+  // Year match alone is weak — only with some title hint
+  if (year && q === year) return 50;
+  // Fuzzy title (typos)
+  if (cvFuzzyTitleMatch(title, q)) return 400;
+  return 0;
+}
+
+function cvTitleMatchesSearch(m, q) {
+  return cvSearchScore(m, q) > 0;
+}
+
 function cvGetWatchlist() {
   try { return JSON.parse(localStorage.getItem('cv_watchlist') || '{}'); } catch (e) { return {}; }
 }
@@ -6255,7 +6297,7 @@ function cvBuildFilteredList() {
       if (cvIsAdultItem(m) && !adultUnlocked) return false;
       var title = (m.title || '').toLowerCase();
       if (!q) return true;
-      return title.indexOf(q) > -1 || cvFuzzyTitleMatch(title, q);
+      return cvTitleMatchesSearch(m, q);
     });
     return;
   }
@@ -6278,21 +6320,20 @@ function cvBuildFilteredList() {
     if (selGenre !== '') {
       if (genre !== selGenre) return false;
       if (!q) return true;
-      return title.indexOf(q) > -1 || cvFuzzyTitleMatch(title, q);
+      return cvTitleMatchesSearch(m, q);
     }
     var catMatch = (selCat === 'all' ? true : cat === selCat);
     if (!catMatch) return false;
     if (!q) return true;
-    return title.indexOf(q) > -1 ||
-           cat.indexOf(q) > -1 ||
-           genre.indexOf(q) > -1 ||
-           cvFuzzyTitleMatch(title, q);
+    // Sirf TITLE se search — category/genre pe match nahi (warna galat movies)
+    return cvTitleMatchesSearch(m, q);
   });
   if (q) {
     cvFilteredList.sort(function(a, b) {
-      var aExact = (a.title || '').toLowerCase().indexOf(q) > -1 ? 0 : 1;
-      var bExact = (b.title || '').toLowerCase().indexOf(q) > -1 ? 0 : 1;
-      return aExact - bExact;
+      var sa = cvSearchScore(a, q);
+      var sb = cvSearchScore(b, q);
+      if (sb !== sa) return sb - sa;
+      return ((b.addedAt || 0) - (a.addedAt || 0));
     });
   } else if (selCat === 'all') {
     // HOME MIX: last bulk import ek category ki ho to pehle page usi se
@@ -7671,14 +7712,15 @@ function cvBuildSuggestions(q, dropdownEl) {
     return;
   }
   var ql = q.toLowerCase().trim();
-  var results = allData.filter(function(m) {
-    if (cvIsAdultItem(m)) return false; // adult movies kabhi search suggestions mein nahi
-    var title = (m.title || '').toLowerCase();
-    return title.indexOf(ql) > -1 ||
-           (m.genre || '').toLowerCase().indexOf(ql) > -1 ||
-           (m.category || '').toLowerCase().indexOf(ql) > -1 ||
-           cvFuzzyTitleMatch(title, ql);
-  }).slice(0, 8);
+  var scored = [];
+  for (var si = 0; si < allData.length; si++) {
+    var m = allData[si];
+    if (cvIsAdultItem(m)) continue;
+    var sc = cvSearchScore(m, ql);
+    if (sc > 0) scored.push({ m: m, sc: sc });
+  }
+  scored.sort(function(a, b) { return b.sc - a.sc; });
+  var results = scored.slice(0, 8).map(function(x){ return x.m; });
 
   cvSugFocusIdx = -1;
 
