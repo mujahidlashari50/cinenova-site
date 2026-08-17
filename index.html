@@ -6687,14 +6687,21 @@ function openModal(key) {
   // Buttons
   var btns = '';
   var _mkey = m._key || window._cvCurrentKey || '';
-  // Watch Now → Play Worker (play.cinenova.site) → VLC. Pixeldrain local fast-path.
-  var _watchInfo = cnResolveWatchTarget(m, _mkey);
-  if (_watchInfo && _watchInfo.url && _mkey) {
+  // Playmate embed pehle → site pe iframe (VLC mat kholo)
+  var _pmEmbed = cnPlaymateEmbedUrl(m);
+  if (_pmEmbed) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
-    btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
-  } else if (_watchInfo && _watchInfo.url) {
-    btns += '<div class="cv-section-title">▶ Watch</div>';
-    btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\',\'' + escJs(m.title||'') + '\')">▶ Watch Now</button>';
+    btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+  } else {
+    // Watch Now → Play Worker / VLC. Pixeldrain local fast-path.
+    var _watchInfo = cnResolveWatchTarget(m, _mkey);
+    if (_watchInfo && _watchInfo.url && _mkey) {
+      btns += '<div class="cv-section-title">▶ Watch</div>';
+      btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
+    } else if (_watchInfo && _watchInfo.url) {
+      btns += '<div class="cv-section-title">▶ Watch</div>';
+      btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\',\'' + escJs(m.title||'') + '\')">▶ Watch Now</button>';
+    }
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -7040,6 +7047,7 @@ function playVideo(url, title) {
   inner.innerHTML = '';
   if (loading) loading.classList.add('show');
 
+  var isPlaymate = /playmate\.to/i.test(url);
   var isEmbed4me = /embed4me\.com/i.test(url);
   var isPixeldrain = /pixeldrain\.com\/(?:u|api\/file)\/([a-zA-Z0-9]+)/i.test(url);
   var isR2Cloud = /\.r2\.dev\//i.test(url);
@@ -7053,7 +7061,13 @@ function playVideo(url, title) {
   requestAnimationFrame(function() {
     if (loading) loading.classList.remove('show');
 
-    if (isEmbed4me) {
+    if (isPlaymate) {
+      // ── Playmate.to embed iframe ──
+      var pmSrc = url;
+      var pmId = (url.match(/playmate\.to\/(?:embed|e|v|watch)\/([A-Za-z0-9_-]+)/i) || [])[1];
+      if (pmId) pmSrc = 'https://playmate.to/embed/' + pmId;
+      inner.innerHTML = '<iframe src="' + pmSrc + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+    } else if (isEmbed4me) {
       // ── Player4Me (embed4me.com) — hotlink-friendly embed service,
       // Pixeldrain jaisa restriction nahi hai isliye iframe seedha
       // kaam karta hai. Sirf desktop path (openMxPlayer) se yahan
@@ -7307,7 +7321,10 @@ function cnPixeldrainApiUrl(raw) {
 
 function cnResolveWatchTarget(m, movieKey) {
   if (!m || !movieKey) return null;
-  // Local pixeldrain fast-path (worker hop skip — VLC turant)
+  // Playmate embed first
+  var pm = cnPlaymateEmbedUrl(m);
+  if (pm) return { url: pm, type: 'playmate-embed' };
+  // Local pixeldrain fast-path
   var fields = [
     m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
     m.download1080p, m.download720p, m.download480p, m.download4k
@@ -7316,11 +7333,27 @@ function cnResolveWatchTarget(m, movieKey) {
     var pd = cnPixeldrainApiUrl(fields[i]);
     if (pd) return { url: pd, type: 'pixeldrain' };
   }
-  // Baaki sab → play worker /go (resolve + redirect to final)
   var hasAny = !!(m.videoSourceUrl || m.dlSourceUrl || m.videoUrl || m.vlcUrl || m.vlcUrl2 ||
+    m.playmateId || m.playmateUrl ||
     m.download480p || m.download720p || m.download1080p || m.download4k);
   if (hasAny) return { url: cnPlayGoUrl(movieKey, '', '', ''), type: 'play-worker' };
   return null;
+}
+
+
+/** Playmate embed URL from movie fields */
+function cnPlaymateEmbedUrl(m) {
+  if (!m) return '';
+  var raw = m.playmateUrl || m.playmateId || m.embedUrl || '';
+  if (!raw && m.videoUrl && /playmate\.to/i.test(m.videoUrl)) raw = m.videoUrl;
+  if (!raw && m.vlcUrl2 && /playmate\.to/i.test(m.vlcUrl2)) raw = m.vlcUrl2;
+  if (!raw) return '';
+  raw = String(raw).trim();
+  var idM = raw.match(/playmate\.to\/(?:embed|e|v|watch)\/([A-Za-z0-9_-]{6,})/i);
+  if (idM) return 'https://playmate.to/embed/' + idM[1];
+  if (/^[A-Za-z0-9_-]{8,24}$/.test(raw) && !/^https?:/i.test(raw)) return 'https://playmate.to/embed/' + raw;
+  if (/playmate\.to/i.test(raw)) return raw.split('?')[0];
+  return '';
 }
 
 function cnOpenInVlc(httpsUrl, title) {
@@ -7361,6 +7394,14 @@ function cnGoToWatchWorker(movieKey, quality) {
       m = allData.find(function(x) { return x._key === movieKey; });
     }
   } catch (e) {}
+  // Playmate embed — in-page player (VLC nahi)
+  if (m) {
+    var pm = cnPlaymateEmbedUrl(m);
+    if (pm && typeof playVideo === 'function') {
+      playVideo(pm, m.title || 'Now Playing');
+      return;
+    }
+  }
   // Pixeldrain: local — zero worker wait
   if (m) {
     var fields = [m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
