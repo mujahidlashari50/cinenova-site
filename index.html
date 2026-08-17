@@ -192,49 +192,150 @@ setTimeout(function() {
   // International region fallback: try gstatic first, then jsDelivr CDN
   var _fbCDN1 = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js';
   var _fbCDN2 = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-app-compat.min.js';
+  // Track which Firebase SDK URLs are already loading/loaded so we never inject twice
+  // (avoids: "Firebase is already defined in the global scope")
+  var _cvFbScriptState = {}; // url -> 'loading' | 'done'
+  function _cvFbScriptAlreadyInDom(url) {
+    try {
+      var list = document.querySelectorAll('script[src]');
+      for (var i = 0; i < list.length; i++) {
+        var src = list[i].getAttribute('src') || '';
+        if (src === url || src.indexOf('firebase-app-compat') > -1 && url.indexOf('firebase-app-compat') > -1) return true;
+        if (src.indexOf('firebase-database-compat') > -1 && url.indexOf('firebase-database-compat') > -1) return true;
+        if (src.indexOf('firebase-auth-compat') > -1 && url.indexOf('firebase-auth-compat') > -1) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
   function _cvLoadFirebaseWithFallback(url, fallback, cb) {
+    // If app SDK already present globally, skip re-injecting firebase-app-compat
+    if (url.indexOf('firebase-app-compat') > -1 && typeof firebase !== 'undefined') {
+      cb();
+      return;
+    }
+    // If database already available, skip
+    if (url.indexOf('firebase-database-compat') > -1 && typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
+      cb();
+      return;
+    }
+    if (_cvFbScriptState[url] === 'done' || _cvFbScriptState[fallback] === 'done') {
+      cb();
+      return;
+    }
+    if (_cvFbScriptState[url] === 'loading') {
+      // Another call in progress for same URL — wait via poll
+      var waitN = 0;
+      var waitT = setInterval(function() {
+        waitN++;
+        if (_cvFbScriptState[url] === 'done' || _cvFbScriptState[fallback] === 'done' || waitN > 100) {
+          clearInterval(waitT);
+          cb();
+        }
+      }, 100);
+      return;
+    }
+    if (_cvFbScriptAlreadyInDom(url) || _cvFbScriptAlreadyInDom(fallback)) {
+      _cvFbScriptState[url] = 'done';
+      _cvFbScriptState[fallback] = 'done';
+      cb();
+      return;
+    }
+    _cvFbScriptState[url] = 'loading';
     var done = false;
     var s = document.createElement('script');
     s.src = url;
     s.async = false;
-    var timer = setTimeout(function() {
+    function finishOk() {
       if (done) return;
       done = true;
-      document.head.removeChild(s);
+      clearTimeout(timer);
+      _cvFbScriptState[url] = 'done';
+      _cvFbScriptState[fallback] = 'done';
+      cb();
+    }
+    function finishFailLoadFallback() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+      if (typeof firebase !== 'undefined' && url.indexOf('firebase-app-compat') > -1) {
+        // Primary may have partially defined firebase — do not load second copy
+        _cvFbScriptState[url] = 'done';
+        _cvFbScriptState[fallback] = 'done';
+        cb();
+        return;
+      }
+      if (_cvFbScriptAlreadyInDom(fallback)) {
+        _cvFbScriptState[fallback] = 'done';
+        cb();
+        return;
+      }
+      _cvFbScriptState[fallback] = 'loading';
       var s2 = document.createElement('script');
       s2.src = fallback;
       s2.async = false;
-      s2.onload = cb; s2.onerror = cb;
+      s2.onload = function() {
+        _cvFbScriptState[fallback] = 'done';
+        _cvFbScriptState[url] = 'done';
+        cb();
+      };
+      s2.onerror = function() {
+        _cvFbScriptState[fallback] = 'done';
+        _cvFbScriptState[url] = 'done';
+        cb();
+      };
       document.head.appendChild(s2);
-    }, 5000);
-    s.onload = function() { if (done) return; done = true; clearTimeout(timer); cb(); };
-    s.onerror = function() { if (done) return; done = true; clearTimeout(timer);
-      var s2 = document.createElement('script');
-      s2.src = fallback; s2.async = false;
-      s2.onload = cb; s2.onerror = cb;
-      document.head.appendChild(s2);
-    };
+    }
+    // Longer timeout; do NOT remove+reload if primary is still downloading —
+    // that race was the main cause of double-define warning.
+    var timer = setTimeout(function() {
+      if (done) return;
+      // If firebase appeared (slow network but script ran), treat as success
+      if (typeof firebase !== 'undefined' && url.indexOf('firebase-app-compat') > -1) {
+        finishOk();
+        return;
+      }
+      if (typeof firebase !== 'undefined' && typeof firebase.database === 'function' && url.indexOf('firebase-database-compat') > -1) {
+        finishOk();
+        return;
+      }
+      finishFailLoadFallback();
+    }, 8000);
+    s.onload = finishOk;
+    s.onerror = finishFailLoadFallback;
     document.head.appendChild(s);
   }
-  _cvLoadFirebaseWithFallback(_fbCDN1, _fbCDN2, function() {
+  function _cvAfterAppReady() {
     try {
-      if (typeof firebase !== 'undefined' && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
     } catch(e) {}
-    if (typeof firebase === 'undefined') { cvShowLoadFailure(); return; } // dono CDN fail — turant bata do
-    // Database SDK only — earning/auth system removed
-    _cvLoadFirebaseWithFallback('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.min.js', function() {
-      try {
-        if (typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
-          db = firebase.database();
-          _cvFirebaseLoaded = true;
-          cvFlushErrorQueue();
-          if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady();
-        } else {
-          cvShowLoadFailure();
-        }
-      } catch(e) { cvShowLoadFailure(); }
-    });
-  });
+    if (typeof firebase === 'undefined') { cvShowLoadFailure(); return; }
+    // Database SDK only
+    _cvLoadFirebaseWithFallback(
+      'https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js',
+      'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.min.js',
+      function() {
+        try {
+          if (typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
+            db = firebase.database();
+            _cvFirebaseLoaded = true;
+            cvFlushErrorQueue();
+            if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady();
+          } else {
+            cvShowLoadFailure();
+          }
+        } catch(e) { cvShowLoadFailure(); }
+      }
+    );
+  }
+  // Skip app load entirely if another copy (Worker / previous nav) already defined firebase
+  if (typeof firebase !== 'undefined') {
+    _cvAfterAppReady();
+  } else {
+    _cvLoadFirebaseWithFallback(_fbCDN1, _fbCDN2, _cvAfterAppReady);
+  }
 })();
 
 // ── STATUS (only show if not empty) ──
@@ -325,40 +426,90 @@ function hideAdultGate() {
   }
 }
 
-(function(){
-  var _cb = document.getElementById('cv-adult-gate-checkbox');
-  if (!_cb) return;
-  _cb.addEventListener('change', function() {
-    var checkrow = document.getElementById('cv-adult-gate-checkrow');
-    var btn = document.getElementById('cv-adult-gate-google-btn');
-    if (this.checked) {
-      if (checkrow) checkrow.classList.add('checked');
-      if (btn) btn.classList.add('enabled');
-    } else {
-      if (checkrow) checkrow.classList.remove('checked');
-      if (btn) btn.classList.remove('enabled');
-    }
-  });
-})();
-(function(){ var _el = document.getElementById('cv-adult-gate'); if (_el) _el.addEventListener('click', function(e) { if (e.target === this) hideAdultGate(); }); })();
-(function(){ var _el = document.getElementById('cv-mylist-modal'); if (_el) _el.addEventListener('click', function(e) { if (e.target === this) closeMyListModal(); }); })();
-(function(){ var _el = document.getElementById('cv-report-modal'); if (_el) _el.addEventListener('click', function(e) { if (e.target === this) closeReportModal(); }); })();
+document.getElementById('cv-adult-gate-checkbox').addEventListener('change', function() {
+  var checkrow = document.getElementById('cv-adult-gate-checkrow');
+  var btn = document.getElementById('cv-adult-gate-google-btn');
+  if (this.checked) {
+    if (checkrow) checkrow.classList.add('checked');
+    if (btn) btn.classList.add('enabled');
+  } else {
+    if (checkrow) checkrow.classList.remove('checked');
+    if (btn) btn.classList.remove('enabled');
+  }
+});
+document.getElementById('cv-adult-gate').addEventListener('click', function(e) {
+  if (e.target === this) hideAdultGate();
+});
+document.getElementById('cv-mylist-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMyListModal();
+});
+document.getElementById('cv-report-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeReportModal();
+});
 
 function _cvLoadFirebaseAuth(cb) {
   if (_cvFirebaseAuthLoaded && typeof firebase !== 'undefined' && firebase.auth) { cb(); return; }
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    _cvFirebaseAuthLoaded = true;
+    cb();
+    return;
+  }
+  // Avoid double inject of auth-compat
+  var existing = document.querySelector('script[src*="firebase-auth-compat"]');
+  if (existing) {
+    var waitN = 0;
+    var t = setInterval(function() {
+      waitN++;
+      if ((typeof firebase !== 'undefined' && firebase.auth) || waitN > 80) {
+        clearInterval(t);
+        _cvFirebaseAuthLoaded = !!(typeof firebase !== 'undefined' && firebase.auth);
+        if (_cvFirebaseAuthLoaded) cb();
+        else cb(new Error('Auth SDK load failed'));
+      }
+    }, 100);
+    return;
+  }
+  var done = false;
   var s = document.createElement('script');
   s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
   s.async = true;
   var fallbackTimer = setTimeout(function() {
+    if (done) return;
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      done = true;
+      _cvFirebaseAuthLoaded = true;
+      cb();
+      return;
+    }
+    done = true;
     var s2 = document.createElement('script');
     s2.src = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-auth-compat.min.js';
     s2.async = true;
     s2.onload = function() { _cvFirebaseAuthLoaded = true; cb(); };
     s2.onerror = function() { cb(new Error('Auth SDK load failed')); };
     document.head.appendChild(s2);
-  }, 6000);
-  s.onload = function() { clearTimeout(fallbackTimer); _cvFirebaseAuthLoaded = true; cb(); };
-  s.onerror = function() { clearTimeout(fallbackTimer); };
+  }, 8000);
+  s.onload = function() {
+    if (done) return;
+    done = true;
+    clearTimeout(fallbackTimer);
+    _cvFirebaseAuthLoaded = true;
+    cb();
+  };
+  s.onerror = function() {
+    if (done) return;
+    clearTimeout(fallbackTimer);
+    // fall through to timeout path by forcing fallback now
+    done = false;
+    fallbackTimer = setTimeout(function(){}, 0);
+    var s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-auth-compat.min.js';
+    s2.async = true;
+    done = true;
+    s2.onload = function() { _cvFirebaseAuthLoaded = true; cb(); };
+    s2.onerror = function() { cb(new Error('Auth SDK load failed')); };
+    document.head.appendChild(s2);
+  };
   document.head.appendChild(s);
 }
 
@@ -1622,7 +1773,7 @@ function buildTsSlider() {
     var cat = (m.category || '').toLowerCase();
     var thumb = m.thumbnail || '';
     var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')""><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
       : '<div class="cv-card-no-img">🎬</div>';
     var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
     var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
@@ -4092,8 +4243,7 @@ function cvMoveSugFocus(dropdownEl, dir) {
 }
 
 // Desktop search input
-var _cvSearchEl = document.getElementById('cv-search');
-if (_cvSearchEl) _cvSearchEl.addEventListener('input', function() {
+document.getElementById('cv-search').addEventListener('input', function() {
   clearTimeout(searchTimer);
   var val = this.value;
   var clr = document.getElementById('cv-search-clear');
@@ -4123,7 +4273,7 @@ if (_cvSearchEl) _cvSearchEl.addEventListener('input', function() {
 });
 
 // Desktop keyboard nav
-if (_cvSearchEl) _cvSearchEl.addEventListener('keydown', function(e) {
+document.getElementById('cv-search').addEventListener('keydown', function(e) {
   var dd = document.getElementById('cv-search-dropdown');
   if (!dd || !dd.classList.contains('open')) return;
   if (e.key === 'ArrowDown') { e.preventDefault(); cvMoveSugFocus(dd, 1); }
@@ -4753,8 +4903,7 @@ function closeLightbox() {
 }
 
 // Click background to close
-var _cvLbEl = document.getElementById('cv-lightbox');
-if (_cvLbEl) _cvLbEl.addEventListener('click', function(e) {
+document.getElementById('cv-lightbox').addEventListener('click', function(e) {
   if (e.target === this || e.target === document.getElementById('cv-lb-img-wrap')) closeLightbox();
 });
 
@@ -4770,7 +4919,6 @@ document.addEventListener('keydown', function(e) {
 // Touch swipe support
 (function() {
   var lb = document.getElementById('cv-lightbox');
-  if (!lb) return;
   var startX = 0, startY = 0;
   lb.addEventListener('touchstart', function(e) {
     startX = e.touches[0].clientX;
@@ -5236,8 +5384,7 @@ function cvFallbackCopy(text) {
 }
 
 // Close share sheet on background tap
-var _cvShareEl = document.getElementById('cv-share-sheet');
-if (_cvShareEl) _cvShareEl.addEventListener('click', function(e) {
+document.getElementById('cv-share-sheet').addEventListener('click', function(e) {
   if (e.target === this) cvCloseShare();
 });
 
@@ -5334,7 +5481,7 @@ function cvRenderCast(cast, callKey) {
     var name = c.name || '';
     var role = c.character || '';
     html += '<div class="cv-cast-card">'
-      + '<div class="cv-cast-photo-wrap"><img class="cv-cast-photo" src="' + photo + '" alt="' + escHtml(name) + '" loading="lazy" onerror="this.src=\'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png\'"/></div>'
+      + '<div class="cv-cast-photo-wrap"><img class="cv-cast-photo" src="' + photo + '" alt="' + escJs(name) + '" loading="lazy" onerror="this.src=\'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png\'"/></div>'
       + '<div class="cv-cast-name">' + name + '</div>'
       + (role ? '<div class="cv-cast-role">' + role + '</div>' : '')
       + '</div>';
