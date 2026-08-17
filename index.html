@@ -192,150 +192,49 @@ setTimeout(function() {
   // International region fallback: try gstatic first, then jsDelivr CDN
   var _fbCDN1 = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js';
   var _fbCDN2 = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-app-compat.min.js';
-  // Track which Firebase SDK URLs are already loading/loaded so we never inject twice
-  // (avoids: "Firebase is already defined in the global scope")
-  var _cvFbScriptState = {}; // url -> 'loading' | 'done'
-  function _cvFbScriptAlreadyInDom(url) {
-    try {
-      var list = document.querySelectorAll('script[src]');
-      for (var i = 0; i < list.length; i++) {
-        var src = list[i].getAttribute('src') || '';
-        if (src === url || src.indexOf('firebase-app-compat') > -1 && url.indexOf('firebase-app-compat') > -1) return true;
-        if (src.indexOf('firebase-database-compat') > -1 && url.indexOf('firebase-database-compat') > -1) return true;
-        if (src.indexOf('firebase-auth-compat') > -1 && url.indexOf('firebase-auth-compat') > -1) return true;
-      }
-    } catch (e) {}
-    return false;
-  }
   function _cvLoadFirebaseWithFallback(url, fallback, cb) {
-    // If app SDK already present globally, skip re-injecting firebase-app-compat
-    if (url.indexOf('firebase-app-compat') > -1 && typeof firebase !== 'undefined') {
-      cb();
-      return;
-    }
-    // If database already available, skip
-    if (url.indexOf('firebase-database-compat') > -1 && typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
-      cb();
-      return;
-    }
-    if (_cvFbScriptState[url] === 'done' || _cvFbScriptState[fallback] === 'done') {
-      cb();
-      return;
-    }
-    if (_cvFbScriptState[url] === 'loading') {
-      // Another call in progress for same URL — wait via poll
-      var waitN = 0;
-      var waitT = setInterval(function() {
-        waitN++;
-        if (_cvFbScriptState[url] === 'done' || _cvFbScriptState[fallback] === 'done' || waitN > 100) {
-          clearInterval(waitT);
-          cb();
-        }
-      }, 100);
-      return;
-    }
-    if (_cvFbScriptAlreadyInDom(url) || _cvFbScriptAlreadyInDom(fallback)) {
-      _cvFbScriptState[url] = 'done';
-      _cvFbScriptState[fallback] = 'done';
-      cb();
-      return;
-    }
-    _cvFbScriptState[url] = 'loading';
     var done = false;
     var s = document.createElement('script');
     s.src = url;
     s.async = false;
-    function finishOk() {
+    var timer = setTimeout(function() {
       if (done) return;
       done = true;
-      clearTimeout(timer);
-      _cvFbScriptState[url] = 'done';
-      _cvFbScriptState[fallback] = 'done';
-      cb();
-    }
-    function finishFailLoadFallback() {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
-      if (typeof firebase !== 'undefined' && url.indexOf('firebase-app-compat') > -1) {
-        // Primary may have partially defined firebase — do not load second copy
-        _cvFbScriptState[url] = 'done';
-        _cvFbScriptState[fallback] = 'done';
-        cb();
-        return;
-      }
-      if (_cvFbScriptAlreadyInDom(fallback)) {
-        _cvFbScriptState[fallback] = 'done';
-        cb();
-        return;
-      }
-      _cvFbScriptState[fallback] = 'loading';
+      document.head.removeChild(s);
       var s2 = document.createElement('script');
       s2.src = fallback;
       s2.async = false;
-      s2.onload = function() {
-        _cvFbScriptState[fallback] = 'done';
-        _cvFbScriptState[url] = 'done';
-        cb();
-      };
-      s2.onerror = function() {
-        _cvFbScriptState[fallback] = 'done';
-        _cvFbScriptState[url] = 'done';
-        cb();
-      };
+      s2.onload = cb; s2.onerror = cb;
       document.head.appendChild(s2);
-    }
-    // Longer timeout; do NOT remove+reload if primary is still downloading —
-    // that race was the main cause of double-define warning.
-    var timer = setTimeout(function() {
-      if (done) return;
-      // If firebase appeared (slow network but script ran), treat as success
-      if (typeof firebase !== 'undefined' && url.indexOf('firebase-app-compat') > -1) {
-        finishOk();
-        return;
-      }
-      if (typeof firebase !== 'undefined' && typeof firebase.database === 'function' && url.indexOf('firebase-database-compat') > -1) {
-        finishOk();
-        return;
-      }
-      finishFailLoadFallback();
-    }, 8000);
-    s.onload = finishOk;
-    s.onerror = finishFailLoadFallback;
+    }, 5000);
+    s.onload = function() { if (done) return; done = true; clearTimeout(timer); cb(); };
+    s.onerror = function() { if (done) return; done = true; clearTimeout(timer);
+      var s2 = document.createElement('script');
+      s2.src = fallback; s2.async = false;
+      s2.onload = cb; s2.onerror = cb;
+      document.head.appendChild(s2);
+    };
     document.head.appendChild(s);
   }
-  function _cvAfterAppReady() {
+  _cvLoadFirebaseWithFallback(_fbCDN1, _fbCDN2, function() {
     try {
-      if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
+      if (typeof firebase !== 'undefined' && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
     } catch(e) {}
-    if (typeof firebase === 'undefined') { cvShowLoadFailure(); return; }
-    // Database SDK only
-    _cvLoadFirebaseWithFallback(
-      'https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js',
-      'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.min.js',
-      function() {
-        try {
-          if (typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
-            db = firebase.database();
-            _cvFirebaseLoaded = true;
-            cvFlushErrorQueue();
-            if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady();
-          } else {
-            cvShowLoadFailure();
-          }
-        } catch(e) { cvShowLoadFailure(); }
-      }
-    );
-  }
-  // Skip app load entirely if another copy (Worker / previous nav) already defined firebase
-  if (typeof firebase !== 'undefined') {
-    _cvAfterAppReady();
-  } else {
-    _cvLoadFirebaseWithFallback(_fbCDN1, _fbCDN2, _cvAfterAppReady);
-  }
+    if (typeof firebase === 'undefined') { cvShowLoadFailure(); return; } // dono CDN fail — turant bata do
+    // Database SDK only — earning/auth system removed
+    _cvLoadFirebaseWithFallback('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.min.js', function() {
+      try {
+        if (typeof firebase !== 'undefined' && typeof firebase.database === 'function') {
+          db = firebase.database();
+          _cvFirebaseLoaded = true;
+          cvFlushErrorQueue();
+          if (typeof _cvOnFirebaseReady === 'function') _cvOnFirebaseReady();
+        } else {
+          cvShowLoadFailure();
+        }
+      } catch(e) { cvShowLoadFailure(); }
+    });
+  });
 })();
 
 // ── STATUS (only show if not empty) ──
@@ -449,67 +348,19 @@ document.getElementById('cv-report-modal').addEventListener('click', function(e)
 
 function _cvLoadFirebaseAuth(cb) {
   if (_cvFirebaseAuthLoaded && typeof firebase !== 'undefined' && firebase.auth) { cb(); return; }
-  if (typeof firebase !== 'undefined' && firebase.auth) {
-    _cvFirebaseAuthLoaded = true;
-    cb();
-    return;
-  }
-  // Avoid double inject of auth-compat
-  var existing = document.querySelector('script[src*="firebase-auth-compat"]');
-  if (existing) {
-    var waitN = 0;
-    var t = setInterval(function() {
-      waitN++;
-      if ((typeof firebase !== 'undefined' && firebase.auth) || waitN > 80) {
-        clearInterval(t);
-        _cvFirebaseAuthLoaded = !!(typeof firebase !== 'undefined' && firebase.auth);
-        if (_cvFirebaseAuthLoaded) cb();
-        else cb(new Error('Auth SDK load failed'));
-      }
-    }, 100);
-    return;
-  }
-  var done = false;
   var s = document.createElement('script');
   s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
   s.async = true;
   var fallbackTimer = setTimeout(function() {
-    if (done) return;
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      done = true;
-      _cvFirebaseAuthLoaded = true;
-      cb();
-      return;
-    }
-    done = true;
     var s2 = document.createElement('script');
     s2.src = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-auth-compat.min.js';
     s2.async = true;
     s2.onload = function() { _cvFirebaseAuthLoaded = true; cb(); };
     s2.onerror = function() { cb(new Error('Auth SDK load failed')); };
     document.head.appendChild(s2);
-  }, 8000);
-  s.onload = function() {
-    if (done) return;
-    done = true;
-    clearTimeout(fallbackTimer);
-    _cvFirebaseAuthLoaded = true;
-    cb();
-  };
-  s.onerror = function() {
-    if (done) return;
-    clearTimeout(fallbackTimer);
-    // fall through to timeout path by forcing fallback now
-    done = false;
-    fallbackTimer = setTimeout(function(){}, 0);
-    var s2 = document.createElement('script');
-    s2.src = 'https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-auth-compat.min.js';
-    s2.async = true;
-    done = true;
-    s2.onload = function() { _cvFirebaseAuthLoaded = true; cb(); };
-    s2.onerror = function() { cb(new Error('Auth SDK load failed')); };
-    document.head.appendChild(s2);
-  };
+  }, 6000);
+  s.onload = function() { clearTimeout(fallbackTimer); _cvFirebaseAuthLoaded = true; cb(); };
+  s.onerror = function() { clearTimeout(fallbackTimer); };
   document.head.appendChild(s);
 }
 
@@ -3130,7 +2981,18 @@ function openModal(key) {
   img.alt = (m.title || 'Movie') + ' Poster';
   if (m.thumbnail) {
     img.src = '';  // Clear first to force reload on new movie
-    var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(m.thumbnail) + '&w=600&output=webp&q=85';
+    var _rawThumb = String(m.thumbnail || '').trim();
+    var _posterUrl = _rawThumb;
+    if (_rawThumb && _rawThumb.indexOf('wsrv.nl') < 0 && (_rawThumb.indexOf('http://') === 0 || _rawThumb.indexOf('https://') === 0)) {
+      _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(_rawThumb) + '&w=600&output=webp&q=85';
+    }
+    img.onerror = function() {
+      // wsrv 400 / fail → fall back to original thumbnail once
+      if (img.dataset.cvFb !== '1' && _rawThumb && img.src !== _rawThumb) {
+        img.dataset.cvFb = '1';
+        img.src = _rawThumb;
+      }
+    };
     img.src = _posterUrl;
     img.setAttribute('fetchpriority', 'high');
     img.loading = 'eager';
@@ -3547,13 +3409,13 @@ function playVideo(url, title) {
       var pmSrc = url;
       var pmId = (url.match(/playmate\.to\/(?:embed|e|v|watch)\/([A-Za-z0-9_-]+)/i) || [])[1];
       if (pmId) pmSrc = 'https://playmate.to/embed/' + pmId;
-      inner.innerHTML = '<iframe src="' + pmSrc + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      inner.innerHTML = '<iframe src="' + pmSrc + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     } else if (isEmbed4me) {
       // ── Player4Me (embed4me.com) — hotlink-friendly embed service,
       // Pixeldrain jaisa restriction nahi hai isliye iframe seedha
       // kaam karta hai. Sirf desktop path (openMxPlayer) se yahan
       // aata hai — mobile ka VLC/intent flow alag hi rehta hai. ──
-      inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      inner.innerHTML = '<iframe src="' + url + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     } else if (isPixeldrain) {
       // ── Pixeldrain browser mein KABHI play nahi hogi (confirmed):
       // raw link = hotlink_detected error, iframe embed = X-Frame-Options
@@ -3617,7 +3479,7 @@ function playVideo(url, title) {
       }
     } else {
       // ── Other embeds: Abyss, Dailymotion, Streamtape, etc. — direct iframe ──
-      inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      inner.innerHTML = '<iframe src="' + url + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     }
   });
 
@@ -4451,7 +4313,7 @@ function tmdbPlayTrailer(tmdbId, mediaType, title) {
         || videos.find(function(v) { return v.site === 'YouTube'; });
       if (trailer) {
         var embedUrl = 'https://www.youtube.com/embed/' + trailer.key + '?autoplay=1';
-        inner.innerHTML = '<iframe src="' + embedUrl + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;display:block"></iframe>';
+        inner.innerHTML = '<iframe src="' + embedUrl + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;display:block"></iframe>';
       } else {
         inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:16px;padding:20px;text-align:center;">'
           + '<div style="font-size:3rem;">🎬</div>'
@@ -5390,9 +5252,16 @@ document.getElementById('cv-share-sheet').addEventListener('click', function(e) 
 
 function cvThumb(url) {
   if (!url) return '';
-  // wsrv.nl se 300x450 optimized image — faster load
   try {
+    url = String(url).trim();
+    if (!url) return '';
+    // Already proxied / data / relative — return as-is
     if (url.indexOf('wsrv.nl') > -1) return url;
+    if (url.indexOf('data:') === 0) return url;
+    // Only proxy absolute http(s) URLs — invalid ones cause wsrv 400
+    if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) return url;
+    // Skip obviously broken / placeholder
+    if (url.length < 12) return url;
     return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=300&h=450&fit=cover&output=webp&q=80';
   } catch(e) { return url; }
 }
