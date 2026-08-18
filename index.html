@@ -2981,18 +2981,9 @@ function openModal(key) {
   img.alt = (m.title || 'Movie') + ' Poster';
   if (m.thumbnail) {
     img.src = '';  // Clear first to force reload on new movie
-    var _rawThumb = String(m.thumbnail || '').trim();
-    var _posterUrl = _rawThumb;
-    if (_rawThumb && _rawThumb.indexOf('wsrv.nl') < 0 && (_rawThumb.indexOf('http://') === 0 || _rawThumb.indexOf('https://') === 0)) {
-      _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(_rawThumb) + '&w=600&output=webp&q=85';
-    }
-    img.onerror = function() {
-      // wsrv 400 / fail → fall back to original thumbnail once
-      if (img.dataset.cvFb !== '1' && _rawThumb && img.src !== _rawThumb) {
-        img.dataset.cvFb = '1';
-        img.src = _rawThumb;
-      }
-    };
+    var _cleanThumb = m.thumbnail;
+    try { _cleanThumb = decodeURIComponent(m.thumbnail); } catch(e3) { _cleanThumb = m.thumbnail; }
+    var _posterUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(_cleanThumb) + '&w=600&output=webp&q=85';
     img.src = _posterUrl;
     img.setAttribute('fetchpriority', 'high');
     img.loading = 'eager';
@@ -3409,13 +3400,13 @@ function playVideo(url, title) {
       var pmSrc = url;
       var pmId = (url.match(/playmate\.to\/(?:embed|e|v|watch)\/([A-Za-z0-9_-]+)/i) || [])[1];
       if (pmId) pmSrc = 'https://playmate.to/embed/' + pmId;
-      inner.innerHTML = '<iframe src="' + pmSrc + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      inner.innerHTML = '<iframe src="' + pmSrc + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     } else if (isEmbed4me) {
       // ── Player4Me (embed4me.com) — hotlink-friendly embed service,
       // Pixeldrain jaisa restriction nahi hai isliye iframe seedha
       // kaam karta hai. Sirf desktop path (openMxPlayer) se yahan
       // aata hai — mobile ka VLC/intent flow alag hi rehta hai. ──
-      inner.innerHTML = '<iframe src="' + url + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     } else if (isPixeldrain) {
       // ── Pixeldrain browser mein KABHI play nahi hogi (confirmed):
       // raw link = hotlink_detected error, iframe embed = X-Frame-Options
@@ -3479,7 +3470,7 @@ function playVideo(url, title) {
       }
     } else {
       // ── Other embeds: Abyss, Dailymotion, Streamtape, etc. — direct iframe ──
-      inner.innerHTML = '<iframe src="' + url + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
+      inner.innerHTML = '<iframe src="' + url + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;display:block;border:none;"></iframe>';
     }
   });
 
@@ -4313,7 +4304,7 @@ function tmdbPlayTrailer(tmdbId, mediaType, title) {
         || videos.find(function(v) { return v.site === 'YouTube'; });
       if (trailer) {
         var embedUrl = 'https://www.youtube.com/embed/' + trailer.key + '?autoplay=1';
-        inner.innerHTML = '<iframe src="' + embedUrl + '" frameborder="0" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;display:block"></iframe>';
+        inner.innerHTML = '<iframe src="' + embedUrl + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;display:block"></iframe>';
       } else {
         inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:16px;padding:20px;text-align:center;">'
           + '<div style="font-size:3rem;">🎬</div>'
@@ -5252,17 +5243,18 @@ document.getElementById('cv-share-sheet').addEventListener('click', function(e) 
 
 function cvThumb(url) {
   if (!url) return '';
+  // wsrv.nl se 300x450 optimized image — faster load
   try {
-    url = String(url).trim();
-    if (!url) return '';
-    // Already proxied / data / relative — return as-is
     if (url.indexOf('wsrv.nl') > -1) return url;
-    if (url.indexOf('data:') === 0) return url;
-    // Only proxy absolute http(s) URLs — invalid ones cause wsrv 400
-    if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) return url;
-    // Skip obviously broken / placeholder
-    if (url.length < 12) return url;
-    return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=300&h=450&fit=cover&output=webp&q=80';
+    // ✅ DOUBLE-ENCODING FIX: agar admin panel se aayi url mein pehle se
+    // encoded characters (jaise %20) maujood hon, to encodeURIComponent()
+    // unhe dobara encode kar deta (%20 → %2520), jis se wsrv.nl 400 deta
+    // tha aur poster/cast image broken dikhti thi. Pehle safely decode
+    // karo (agar already-encoded na ho to decodeURIComponent chup-chap
+    // wahi string wapis kar deta hai), phir ek hi baar encode karo.
+    var cleanUrl = url;
+    try { cleanUrl = decodeURIComponent(url); } catch(e2) { cleanUrl = url; }
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(cleanUrl) + '&w=300&h=450&fit=cover&output=webp&q=80';
   } catch(e) { return url; }
 }
 
