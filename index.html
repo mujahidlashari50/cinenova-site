@@ -647,7 +647,9 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 40;         // 40 at a time — matches grid page size (36), so first paint doesn't over-fetch
+var PAGE_SIZE = 80;         // 80 at a time — homepage pe pagination turant sahi dikhne ke liye
+                             // buffer chahiye (40 chhota tha, kabhi 1-page-only bann jata tha
+                             // aur pagination bar chhup jati thi jab tak zyada data load na ho)
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -2122,6 +2124,35 @@ function cvRestoreFromUrl() {
         openModal(found._key);
         return;
       }
+      // ✅ STUCK-LOADING FIX: pehle sirf allData (ab tak load hui 80 movies)
+      // mein retry hota tha — agar link kisi PURANI movie ka ho (jo abhi
+      // load hi nahi hui), to 10 second khali retry ho kar bina kisi error
+      // ke chup-chap ruk jata tha. Ab turant Firebase se seedha us movie ko
+      // seoSlug (indexed field) se dhoondte hain — parallel mein purana
+      // allData-polling bhi chalta rehta hai (jo movie recent hai us ke
+      // liye fast rehta hai).
+      if (db) {
+        db.ref('movies').orderByChild('seoSlug').equalTo(decoded).limitToFirst(1)
+          .once('value', function(snap) {
+            if (!snap.exists()) return;
+            var mv = null;
+            snap.forEach(function(c) { mv = c.val(); mv._key = c.key; });
+            if (!mv) return;
+            var already = allData.some(function(x) { return x._key === mv._key; });
+            if (!already) allData.push(mv);
+            openModal(mv._key);
+          });
+        // Direct Firebase key se bhi try karo (agar URL mein slug ki jagah
+        // seedha key ho, ya seoSlug set hi na ho)
+        db.ref('movies/' + decoded).once('value', function(snap2) {
+          if (!snap2.exists()) return;
+          var mv2 = snap2.val();
+          mv2._key = decoded;
+          var already2 = allData.some(function(x) { return x._key === mv2._key; });
+          if (!already2) allData.push(mv2);
+          openModal(mv2._key);
+        });
+      }
       // Data abhi load nahi hua — retry karo jab tak mile (max 10 sec)
       var retryCount = 0;
       var retryInterval = setInterval(function() {
@@ -2132,10 +2163,27 @@ function cvRestoreFromUrl() {
           openModal(f._key);
         } else if (retryCount > 50) {
           clearInterval(retryInterval);
-          // Last try — slug directly use karo as key
-          if (allData.length > 0) {
-            var fallback = allData.find(function(x){ return x._key === decoded; });
-            if (fallback) openModal(fallback._key);
+          // ✅ Ab bhi na mile (seoSlug set nahi thi, aur key match bhi nahi
+          // hua) — to poora dataset background mein load karo aur dobara
+          // title-based slug se match karo (last resort, sabse purani
+          // movies bhi eventually mil jayengi).
+          if (!allLoaded) {
+            var fullLoadTries = 0;
+            var fullLoadInterval = setInterval(function() {
+              fullLoadTries++;
+              var f2 = cvFindBySlug(decoded) || allData.find(function(x) { return x._key === decoded; });
+              if (f2) {
+                clearInterval(fullLoadInterval);
+                openModal(f2._key);
+              } else if (allLoaded || fullLoadTries > 100) {
+                clearInterval(fullLoadInterval);
+                if (!f2) {
+                  var gridEl = document.getElementById('cv-grid');
+                  if (gridEl) showStatus('⚠️ Ye movie nahi mili, ho sakta hai remove ho gayi ho', '#e5a000');
+                }
+              }
+            }, 300);
+            if (typeof _cvLoadAllForCategory === 'function') _cvLoadAllForCategory();
           }
         }
       }, 200);
