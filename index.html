@@ -3962,10 +3962,9 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
 
     renderGrid();
     cvUpdateCategorySEO(cat, isGenre);
-    // Category/genre select hote hi poore grid section tak smooth scroll —
-    // is se user ko turant pata chal jata hai ke filter apply ho gaya,
-    // bina khud scroll kiye. Ek frame wait taake grid render ho chuka ho.
-    requestAnimationFrame(cvScrollToCatSection);
+    // ✅ Auto-scroll hata diya — mobile pe category click karte hi seedha
+    // neeche content pe jump kar jata tha, jo disorienting lagta tha.
+    // Ab user apni marzi se scroll karega.
     // Update URL for shareable category links — pushState taake back button
     // se pichli category/home pe wapis jaya ja sake (exit na ho).
     // Agar ye click cvRestoreFromUrl() (popstate) se aa raha hai to dobara
