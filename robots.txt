@@ -1,8 +1,22 @@
-User-agent: *
+// ── robots.txt ──
+if (url.pathname === '/robots.txt') {
+  const robotsTxt = `User-agent: *
 Allow: /
 
-# Search result query URLs — duplicate/low-value, crawl budget waste
+# Search query pages — low value / duplicate content
 Disallow: /*?q=
 Disallow: /*&q=
 
+# Adult category (extra safety)
+Disallow: /*?cat=adult
+
 Sitemap: https://www.cinenova.site/sitemap.xml
+`;
+  return new Response(robotsTxt, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, max-age=86400',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
