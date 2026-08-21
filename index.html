@@ -3155,6 +3155,8 @@ function openModal(key) {
     }
     window._cvDlData = dlData;
     btns += '<button class="cv-dl-btn secondary" onclick="openDlPopup()">⬇ Download</button>';
+    // User movie page pe hai → worker pehle se link resolve kare (click pe instant)
+    try { cnWarmDownloads(_mkey, dlData); } catch (e) {}
   }
 
   // Share + action row
@@ -3714,6 +3716,29 @@ function cnGoToDownloadWorker(movieKey, quality) {
   params.set('id', movieKey);
   params.set('q', quality || '480p');
   window.location.href = WORKER_DL_BASE + '?' + params.toString();
+}
+
+// Movie open / download popup se pehle worker warm — /get pe cache hit
+function cnWarmDownloads(movieKey, dlData) {
+  if (!movieKey) return;
+  var qs = [];
+  if (dlData && dlData.length) {
+    dlData.forEach(function(d) { if (d && d.q) qs.push(String(d.q).toLowerCase().replace('4k', '4k')); });
+  } else {
+    qs = ['1080p', '720p', '480p'];
+  }
+  // Prefer highest first, max 3 parallel
+  var order = ['1080p', '720p', '480p', '4k'];
+  qs.sort(function(a, b) { return order.indexOf(a) - order.indexOf(b); });
+  var seen = {};
+  qs.slice(0, 3).forEach(function(q) {
+    if (seen[q]) return;
+    seen[q] = 1;
+    var u = 'https://download.cinenova.site/warm?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+    try {
+      fetch(u, { mode: 'cors', credentials: 'omit' }).catch(function(){});
+    } catch (e) {}
+  });
 }
 
 // ══════════════════════════════════
