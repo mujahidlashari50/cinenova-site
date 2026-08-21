@@ -3099,6 +3099,10 @@ function openModal(key) {
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
   if (m.quality) badges += '<span class="cv-mbadge">' + m.quality + '</span>';
   if (m.size) badges += '<span class="cv-mbadge">💾 ' + m.size + '</span>';
+  if (m.duration) badges += '<span class="cv-mbadge">⏱ ' + m.duration + '</span>';
+  if (m.director) badges += '<span class="cv-mbadge">🎬 Dir: ' + m.director + '</span>';
+  if (m.network) badges += '<span class="cv-mbadge">📡 ' + m.network + '</span>';
+  if (m.status) badges += '<span class="cv-mbadge">' + m.status + '</span>';
   if (m.downloadCount) badges += '<span class="cv-mbadge">⬇ ' + cvFormatCount(m.downloadCount) + ' Downloads</span>';
   document.getElementById('cv-modal-badges').innerHTML = badges;
 
@@ -3111,7 +3115,7 @@ function openModal(key) {
     descEl.style.display = 'none';
   }
 
-  // Cast row (TMDB se title/year match karke fetch hota hai)
+  // Cast — sirf Firebase (panel import / TMDB fill se save)
   cvLoadCast(m);
 
   // Buttons
@@ -5446,45 +5450,29 @@ function cvLoadCast(m) {
 
   castRow.style.display = 'none';
   castTrack.innerHTML = '';
-
-  var info = cvExtractCastSearchTitle(m.title || '');
-  var searchTitle = info.title;
-  var searchYear = m.year || info.year || '';
-  if (!searchTitle) return;
-
-  var isTv = !!(m.episodes && m.episodes.length);
-  var searchType = isTv ? 'tv' : 'movie';
-  var cacheKey = searchType + ':' + searchTitle.toLowerCase() + ':' + searchYear;
   var callKey = window._cvCurrentKey;
 
-  if (window._cvCastCache[cacheKey]) {
-    cvRenderCast(window._cvCastCache[cacheKey], callKey);
-    return;
+  // Firebase / Panel pehle — live TMDB call nahi (panel se save hona chahiye)
+  // castList = [{name, character, photo|profile_path}] YA cast = "A, B, C"
+  var fromFb = [];
+  if (m.castList && Array.isArray(m.castList) && m.castList.length) {
+    fromFb = m.castList.slice(0, 12).map(function(c) {
+      if (typeof c === 'string') return { name: c, character: '', profile_path: null, photo: null };
+      return {
+        name: c.name || c.n || '',
+        character: c.character || c.role || c.r || '',
+        profile_path: c.profile_path || null,
+        photo: c.photo || c.image || null
+      };
+    }).filter(function(c) { return c.name; });
+  } else if (m.cast && String(m.cast).trim()) {
+    fromFb = String(m.cast).split(/[,|\/]/).map(function(n) {
+      return { name: n.replace(/\s+/g, ' ').trim(), character: '', profile_path: null, photo: null };
+    }).filter(function(c) { return c.name && c.name.length > 1; }).slice(0, 12);
   }
-
-  var yearParam = searchYear ? ('&year=' + encodeURIComponent(searchYear)) : '';
-  var searchUrl = 'https://api.themoviedb.org/3/search/' + searchType + '?api_key=' + TMDB_KEY + '&language=en-US&query=' + encodeURIComponent(searchTitle) + yearParam;
-
-  fetch(searchUrl).then(function(r) { return r.json(); }).then(function(data) {
-    var results = data && data.results ? data.results : [];
-    if (!results.length && searchYear) {
-      // Year ke sath match na mile to bina year ke retry karo
-      return fetch('https://api.themoviedb.org/3/search/' + searchType + '?api_key=' + TMDB_KEY + '&language=en-US&query=' + encodeURIComponent(searchTitle))
-        .then(function(r2) { return r2.json(); });
-    }
-    return data;
-  }).then(function(data) {
-    var results = data && data.results ? data.results : [];
-    if (!results.length) { window._cvCastCache[cacheKey] = []; return; }
-    var tmdbId = results[0].id;
-    return fetch('https://api.themoviedb.org/3/' + searchType + '/' + tmdbId + '/credits?api_key=' + TMDB_KEY + '&language=en-US')
-      .then(function(r3) { return r3.json(); })
-      .then(function(credits) {
-        var cast = (credits && credits.cast) ? credits.cast.slice(0, 12) : [];
-        window._cvCastCache[cacheKey] = cast;
-        cvRenderCast(cast, callKey);
-      });
-  }).catch(function() {});
+  if (fromFb.length) {
+    cvRenderCast(fromFb, callKey);
+  }
 }
 
 function cvRenderCast(cast, callKey) {
@@ -5497,9 +5485,11 @@ function cvRenderCast(cast, callKey) {
   var html = '';
   for (var i = 0; i < cast.length; i++) {
     var c = cast[i];
-    var photo = c.profile_path
-      ? 'https://image.tmdb.org/t/p/w185' + c.profile_path
-      : 'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png';
+    var photo = c.photo
+      ? c.photo
+      : (c.profile_path
+        ? ((String(c.profile_path).indexOf('http') === 0) ? c.profile_path : ('https://image.tmdb.org/t/p/w185' + c.profile_path))
+        : 'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png');
     var name = c.name || '';
     var role = c.character || '';
     html += '<div class="cv-cast-card">'
