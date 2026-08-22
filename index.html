@@ -3361,13 +3361,20 @@ function openModal(key) {
       var epUrl = ep.videoUrl || ep.url || ep.link || '';
       var epVlc = ep.vlcUrl || '';
       var epLabel = 'S' + (ep.season||1) + 'E' + (ep.episode||(i+1));
-      var hasDl = ep.dl480 || ep.dl720 || ep.dl1080;
+      var hasDl = ep.dl480 || ep.dl720 || ep.dl1080 || ep.download480p || ep.download720p || ep.download1080p;
       if (hasDl) {
         var arr = [];
-        if (ep.dl480)  arr.push({q:'480p',  url:ep.dl480,  size:ep.sz480  ||''});
-        if (ep.dl720)  arr.push({q:'720p',  url:ep.dl720,  size:ep.sz720  ||''});
-        if (ep.dl1080) arr.push({q:'1080p', url:ep.dl1080, size:ep.sz1080 ||''});
-        window._cvEpDlRegistry[i] = arr;
+        var d480 = ep.dl480 || ep.download480p || '';
+        var d720 = ep.dl720 || ep.download720p || '';
+        var d1080 = ep.dl1080 || ep.download1080p || '';
+        if (d480)  arr.push({q:'480p',  url:d480,  size:ep.sz480  || ep.size480 || ''});
+        if (d720)  arr.push({q:'720p',  url:d720,  size:ep.sz720  || ep.size720 || ''});
+        if (d1080) arr.push({q:'1080p', url:d1080, size:ep.sz1080 || ep.size1080 || ''});
+        window._cvEpDlRegistry[i] = {
+          season: String(epSeasonNum),
+          episode: String(epNumVal),
+          items: arr
+        };
       }
       var playBtn = '';
       var epHasWorker = !!(ep.videoSourceUrl || ep.dlSourceUrl);
@@ -3882,12 +3889,27 @@ function dlLink(url, quality) {
 // ══════════════════════════════════
 // CLOUDFLARE WORKER DOWNLOAD NAVIGATION
 // ══════════════════════════════════
-function cnGoToDownloadWorker(movieKey, quality) {
+function cnBumpDownloadCount(movieKey) {
+  if (!movieKey || typeof db === 'undefined' || !db) return;
+  try {
+    db.ref('movies/' + movieKey + '/downloadCount').transaction(function(cur) {
+      return (typeof cur === 'number' ? cur : 0) + 1;
+    }).catch(function(){});
+    db.ref('downloadCounts/' + movieKey).transaction(function(cur) {
+      return (typeof cur === 'number' ? cur : 0) + 1;
+    }).catch(function(){});
+  } catch (e) {}
+}
+
+function cnGoToDownloadWorker(movieKey, quality, season, episode) {
   var WORKER_DL_BASE = 'https://download.cinenova.site/dl';
   if (!movieKey) return;
+  cnBumpDownloadCount(movieKey);
   var params = new URLSearchParams();
   params.set('id', movieKey);
   params.set('q', quality || '480p');
+  if (season) params.set('s', String(season));
+  if (episode) params.set('e', String(episode));
   window.location.href = WORKER_DL_BASE + '?' + params.toString();
 }
 
@@ -4130,12 +4152,16 @@ function cvPlayEp(idx) {
 
 // Episode download popup helper (uses stored dl registry — no inline JSON)
 function cvEpDl(idx) {
-  var items = (window._cvEpDlRegistry || {})[idx] || [];
+  var reg = (window._cvEpDlRegistry || {})[idx];
+  if (!reg) return;
+  var items = Array.isArray(reg) ? reg : (reg.items || []);
+  var season = Array.isArray(reg) ? '1' : (reg.season || '1');
+  var episode = Array.isArray(reg) ? '' : (reg.episode || '');
   if (!items.length) return;
   var html = '';
   items.forEach(function(item) {
     var q = item.q || '480p';
-    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\');closeDlPopup()">' +
+    html += '<div class="cv-dl-quality-btn" onclick="cvTrackDownload(\'' + escJs(q) + '\');cnGoToDownloadWorker(window._cvCurrentKey,\'' + escJs(q) + '\',\'' + escJs(String(season)) + '\',\'' + escJs(String(episode)) + '\');closeDlPopup()">' +
       '<div class="cv-dl-quality-label">' +
         '<span class="cv-dl-quality-badge">' + escHtml(q) + '</span>' +
         '<span>Download ' + escHtml(q) + '</span>' +
