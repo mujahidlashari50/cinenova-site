@@ -3634,7 +3634,7 @@ function openModal(key) {
     epEl.innerHTML = epHtml;
     // Store episode urls for play function
     window._cvEpUrls = m.episodes.map(function(ep,i){
-      return ep.videoUrl || ep.url || ep.link || ep.vlcUrl || '';
+      return ep.videoUrl || ep.videoSourceUrl || ep.dlSourceUrl || ep.dl1080 || ep.dl720 || ep.dl480 || ep.url || ep.link || ep.vlcUrl || '';
     });
     window._cvEpLabels = m.episodes.map(function(ep,i){ return (m.title||'')+ ' — S'+(ep.season||1)+'E'+(ep.episode||(i+1)); });
     cvMarkEpisodesSeen(m);
