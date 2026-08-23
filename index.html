@@ -92,12 +92,12 @@ function cvOpenInBrowser() {
 </div>
 <style>
 #cv-subcats{
-  display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
-  padding:6px 4% 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+  gap:8px;padding:10px 4% 12px;
   border-bottom:1px solid rgba(255,255,255,.05);
   background:rgba(0,0,0,.2);
+  overflow:visible;
 }
-#cv-subcats::-webkit-scrollbar{display:none}
 #cv-subcats .cv-pill{
   padding:6px 14px;font-size:.78rem;flex-shrink:0;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#999;
@@ -106,8 +106,17 @@ function cvOpenInBrowser() {
 #cv-subcats .cv-pill.active{background:#e50914;color:#fff;border-color:#e50914}
 #cv-subcats .cv-pill-adult{color:#999}
 #cv-subcats .cv-pill-adult.active{background:linear-gradient(135deg,#3a0a0a,#1a0505);color:#ff6b6b;border-color:rgba(255,107,107,.4)}
-@media(max-width:540px){
-  #cv-subcats{padding:5px 12px 8px;gap:5px}
+@media(min-width:769px){
+  #cv-subcats{justify-content:center;flex-wrap:wrap;overflow:visible;padding:12px 24px 14px}
+}
+@media(max-width:768px){
+  #cv-subcats{
+    flex-wrap:nowrap;justify-content:flex-start;
+    overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    padding:6px 12px 10px;gap:6px;
+  }
+  #cv-subcats::-webkit-scrollbar{display:none}
   #cv-subcats .cv-pill{padding:5px 12px;font-size:.72rem}
 }
 </style>
