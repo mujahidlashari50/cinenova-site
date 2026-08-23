@@ -84,30 +84,32 @@ function cvOpenInBrowser() {
 </div>
 
 <div id="cv-lang-bar">
-  <span class="cv-lang-label">Language:</span>
   <button type="button" class="cv-lang-btn active" data-lang="" id="cv-lang-all" onclick="cvApplyLangFilter('',this)">All</button>
-  <button type="button" class="cv-lang-btn" data-lang="english" id="cv-lang-english" onclick="cvApplyLangFilter('english',this)">🇬🇧 English</button>
-  <button type="button" class="cv-lang-btn" data-lang="hindi" id="cv-lang-hindi" onclick="cvApplyLangFilter('hindi',this)">🇮🇳 Hindi / Dubbed</button>
+  <button type="button" class="cv-lang-btn" data-lang="english" id="cv-lang-english" onclick="cvApplyLangFilter('english',this)">English</button>
+  <button type="button" class="cv-lang-btn" data-lang="hindi" id="cv-lang-hindi" onclick="cvApplyLangFilter('hindi',this)">Hindi / Dubbed</button>
 </div>
 <style>
-#cv-lang-bar{display:flex;align-items:center;gap:8px;padding:8px 4% 4px;flex-wrap:wrap;background:rgba(20,20,20,.6);border-bottom:1px solid rgba(255,255,255,.05)}
-.cv-lang-label{font-size:.72rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
-.cv-lang-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#aaa;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap}
-.cv-lang-btn:hover{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25)}
-.cv-lang-btn.active{background:#e50914;color:#fff;border-color:#e50914;box-shadow:0 2px 10px rgba(229,9,20,.35)}
-@media(max-width:540px){#cv-lang-bar{padding:6px 12px 4px;gap:6px}.cv-lang-btn{padding:5px 11px;font-size:.72rem}.cv-lang-label{font-size:.65rem}}
+#cv-lang-bar{
+  display:flex;align-items:center;gap:6px;padding:6px 4% 10px;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+#cv-lang-bar::-webkit-scrollbar{display:none}
+.cv-lang-btn{
+  padding:5px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:#888;font-size:.75rem;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;flex-shrink:0
+}
+.cv-lang-btn:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.cv-lang-btn.active{
+  background:rgba(229,9,20,.15);color:#e50914;border-color:rgba(229,9,20,.45)
+}
+@media(max-width:540px){
+  #cv-lang-bar{padding:5px 12px 8px;gap:5px}
+  .cv-lang-btn{padding:4px 12px;font-size:.7rem}
+}
 </style>
-<div id="cv-badge-grid">
-<a href="?cat=hollywood" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('hollywood',false);">Hollywood</a>
-<a href="?cat=hollywood_dubbed" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('hollywood_dubbed',false);">Hollywood Hindi</a>
-<a href="?cat=bollywood" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('bollywood',false);">Bollywood</a>
-<a href="?cat=tollywood" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('tollywood',false);">Tollywood</a>
-<a href="?cat=animation" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('animation',false);">Animated</a>
-<a href="?cat=webseries" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('webseries',false);">Web-Series</a>
-<a href="?cat=kdrama" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('kdrama',false);">🇰🇷 K-Drama</a>
-<a href="?cat=adult" class="cv-badge-tag" onclick="event.preventDefault();cvApplyFilter('adult',false);">🔞 Adult</a>
-</div>
-<style>#cv-badge-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:2px 14px 14px;max-width:1100px;margin:0 auto}.cv-badge-tag{background:linear-gradient(135deg,#1a1a1a,#161616);border:1px solid var(--border2,#2a2a2a);color:#e8e8e8;font-size:.76rem;font-weight:600;padding:8px 15px;border-radius:8px;text-decoration:none;white-space:nowrap;transition:all .18s}.cv-badge-tag:active,.cv-badge-tag:hover{background:var(--accent,#e50914);border-color:var(--accent,#e50914);color:#fff}.cv-badge-tag.cv-badge-active{background:var(--accent,#e50914)!important;border-color:var(--accent,#e50914)!important;color:#fff!important}@media(max-width:540px){#cv-badge-grid{gap:6px;padding:2px 10px 12px}.cv-badge-tag{font-size:.7rem;padding:7px 12px}}</style> <div id="cv-featured-wrap"> <script>(function(){try{
+<div id="cv-featured-wrap"> <script>(function(){try{
     var p=new URLSearchParams(location.search);
     if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';return;}
     // Pichli baar ka pata hua state turant apply karo (Firebase ka wait
