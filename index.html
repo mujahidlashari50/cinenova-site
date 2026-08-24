@@ -4174,11 +4174,12 @@ function cnWarmDownloads(movieKey, dlData) {
 }
 
 // ══════════════════════════════════
-// WATCH NOW → dedicated PLAY worker → VLC
-// Play worker panel se link resolve karta hai, final URL /go pe redirect
-// Domain: https://play.cinenova.site  (Cloudflare pe deploy karke DNS/route set karo)
+// WATCH NOW → CineNova in-site player (download worker /watch)
+// VLC app nahi — browser ke andar full player
+// Domain: https://download.cinenova.site/watch
 // ══════════════════════════════════
 var CN_PLAY_WORKER = 'https://play.cinenova.site';
+var CN_WATCH_WORKER = 'https://download.cinenova.site';
 
 function cnPlayGoUrl(movieKey, quality, season, episode) {
   var params = new URLSearchParams();
@@ -4196,6 +4197,17 @@ function cnPlayJsonUrl(movieKey, quality, season, episode) {
   if (season) params.set('s', season);
   if (episode) params.set('e', episode);
   return CN_PLAY_WORKER + '/play?' + params.toString();
+}
+
+/** In-site player page (ads + HTML5 player) — VLC replace */
+function cnWatchPageUrl(movieKey, quality, season, episode) {
+  var base = (typeof CN_WATCH_WORKER !== 'undefined' && CN_WATCH_WORKER) ? CN_WATCH_WORKER : 'https://download.cinenova.site';
+  var params = new URLSearchParams();
+  params.set('id', movieKey);
+  if (quality) params.set('q', quality);
+  if (season) params.set('s', season);
+  if (episode) params.set('e', episode);
+  return base + '/watch?' + params.toString();
 }
 
 // Pixeldrain local fallback (worker down ho to theme khud try kare)
@@ -4285,7 +4297,7 @@ function cnGoToWatchWorker(movieKey, quality) {
       m = allData.find(function(x) { return x._key === movieKey; });
     }
   } catch (e) {}
-  // Playmate embed — in-page player (VLC nahi)
+  // Playmate embed — same-page modal player
   if (m) {
     var pm = cnPlaymateEmbedUrl(m);
     if (pm && typeof playVideo === 'function') {
@@ -4293,20 +4305,20 @@ function cnGoToWatchWorker(movieKey, quality) {
       return;
     }
   }
-  // Pixeldrain: local — zero worker wait
+  // Pixeldrain — in-page Plyr (VLC nahi)
   if (m) {
     var fields = [m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
       m.download720p, m.download1080p, m.download480p, m.download4k];
     for (var i = 0; i < fields.length; i++) {
       var pd = cnPixeldrainApiUrl(fields[i]);
-      if (pd) {
-        cnOpenInVlc(pd, m.title || '');
+      if (pd && typeof playVideo === 'function') {
+        playVideo(pd, m.title || 'Now Playing');
         return;
       }
     }
   }
-  // Foran VLC open — /go?id= (default 720p smooth)
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', '', ''), (m && m.title) || '');
+  // Default: CineNova in-site player (ads + HTML5) — VLC app band
+  window.location.href = cnWatchPageUrl(movieKey, quality || '720p', '', '');
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
@@ -4325,14 +4337,24 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
     });
     if (ep) {
       if (ep.title) title = title ? (title + ' — ' + ep.title) : ep.title;
+      // Playmate / pixeldrain episode → in-page
+      var pm = cnPlaymateEmbedUrl(ep) || cnPlaymateEmbedUrl(m);
+      if (pm && typeof playVideo === 'function') {
+        playVideo(pm, title || 'Now Playing');
+        return;
+      }
       var epFields = [ep.vlcUrl, ep.videoUrl, ep.videoSourceUrl, ep.dlSourceUrl, ep.dl720, ep.dl1080, ep.dl480];
       for (var i = 0; i < epFields.length; i++) {
         var pd = cnPixeldrainApiUrl(epFields[i]);
-        if (pd) { cnOpenInVlc(pd, title); return; }
+        if (pd && typeof playVideo === 'function') {
+          playVideo(pd, title || 'Now Playing');
+          return;
+        }
       }
     }
   }
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || ''), title);
+  // Episode → in-site /watch player with s + e
+  window.location.href = cnWatchPageUrl(movieKey, quality || '720p', season || '1', episode || '');
 }
 
 
