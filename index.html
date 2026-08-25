@@ -590,9 +590,11 @@ function cvAdultLogoutPrompt() {
   } catch (e) {}
   cvUpdateAdultBadge();
   // Agar user abhi Adult category dekh raha hai, wapis Home bhej do
-  if (selCat === 'adult') {
+  var _adultLogoutCats = {adult:1,'group:adult':1,philippines:1,hot_short_hindi:1,short_films:1,adult_hindi:1,adult_english:1,hot_series:1,vivamax:1};
+  if (_adultLogoutCats[selCat]) {
     var homePill = document.querySelector('.cv-pill[data-cat="all"]');
     if (homePill) homePill.click();
+    else if (typeof cvApplyFilter === 'function') cvApplyFilter('all', false, null);
   }
 }
 
@@ -619,13 +621,18 @@ function hideAdultGate() {
   document.body.style.overflow = '';
   _cvAdultGateOnSuccess = null;
 
-  // Agar user gate cancel kar de aur wo "Adult" pill se aaya tha, wapis
-  // "Home" pill par le aao — warna active state "Adult" par atka reh
-  // jaata hai jabke grid mein kuch nahi dikh raha hota.
-  var adultPill = document.querySelector('.cv-pill[data-cat="adult"]');
-  if (adultPill && adultPill.classList.contains('active') && !cvIsAdultVerified()) {
-    var homePill = document.querySelector('.cv-pill[data-cat="all"]');
-    if (homePill) homePill.click();
+  // Agar user gate cancel kar de aur wo Adult section se aaya tha, wapis
+  // "Home" pe le aao — warna active state Adult par atka reh jaata hai.
+  if (!cvIsAdultVerified()) {
+    var _stuckAdult = false;
+    var _ap = document.querySelector('.cv-pill[data-cat="adult"], .cv-pill[data-cat="group:adult"], .cv-subcat-item.active.cv-subcat-adult, .cv-cat-sub-item.active[data-cat="group:adult"]');
+    if (_ap && _ap.classList.contains('active')) _stuckAdult = true;
+    if (!_stuckAdult && (selCat === 'adult' || selCat === 'group:adult' || selCat === 'philippines' || selCat === 'hot_short_hindi')) _stuckAdult = true;
+    if (_stuckAdult) {
+      var homePill = document.querySelector('.cv-pill[data-cat="all"]');
+      if (homePill) homePill.click();
+      else if (typeof cvApplyFilter === 'function') cvApplyFilter('all', false, null);
+    }
   }
 }
 
@@ -696,15 +703,19 @@ function cvAdultGoogleVerify() {
       cvSetAdultVerified(user ? user.uid : '', user ? user.email : '');
       hideAdultGate();
 
-      // Adult pill ko active karo aur grid render karo
+      // All Adult (group:adult) activate — saari adult family load + show
       document.querySelectorAll('.cv-pill').forEach(function(p) { p.classList.remove('active'); });
-      var adultPill = document.querySelector('.cv-pill[data-cat="adult"]');
+      document.querySelectorAll('.cv-subcat-item, .cv-cat-sub-item').forEach(function(p) { p.classList.remove('active'); });
+      var adultPill = document.querySelector('.cv-pill[data-cat="group:adult"], .cv-pill[data-cat="adult"], .cv-subcat-item[data-cat="group:adult"], .cv-cat-sub-item[data-cat="group:adult"]');
       if (adultPill) adultPill.classList.add('active');
-      selCat = 'adult'; selGenre = '';
+      // parent Adult button ko has-value do
+      var adultParent = document.querySelector('.cv-cat-parent[data-group="adult"]');
+      if (adultParent) adultParent.classList.add('has-value');
+      selCat = 'group:adult'; selGenre = '';
       renderGrid();
-      updateSlidersVisibility('adult');
-      cvLoadCategoryData('adult', false);
-      try { history.replaceState(null, '', location.pathname + '?cat=adult'); } catch (e) {}
+      updateSlidersVisibility('group:adult');
+      cvLoadCategoryData('group:adult', false);
+      try { history.replaceState(null, '', location.pathname + '?cat=group:adult'); } catch (e) {}
 
       if (typeof _cvAdultGateOnSuccess === 'function') {
         var fn = _cvAdultGateOnSuccess;
@@ -2672,7 +2683,7 @@ function cvRestoreFromUrl() {
       if (typeof cvSyncLangBar === 'function') cvSyncLangBar();
       document.querySelectorAll('.cv-badge-tag').forEach(function(b) { b.classList.remove('cv-badge-active'); });
       if (!selLang) return;
-      var elId = (selCat === 'adult')
+      var elId = (selCat === 'adult' || selCat === 'group:adult')
         ? (selLang === 'english' ? 'cv-badge-adult-en' : 'cv-badge-adult-hi')
         : (selLang === 'english' ? 'cv-badge-lang-english' : 'cv-badge-lang-hindi');
       var el = document.getElementById(elId);
@@ -3146,9 +3157,10 @@ function cvBuildFilteredList() {
     // Adult family: adult, adult_hindi, adult_english, hot_series, vivamax, short_films
     var adultCats = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1, short_films:1, philippines:1, hot_short_hindi:1};
     var isAdultItem = !!adultCats[cat];
+    var isAllAdult = (selCat === 'adult' || selCat === 'group:adult');
     if (isAdultItem) {
-      // Top "Adult" pill → all adult family (if unlocked)
-      if (selCat === 'adult') {
+      // Top "Adult" / "All Adult" (group:adult) → all adult family (if unlocked)
+      if (isAllAdult) {
         if (!adultUnlocked) return false;
         // show all adult family
       } else if (adultCats[selCat]) {
@@ -3159,7 +3171,7 @@ function cvBuildFilteredList() {
         // non-adult filter (Hollywood etc.) — hide adult
         return false;
       }
-    } else if (selCat === 'adult' || adultCats[selCat]) {
+    } else if (isAllAdult || adultCats[selCat]) {
       // viewing adult section but item is not adult
       return false;
     }
@@ -6435,7 +6447,7 @@ function cvUpdateSEO(m, slug) {
 // hai in 5 categories ko; ye function real users/JS-rendering crawlers ke
 // liye bhi client-side pe wahi consistency maintain karta hai (title,
 // canonical, meta description) jab user pill click kare.
-var CV_CAT_SEO = { hollywood: 'Hollywood', hollywood_dubbed: 'Hollywood Hindi', bollywood: 'Bollywood', tollywood: 'Tollywood', animation: 'Animated', webseries: 'Web-Series', kdrama: 'K-Drama', dual_audio: 'Dual Audio', hindi_dubbed: 'Hindi Dubbed', south: 'South Indian', tamil: 'Tamil', telugu: 'Telugu', south_hindi: 'South Hindi Dubbed', adult: 'Adult Movies', short_films: 'Adult Short Film' };
+var CV_CAT_SEO = { hollywood: 'Hollywood', hollywood_dubbed: 'Hollywood Hindi', bollywood: 'Bollywood', tollywood: 'Tollywood', animation: 'Animated', webseries: 'Web-Series', kdrama: 'K-Drama', dual_audio: 'Dual Audio', hindi_dubbed: 'Hindi Dubbed', south: 'South Indian', tamil: 'Tamil', telugu: 'Telugu', south_hindi: 'South Hindi Dubbed', adult: 'Adult Movies', 'group:adult': 'Adult Movies', short_films: 'Adult Short Film', philippines: 'Philippines Movies', hot_short_hindi: 'Hot Short Movies Hindi Dubbed', adult_hindi: 'Adult Hindi', adult_english: 'Adult English', hot_series: 'Hot Series', vivamax: 'Vivamax' };
 function cvUpdateCategorySEO(cat, isGenre) {
   if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
   var label = CV_CAT_SEO[cat];
