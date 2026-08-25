@@ -556,8 +556,66 @@ var cvFirstResponseReceived = false;
 // ══════════════════════════════════
 // ADULT 18+ AGE-GATE
 // ══════════════════════════════════
+// ── CATEGORY NORMALIZE ──
+// Admin panel kabhi display name save karta hai ("Philippines Movies"),
+// kabhi slug ("philippines"). Theme pills hamesha slug use karti hain.
+// Is function se dono forms ek standard slug ban jati hain taake filter
+// + group match sahi chale aur 291 posts sirf 2 na dikhein.
+function cvNormalizeCategory(raw) {
+  if (!raw) return '';
+  var c = String(raw).toLowerCase().trim()
+    .replace(/[–—−]/g, '-')
+    .replace(/[_\/|]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  var slug = c.replace(/\s+/g, '_');
+  var compact = c.replace(/\s+/g, '');
+
+  // Adult family (panel labels + slugs + common variants)
+  if (compact.indexOf('philippines') === 0 || compact.indexOf('philipine') === 0 ||
+      c === 'philippines' || c === 'philippines movies' || c === 'philippine movies' ||
+      slug === 'philippines_movies' || slug === 'philippines') {
+    return 'philippines';
+  }
+  if (compact.indexOf('hotshort') === 0 || c.indexOf('hot short') === 0 ||
+      slug === 'hot_short_hindi' || slug === 'hot_short_movies_hindi_dubbed' ||
+      slug === 'hot_short_movies' || c === 'hot short movies hindi dubbed') {
+    return 'hot_short_hindi';
+  }
+  if (c === 'short films' || c === 'adult short film' || c === 'adult short films' ||
+      slug === 'short_films' || compact === 'shortfilms') {
+    return 'short_films';
+  }
+  if (c === 'adult hindi' || slug === 'adult_hindi' || compact === 'adulthindi') return 'adult_hindi';
+  if (c === 'adult english' || slug === 'adult_english' || compact === 'adultenglish') return 'adult_english';
+  if (c === 'hot series' || slug === 'hot_series' || compact === 'hotseries') return 'hot_series';
+  if (c === 'vivamax' || slug === 'vivamax') return 'vivamax';
+  if (c === 'adult' || c === 'adult movies' || c === '18+' || compact === 'adultmovies' || slug === 'adult_movies') {
+    return 'adult';
+  }
+
+  // Non-adult common aliases (panel display name → theme slug)
+  if (c === 'hollywood dubbed' || slug === 'hollywood_dubbed') return 'hindi_dubbed';
+  if (c === 'english movies' || slug === 'english_movies' || compact === 'englishmovies') return 'english_movies';
+  if (c === 'hindi dubbed' || slug === 'hindi_dubbed' || compact === 'hindidubbed') return 'hindi_dubbed';
+  if (c === 'dual audio' || slug === 'dual_audio' || compact === 'dualaudio') return 'dual_audio';
+  if (c === 'south hindi' || c === 'south hindi dubbed' || slug === 'south_hindi') return 'south_hindi';
+  if (c === 'tamil/telugu' || c === 'tamil telugu' || slug === 'tamil_telugu') return 'tamil_telugu';
+  if (c === 'bollywood hindi' || slug === 'bollywood_hindi') return 'bollywood_hindi';
+  if (c === 'anime hindi' || c === 'anime hindi dubbed' || slug === 'anime_hindi') return 'anime_hindi';
+  if (c === 'web series' || c === 'web-series' || slug === 'webseries' || slug === 'web_series') return 'webseries';
+  if (c === 'web series hindi' || c === 'web-series hindi dubbed' || slug === 'webseries_hindi') return 'webseries_hindi';
+  if (c === 'k drama' || c === 'k-drama' || slug === 'kdrama' || slug === 'k_drama') return 'kdrama';
+  if (c === 'k drama hindi' || c === 'k-drama hindi dubbed' || slug === 'kdrama_hindi' ||
+      c === 'k-drama hindi' || compact === 'kdramahindi') return 'kdrama_hindi';
+
+  // Already a clean slug (underscores) → return as-is
+  return slug;
+}
+
 function cvIsAdultItem(m) {
-  return !!(m && ['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf((m.category||'').toLowerCase())>=0);
+  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m && m.category) : ((m && m.category) || '').toLowerCase();
+  return !!(m && ['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0);
 }
 function cvIsAdultVerified() {
   try { return localStorage.getItem('cv_adult_verified') === '1'; } catch (e) { return false; }
@@ -1164,6 +1222,21 @@ function cvFetchByIndex(field, value, cb) {
 // Category ya genre select hote hi direct indexed query se sirf uske
 // movies mangwao — is se allData mein turant merge ho jaate hain aur
 // user ko poora dataset load hone ka wait nahi karna padta.
+// Panel display-name variants jo Firebase mein save ho sakte hain
+// (slug ke alawa). Indexed query in par bhi chalao taake jaldi mile.
+var CV_CAT_ALIASES = {
+  philippines: ['Philippines Movies', 'Philippines', 'philippines movies', 'PHILIPPINES', 'Philippine Movies'],
+  hot_short_hindi: ['Hot Short Movies Hindi dubbed', 'Hot Short Movies', 'hot short movies hindi dubbed', 'Hot Short Hindi'],
+  adult: ['Adult', 'Adult Movies', 'adult movies', 'ADULT'],
+  short_films: ['Short Films', 'Adult Short Film', 'short films'],
+  hindi_dubbed: ['Hindi Dubbed', 'hollywood_dubbed', 'Hollywood Dubbed'],
+  english_movies: ['English Movies', 'English-Movies', 'english movies'],
+  kdrama_hindi: ['K-Drama Hindi Dubbed', 'K Drama Hindi', 'kdrama hindi'],
+  webseries_hindi: ['Web-Series Hindi Dubbed', 'Web Series Hindi'],
+  bollywood_hindi: ['Bollywood Hindi'],
+  south_hindi: ['South Hindi Dubbed', 'South Hindi']
+};
+
 function cvLoadCategoryData(val, isGenre) {
   if (!val || val === 'all' || val === 'watchlist') return;
   if (!isGenre && String(val).indexOf('group:') === 0) {
@@ -1173,34 +1246,50 @@ function cvLoadCategoryData(val, isGenre) {
     return;
   }
   var field = isGenre ? 'genre' : 'category';
-  cvFetchByIndex(field, val, function(items) {
-    if (items === null) {
-      _cvLoadAllForCategory(); // fallback — purana tareeqa
-      return;
-    }
+
+  function mergeItems(items) {
+    if (!items || !items.length) return false;
     var existingKeys = {};
     allData.forEach(function(m) { existingKeys[m._key] = true; });
     var added = false;
     items.forEach(function(m) {
       if (!existingKeys[m._key]) { allData.push(m); added = true; }
     });
+    return added;
+  }
+
+  // 1) Primary slug query
+  cvFetchByIndex(field, val, function(items) {
+    if (items === null) {
+      _cvLoadAllForCategory();
+      return;
+    }
+    var added = mergeItems(items);
     cvFirstResponseReceived = true;
     if (added || !cvFilteredList.length) renderGrid(false);
-    // ✅ CASE-MISMATCH FIX: Firebase 'equalTo' exact-match query hai — agar
-    // admin panel mein category/genre "Bollywood" jaisi mixed-case save hui
-    // ho aur pill se lowercase 'bollywood' query ho, to indexed query 0
-    // items dega (galat "No movies found" dikhega) chahe movies maujood
-    // hon. Client-side filter (cvBuildFilteredList) case-insensitive hai,
-    // isliye agar is category ka koi bhi movie abhi tak allData mein load
-    // nahi hua, poora dataset background mein bhi load karo — taake asli
-    // (case-insensitive) match mil jaye. Sirf ek baar per category trigger
-    // hota hai (already-tried set se guard).
-    if (!items.length && !allLoaded) {
+
+    // 2) Alias queries (panel display names) — parallel, fast
+    if (!isGenre && CV_CAT_ALIASES[val]) {
+      CV_CAT_ALIASES[val].forEach(function(alias) {
+        cvFetchByIndex(field, alias, function(aliasItems) {
+          if (aliasItems && aliasItems.length && mergeItems(aliasItems)) {
+            renderGrid(false);
+          }
+        });
+      });
+    }
+
+    // 3) Background full load — remaining mismatched labels / missing index
+    if (!allLoaded) {
       window._cvCaseFallbackTried = window._cvCaseFallbackTried || {};
       var _cfKey = field + ':' + val;
       if (!window._cvCaseFallbackTried[_cfKey]) {
         window._cvCaseFallbackTried[_cfKey] = true;
-        _cvLoadAllForCategory();
+        setTimeout(function() {
+          if (!allLoaded && typeof _cvLoadAllForCategory === 'function') {
+            _cvLoadAllForCategory();
+          }
+        }, 250);
       }
     }
   });
@@ -3141,20 +3230,18 @@ function cvBuildFilteredList() {
   }
 
   cvFilteredList = allData.filter(function(m) {
-    var cat = (m.category || '').toLowerCase();
+    // Normalize pehle — panel "Philippines Movies" / "philippines" dono → "philippines"
+    var cat = (typeof cvNormalizeCategory === 'function')
+      ? cvNormalizeCategory(m.category)
+      : (m.category || '').toLowerCase();
     var genre = (m.genre || '').toLowerCase();
     var title = (m.title || '').toLowerCase();
     var lang = (m.language || '').toLowerCase();
 
-    // Legacy category aliases → new pills
-    if (cat === 'hollywood_dubbed') cat = 'hindi_dubbed';
-    if (cat === 'bengali' || cat === 'punjabi') { /* keep as own; hide from wrong filters */ }
-    if (cat === 'adult_hindi' || cat === 'adult_english' || cat === 'hot_series' || cat === 'vivamax') cat = 'adult';
-
     // Adult content sirf tab dikhta hai jab "Adult" category explicitly
     // select ho AND user verified ho — Home/all, genre filters, search,
     // ya kisi bhi dusri category mein kabhi shaamil nahi hota.
-    // Adult family: adult, adult_hindi, adult_english, hot_series, vivamax, short_films
+    // Adult family: adult, adult_hindi, adult_english, hot_series, vivamax, short_films, philippines, hot_short_hindi
     var adultCats = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1, short_films:1, philippines:1, hot_short_hindi:1};
     var isAdultItem = !!adultCats[cat];
     var isAllAdult = (selCat === 'adult' || selCat === 'group:adult');
@@ -3164,7 +3251,7 @@ function cvBuildFilteredList() {
         if (!adultUnlocked) return false;
         // show all adult family
       } else if (adultCats[selCat]) {
-        // specific adult sub-cat from badge
+        // specific adult sub-cat (philippines / hot_short_hindi etc.)
         if (!adultUnlocked) return false;
         if (cat !== selCat) return false;
       } else {
@@ -4586,7 +4673,10 @@ window.CV_CAT_SUBS = {
 window.cvCatInGroup = function(movieCat, selCat){
   if(!selCat) return true;
   if(selCat === 'all' || selCat === 'watchlist') return true;
-  movieCat = (movieCat||'').toLowerCase();
+  // Normalize so "Philippines Movies" === "philippines"
+  movieCat = (typeof cvNormalizeCategory === 'function')
+    ? cvNormalizeCategory(movieCat)
+    : String(movieCat || '').toLowerCase();
   selCat = String(selCat).toLowerCase();
   if(selCat.indexOf('group:') === 0){
     var g = selCat.slice(6);
