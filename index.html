@@ -3697,24 +3697,13 @@ function openModal(key) {
   // Cast — sirf Firebase (panel import / TMDB fill se save)
   cvLoadCast(m);
 
-  // Buttons
+  // Buttons — Watch Now SIRF jab Playmate ID ho (VLC / worker hata diya)
   var btns = '';
   var _mkey = m._key || window._cvCurrentKey || '';
-  // Playmate embed pehle → site pe iframe (VLC mat kholo)
   var _pmEmbed = cnPlaymateEmbedUrl(m);
   if (_pmEmbed) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
     btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
-  } else {
-    // Watch Now → Play Worker / VLC. Pixeldrain local fast-path.
-    var _watchInfo = cnResolveWatchTarget(m, _mkey);
-    if (_watchInfo && _watchInfo.url && _mkey) {
-      btns += '<div class="cv-section-title">▶ Watch</div>';
-      btns += '<button class="cv-dl-btn" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\')">▶ Watch Now</button>';
-    } else if (_watchInfo && _watchInfo.url) {
-      btns += '<div class="cv-section-title">▶ Watch</div>';
-      btns += '<button class="cv-dl-btn" onclick="cnOpenInVlc(\'' + escJs(_watchInfo.url) + '\',\'' + escJs(m.title||'') + '\')">▶ Watch Now</button>';
-    }
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
