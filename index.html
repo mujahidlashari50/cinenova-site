@@ -137,6 +137,11 @@ function cvOpenInBrowser() {
 .cv-cat-dd.has-value{background-color:rgba(229,9,20,.25);border-color:#e50914;color:#fff;font-weight:700}
 .cv-cat-dd-adult{border-color:rgba(255,107,107,.25);color:#999}
 .cv-cat-dd-adult.has-value{background:linear-gradient(135deg,#3a0a0a,#1a0505);border-color:rgba(255,107,107,.45);color:#ff6b6b}
+#cv-cats .cv-pill[data-cat="all"],
+#cv-cats .cv-pill[data-cat="watchlist"]{
+  position:sticky;left:0;z-index:2;background:#1a1a1a;
+}
+
 .cv-cat-dd option{background:#1a1a1a;color:#eee}
 #cv-subcats{display:none!important}
 @media(max-width:768px){
@@ -4503,7 +4508,6 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
 // ✅ Reusable filter-apply function — pill click aur badge-grid click dono
 // isi ko use karte hain (duplicate logic nahi, ek hi jagah se maintain hota hai).
 
-<script>
 // Category hierarchy (same as Admin Panel)
 window.CV_CAT_GROUPS = {
   hollywood: ['english_movies','hindi_dubbed','dual_audio','hollywood','hollywood_dubbed'],
@@ -4556,7 +4560,6 @@ window.cvSyncCatDropdowns = function(selCat){
     }
   });
 };
-</script>
 
 function cvApplyFilter(cat, isGenre, pillEl) {
     // Adult category — verification ke bina aage mat badhne do
