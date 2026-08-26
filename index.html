@@ -3772,12 +3772,19 @@ function openModal(key) {
         };
       }
       var playBtn = '';
-      var epHasWorker = !!(ep.videoSourceUrl || ep.dlSourceUrl);
-      if (epHasWorker && _mkey) {
-        playBtn = '<button class="cv-ep-btn" onclick="cnGoToWatchWorkerEp(\'' + escJs(_mkey) + '\',\'' + escJs(String(epSeasonNum)) + '\',\'' + escJs(String(epNumVal)) + '\')">▶ Play</button>';
-      } else if (epUrl || epVlc) {
-        playBtn = '<button class="cv-ep-btn" onclick="cvPlayEp(' + i + ')">▶ Play</button>';
+      // Episode Playmate ID → in-page player (VLC/worker nahi)
+      var epPm = '';
+      try {
+        if (ep.playmateId || (ep.playmateUrl && /playmate\.to/i.test(ep.playmateUrl))) {
+          epPm = (typeof cnPlaymateEmbedUrl === 'function')
+            ? cnPlaymateEmbedUrl({ playmateId: ep.playmateId, playmateUrl: ep.playmateUrl })
+            : (ep.playmateUrl || ('https://playmate.to/embed/' + ep.playmateId));
+        }
+      } catch (e) {}
+      if (epPm) {
+        playBtn = '<button class="cv-ep-btn" onclick="playVideo(\'' + escJs(epPm) + '\',\'' + escJs((m.title||'') + ' Ep ' + (ep.episode||(i+1))) + '\')">▶ Play</button>';
       }
+      // Bina Playmate — play button hide (user request: only playmate)
       var epCountBadge = ep.epCount ? '<span style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:12px;margin-left:7px;white-space:nowrap;">📦 ' + escHtml(String(ep.epCount)) + ' Eps in this link</span>' : '';
       var _epIsNew = _prevSeenCount > 0 && i >= _prevSeenCount;
       var epNewTag = _epIsNew ? '<span class="cv-ep-new-tag">NEW</span>' : '';
