@@ -4517,7 +4517,9 @@ function cnGoToWatchWorker(movieKey, quality) {
     }
   } catch (e) {}
   var title = (m && m.title) ? m.title : 'Now Playing';
-  // 1) Playmate embed — in-page
+  var q = quality || '720p';
+
+  // 1) Already has Playmate embed — foran in-page
   if (m) {
     var pm = cnPlaymateEmbedUrl(m);
     if (pm && typeof playVideo === 'function') {
@@ -4525,26 +4527,83 @@ function cnGoToWatchWorker(movieKey, quality) {
       return;
     }
   }
-  // 2) Pixeldrain direct API — in-page Plyr (VLC nahi)
-  if (m) {
-    var fields = [m.vlcUrl, m.vlcUrl2, m.videoUrl, m.videoSourceUrl, m.dlSourceUrl,
-      m.download720p, m.download1080p, m.download480p, m.download4k];
-    for (var i = 0; i < fields.length; i++) {
-      var pd = cnPixeldrainApiUrl(fields[i]);
-      if (pd && typeof playVideo === 'function') {
-        playVideo(pd, title);
-        return;
-      }
+  // localStorage cache from previous auto-upload
+  try {
+    var cached = localStorage.getItem('cn_pm_' + movieKey);
+    if (cached && typeof playVideo === 'function') {
+      playVideo('https://playmate.to/embed/' + cached, title);
+      return;
     }
-  }
-  // 3) DL worker /video — Cloud Direct resolve + proxy stream (in-page Plyr)
-  var q = quality || '720p';
-  var videoUrl = 'https://download.cinenova.site/video?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+  } catch (eC) {}
+
+  // 2) Auto Playmate upload via worker, then in-page play
+  //    Worker: resolve Cloud Direct → api.playmate.to remote upload → embedId
   if (typeof playVideo === 'function') {
-    playVideo(videoUrl, title);
-  } else {
-    window.open(videoUrl, '_blank');
+    // Open player with loading state while upload runs
+    var inner = document.getElementById('cv-player-inner');
+    var loading = document.getElementById('cv-player-loading');
+    var titleEl = document.getElementById('cv-player-title');
+    if (titleEl) titleEl.textContent = title;
+    if (inner) {
+      inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;padding:24px;text-align:center;color:#ccc;">' +
+        '<div style="font-size:1rem;font-weight:700;color:#fff;">Playmate pe upload ho raha hai…</div>' +
+        '<div style="font-size:0.8rem;color:#888;max-width:280px;line-height:1.4;">Pehli baar 30–90 sec lag sakte hain. Agli baar foran play hoga.</div>' +
+        '</div>';
+    }
+    if (loading) loading.classList.add('show');
+    var playerEl = document.getElementById('cv-player');
+    if (playerEl) playerEl.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (typeof cvPushState === 'function') try { cvPushState('player'); } catch (eP) {}
+
+    var upUrl = 'https://download.cinenova.site/playmate-upload?id=' +
+      encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q) +
+      '&title=' + encodeURIComponent(title);
+    fetch(upUrl, { method: 'GET', credentials: 'omit' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (loading) loading.classList.remove('show');
+        if (data && data.ok && (data.embedUrl || data.embedId)) {
+          var emb = data.embedUrl || ('https://playmate.to/embed/' + data.embedId);
+          try {
+            if (data.embedId) localStorage.setItem('cn_pm_' + movieKey, data.embedId);
+          } catch (eS) {}
+          // also stash on in-memory movie so same session reuses
+          if (m) {
+            m.playmateId = data.embedId || m.playmateId;
+            m.playmateUrl = emb;
+          }
+          playVideo(emb, title);
+        } else {
+          var err = (data && data.error) ? data.error : 'Playmate upload fail';
+          if (inner) {
+            inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;padding:24px;text-align:center;color:#fff;">' +
+              '<div style="font-weight:700;">Upload fail</div>' +
+              '<div style="font-size:0.82rem;color:#aaa;max-width:300px;">' + String(err).slice(0, 160) + '</div>' +
+              '<button type="button" id="cn-pm-vlc" style="padding:12px 22px;background:#e50914;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;">▶ VLC se play</button>' +
+              '</div>';
+            var vb = document.getElementById('cn-pm-vlc');
+            if (vb) vb.onclick = function () {
+              var vu = 'https://download.cinenova.site/video?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+              if (typeof cnOpenInVlc === 'function') cnOpenInVlc(vu, title);
+              else window.open(vu, '_blank');
+            };
+          }
+        }
+      })
+      .catch(function () {
+        if (loading) loading.classList.remove('show');
+        var vu = 'https://download.cinenova.site/video?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+        if (typeof cnOpenInVlc === 'function') cnOpenInVlc(vu, title);
+        else if (typeof playVideo === 'function') playVideo(vu, title);
+      });
+    return;
   }
+
+  // fallback
+  var videoUrl = 'https://download.cinenova.site/video?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+  if (typeof cnOpenInVlc === 'function') cnOpenInVlc(videoUrl, title);
+  else window.open(videoUrl, '_blank');
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
@@ -4581,6 +4640,11 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
     '&q=' + encodeURIComponent(q) +
     '&s=' + encodeURIComponent(season || '1') +
     '&e=' + encodeURIComponent(episode || '');
+  var isAndroid = /Android/i.test(navigator.userAgent);
+  if (isAndroid && typeof cnOpenInVlc === 'function') {
+    cnOpenInVlc(videoUrl, title);
+    return;
+  }
   if (typeof playVideo === 'function') {
     playVideo(videoUrl, title || 'Now Playing');
   } else {
