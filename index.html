@@ -191,6 +191,7 @@ function cvOpenInBrowser() {
     <div class="cv-subcat-group">🧸 Animated</div>
     <button type="button" class="cv-subcat-item" data-cat="group:animation">— All Animated</button>
     <button type="button" class="cv-subcat-item" data-cat="anime_hindi">Anime series Hindi Dubbed</button>
+    <button type="button" class="cv-subcat-item" data-cat="animation_hindi_dubbed">Animation Hindi Dubbed</button>
     <div class="cv-subcat-group">📺 Web-Series</div>
     <button type="button" class="cv-subcat-item" data-cat="group:webseries">— All Web-Series</button>
     <button type="button" class="cv-subcat-item" data-cat="webseries_hindi">Web-Series Hindi Dubbed</button>
@@ -3697,13 +3698,20 @@ function openModal(key) {
   // Cast — sirf Firebase (panel import / TMDB fill se save)
   cvLoadCast(m);
 
-  // Buttons — Watch Now SIRF jab Playmate ID ho (VLC / worker hata diya)
+  // Buttons — Watch Now: Playmate ID ho to iframe embed (in-page), warna
+  // worker ke apne /watch player page pe le jate hain (fresh Cloud Direct
+  // resolve + ads + next-episode sab worker ke player mein already hai)
   var btns = '';
   var _mkey = m._key || window._cvCurrentKey || '';
   var _pmEmbed = cnPlaymateEmbedUrl(m);
+  var _hasVideoSrc = !!(m.download480p || m.download720p || m.download1080p || m.download4k || m.videoSourceUrl || m.dlSourceUrl || m.videoUrl);
   if (_pmEmbed) {
     btns += '<div class="cv-section-title">▶ Watch</div>';
     btns += '<button class="cv-dl-btn" onclick="playVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+  } else if (_mkey && _hasVideoSrc) {
+    var _workerWatchUrl = 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkey);
+    btns += '<div class="cv-section-title">▶ Watch</div>';
+    btns += '<button class="cv-dl-btn" onclick="window.location.href=\'' + escJs(_workerWatchUrl) + '\'">▶ Watch Now</button>';
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -3783,8 +3791,13 @@ function openModal(key) {
       } catch (e) {}
       if (epPm) {
         playBtn = '<button class="cv-ep-btn" onclick="playVideo(\'' + escJs(epPm) + '\',\'' + escJs((m.title||'') + ' Ep ' + (ep.episode||(i+1))) + '\')">▶ Play</button>';
+      } else if (_mkey && hasDl) {
+        // Playmate nahi hai lekin download link hai — worker ke apne
+        // /watch player page pe (fresh Cloud Direct resolve + ads +
+        // next-episode sab worker ke player mein already hai)
+        var epWorkerWatchUrl = 'https://download.cinenova.site/watch?id=' + encodeURIComponent(_mkey) + '&s=' + encodeURIComponent(epSeasonNum) + '&e=' + encodeURIComponent(epNumVal);
+        playBtn = '<button class="cv-ep-btn" onclick="window.location.href=\'' + escJs(epWorkerWatchUrl) + '\'">▶ Play</button>';
       }
-      // Bina Playmate — play button hide (user request: only playmate)
       var epCountBadge = ep.epCount ? '<span style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:12px;margin-left:7px;white-space:nowrap;">📦 ' + escHtml(String(ep.epCount)) + ' Eps in this link</span>' : '';
       var _epIsNew = _prevSeenCount > 0 && i >= _prevSeenCount;
       var epNewTag = _epIsNew ? '<span class="cv-ep-new-tag">NEW</span>' : '';
@@ -4627,7 +4640,7 @@ window.CV_CAT_GROUPS = {
   hollywood: ['english_movies','hindi_dubbed','dual_audio','hollywood','hollywood_dubbed'],
   tollywood: ['south_hindi','tamil_telugu','tollywood','south','tamil','telugu'],
   bollywood: ['bollywood_hindi','bollywood'],
-  animation: ['anime_hindi','animation'],
+  animation: ['anime_hindi','animation','animation_hindi_dubbed'],
   webseries: ['webseries_hindi','webseries'],
   kdrama: ['kdrama_hindi','kdrama'],
   adult: ['philippines','hot_short_hindi','adult','short_films','adult_hindi','adult_english','hot_series','vivamax']
@@ -4650,7 +4663,8 @@ window.CV_CAT_SUBS = {
   ],
   animation: [
     {cat:'group:animation', label:'— All Animated'},
-    {cat:'anime_hindi', label:'Anime Hindi Dubbed'}
+    {cat:'anime_hindi', label:'Anime Hindi Dubbed'},
+    {cat:'animation_hindi_dubbed', label:'Animation Hindi Dubbed'}
   ],
   webseries: [
     {cat:'group:webseries', label:'— All Web-Series'},
