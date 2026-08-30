@@ -6820,5 +6820,26 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   #cv-grid .cv-card-meta{font-size:.58rem !important}
   #cv-grid .cv-card-info{padding:5px 4px 6px !important}
 }
+/* ── MOBILE CRASH SAFETY NET ──
+   backdrop-filter (even on hidden/gated elements) can force the browser to
+   keep extra GPU compositing surfaces alive, which is a known tab-crash
+   trigger on lower-RAM Android WebViews. Kill it everywhere on mobile,
+   and trim the heaviest shadows/gradients too. */
+@media(max-width:768px){
+  * {
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+  body{
+    background:#0f0f10 !important;
+  }
+  .cv-card:hover, .cv-card:active{
+    box-shadow:none !important;
+  }
+  .cv-m-glow{
+    filter:none !important;
+    opacity:0.5;
+  }
+}
 </style>
 </body> </html> 
