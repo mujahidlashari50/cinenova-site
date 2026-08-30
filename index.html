@@ -1329,14 +1329,50 @@ function idbGetAll(cb) {
   });
 }
 
+var _idbSaveTimer = null;
+var _idbSavePending = null;
+var _idbLastFullSave = 0;
+
+// Full save — throttled (har page pe 500+ put mat karo = hang)
 function idbSaveAll(movies) {
+  if (!movies || !movies.length) return;
+  _idbSavePending = movies;
+  if (_idbSaveTimer) return;
+  _idbSaveTimer = setTimeout(function() {
+    _idbSaveTimer = null;
+    var list = _idbSavePending;
+    _idbSavePending = null;
+    if (!list || !list.length) return;
+    // Max ~2 min mein ek full save; warna skip (RAM pe data pehle se hai)
+    var now = Date.now();
+    if (now - _idbLastFullSave < 90000 && list.length > 120) return;
+    _idbLastFullSave = now;
+    idbOpen(function(err, idb) {
+      if (err) return;
+      try {
+        var tx = idb.transaction(['movies','meta'], 'readwrite');
+        var store = tx.objectStore('movies');
+        // Sirf pehle 150 cache (home fast start) — poori 17k IDB mein mat thelo
+        var maxCache = 150;
+        var slice = list.length > maxCache ? list.slice(0, maxCache) : list;
+        slice.forEach(function(m) { try { store.put(m); } catch(e){} });
+        tx.objectStore('meta').put({k:'ts', v: Date.now()});
+        tx.objectStore('meta').put({k:'count', v: slice.length});
+      } catch(e) {}
+    });
+  }, 1200);
+}
+
+// Sirf nayi items — pagination pe yeh use karo
+function idbSaveNewItems(items) {
+  if (!items || !items.length) return;
   idbOpen(function(err, idb) {
     if (err) return;
     try {
-      var tx = idb.transaction(['movies','meta'], 'readwrite');
+      var tx = idb.transaction(['movies'], 'readwrite');
       var store = tx.objectStore('movies');
-      movies.forEach(function(m) { try { store.put(m); } catch(e){} });
-      tx.objectStore('meta').put({k:'ts', v: Date.now()});
+      // Cap: cache chhota rakho
+      items.slice(0, 40).forEach(function(m) { try { store.put(m); } catch(e){} });
     } catch(e) {}
   });
 }
@@ -1398,7 +1434,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
   isLoadingMore = true;
 
   // Search mode: badi page size — 17k library jaldi scan ho
-  var pageSz = (window._cvSearchMode ? 200 : PAGE_SIZE);
+  var pageSz = (window._cvSearchMode ? 150 : PAGE_SIZE);
   var query = db.ref('movies').orderByKey().limitToLast(pageSz);
   if (!isFirst && lastFirebaseKey) {
     query = db.ref('movies').orderByKey().endAt(lastFirebaseKey).limitToLast(pageSz + 1);
@@ -1480,7 +1516,20 @@ function fetchFirebasePage(isFirst, _retryCount) {
       });
     }
 
-    if('requestIdleCallback' in window){requestIdleCallback(function(){idbSaveAll(allData);});}else{setTimeout(function(){idbSaveAll(allData);},50);}
+    // IDB: pehli load pe limited cache; pagination pe sirf naye items (hang fix)
+    if (isFirst) {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(function(){ idbSaveAll(allData); });
+      } else {
+        setTimeout(function(){ idbSaveAll(allData); }, 100);
+      }
+    } else if (newItems && newItems.length) {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(function(){ idbSaveNewItems(newItems); });
+      } else {
+        setTimeout(function(){ idbSaveNewItems(newItems); }, 100);
+      }
+    }
     renderGrid(isFirst);
     showLoadingMore(false);
     // Search chal rahi ho to har page ke baad results refresh (progressive)
