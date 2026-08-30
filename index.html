@@ -525,15 +525,19 @@ function showStatus(msg, color) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'cv-status-bar';
-    el.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 18px;border-radius:20px;font-size:0.78rem;font-weight:600;transition:opacity 0.3s;pointer-events:none;';
+    el.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 18px;border-radius:20px;font-size:0.78rem;font-weight:600;transition:opacity 0.3s;pointer-events:none;display:flex;align-items:center;gap:8px;';
     document.body.appendChild(el);
   }
   if (!msg) { el.style.opacity = '0'; return; }
   el.style.cssText += 'background:rgba(10,10,10,0.92);border:1px solid '+color+';color:'+color+';opacity:1;';
-  el.textContent = msg;
-  // Auto-hide after 3s
+  var isLoadingMsg = /loading/i.test(msg);
+  el.innerHTML = (isLoadingMsg
+    ? '<span style="width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:'+color+';border-radius:50%;display:inline-block;animation:cv-spin .7s linear infinite;flex-shrink:0;"></span>'
+    : '') + '<span>' + msg.replace(/^[⏳🔄]\s*/, '') + '</span>';
+  // Auto-hide after 3s — but loading messages ko khud clear() karke ya
+  // agle showStatus() call se replace karna better hai (see cvGoPage).
   clearTimeout(el._t);
-  el._t = setTimeout(function() { el.style.opacity = '0'; }, 3000);
+  el._t = setTimeout(function() { el.style.opacity = '0'; }, isLoadingMsg ? 8000 : 3000);
 }
 
 // ══════════════════════════════════
@@ -1373,6 +1377,7 @@ function loadMoviesFirstPage() {
     }
     // Always fetch fresh from Firebase (background if cache hit)
     fetchFirebasePage(true);
+    cvFetchTotalMovieCount();
   });
 }
 
@@ -1485,6 +1490,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
       var _cvTargetPage = cvPendingGoToPage;
       cvPendingGoToPage = null;
       cvGoPage(_cvTargetPage);
+      if (!cvPendingGoToPage) showStatus(''); // turant hide — sirf jab waqai target page ab ready ho chuka ho
     }
     if (isFirst) {
       buildTrending();
@@ -1498,6 +1504,14 @@ function fetchFirebasePage(isFirst, _retryCount) {
         window._cvUrlRestorePending = false;
         cvRestoreFromUrl();
       }
+      // ✅ SEARCH FIX: pehle poori library sirf tab load hoti thi jab user
+      // search box mein type karta tha — tab tak wait karna padta tha
+      // (kabhi kabhi purani movie search karne par turant nahi milti thi
+      // kyunki woh abhi client pe load hi nahi hui hoti thi). Ab pehla
+      // page aate hi background mein khamoshi se POORI library load honi
+      // shuru ho jati hai, taake jab tak user search kare tab tak (ya
+      // usi doraan) sab movies already available hon.
+      _cvLoadAllForSearch();
     }
 
   }, function(err) {
@@ -2849,6 +2863,41 @@ var CV_PAGE_SIZE = 36;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
+// ✅ TRUE TOTAL COUNT — pehle pagination sirf abhi tak LOADED movies
+// (allData.length, jo 80-80 karke aati hai) se totalPages nikalta tha,
+// isliye shuru mein hamesha sirf 2-3 pages dikhte the chahe DB mein sainkdo
+// movies hon. Ab ek halka "shallow" REST call se Firebase se poora movie
+// COUNT (sirf keys, poora data nahi) mangwate hain — is se "All" view
+// (bina search/genre/language filter ke) turant sahi total pages dikhata
+// hai, baaki data ab bhi lazily/paginated load hoti rehti hai jaise pehle.
+var cvTotalMovieCount = null;
+function cvFetchTotalMovieCount() {
+  try {
+    fetch(firebaseConfig.databaseURL + '/movies.json?shallow=true')
+      .then(function(r) { return r.json(); })
+      .then(function(obj) {
+        if (obj && typeof obj === 'object') {
+          cvTotalMovieCount = Object.keys(obj).length;
+          // Agar user abhi "All" tab par hai (bina search/filter) to turant
+          // pagination refresh karo taake sahi total page count dikhe.
+          if (selCat === 'all' && !searchQ && !selGenre && !selLang && typeof cvRenderPage === 'function') {
+            cvRenderPage(true);
+          }
+        }
+      })
+      .catch(function() {});
+  } catch (e) {}
+}
+// Total pages nikalne ka single source — "All" (bina filter/search) view
+// mein asli DB count use karo, warna jitna abhi client pe load ho chuka
+// hai usi se best-effort nikalo (jaise pehle).
+function cvGetTotalPages() {
+  if (selCat === 'all' && !searchQ && !selGenre && !selLang && cvTotalMovieCount) {
+    return Math.max(1, Math.ceil(cvTotalMovieCount / CV_PAGE_SIZE));
+  }
+  return Math.ceil(cvFilteredList.length / CV_PAGE_SIZE);
+}
+
 function renderGrid(resetPage, silent) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
@@ -3388,8 +3437,9 @@ function cvRenderPage(silent) {
     return;
   }
 
-  var totalPages = Math.ceil(cvFilteredList.length / CV_PAGE_SIZE);
-  if (cvCurrentPage > totalPages) cvCurrentPage = totalPages;
+  var totalPages = cvGetTotalPages();       // display total (true DB count when unfiltered)
+  var loadedPages = Math.max(1, Math.ceil(cvFilteredList.length / CV_PAGE_SIZE)); // safety: kabhi bhi khali page slice na ho
+  if (cvCurrentPage > loadedPages) cvCurrentPage = loadedPages;
   if (cvCurrentPage < 1) cvCurrentPage = 1;
 
   var start = (cvCurrentPage - 1) * CV_PAGE_SIZE;
@@ -3527,9 +3577,11 @@ function cvRenderPagination(totalPages) {
 }
 
 function cvGoPage(page, fromPopstate) {
-  var totalPages = Math.ceil(cvFilteredList.length / CV_PAGE_SIZE);
+  var totalPages = cvGetTotalPages();       // display total (true DB count when unfiltered)
+  var loadedPages = Math.ceil(cvFilteredList.length / CV_PAGE_SIZE); // kitne pages abhi client pe load ho chuke hain
   if (page < 1) return;
-  if (page > totalPages) {
+  if (page > totalPages) return; // invalid — is se aage koi movie hai hi nahi
+  if (page > loadedPages) {
     // Is page ke liye abhi tak utni movies load nahi hui —
     // Firebase se agla batch (80 movies) fetch karo, phir is page par jao
     if (!allLoaded) {
@@ -4961,15 +5013,18 @@ function _cvLoadAllForSearch(searchVal, dropdownEl) {
       clearInterval(_cvSearchLoadInterval);
       _cvSearchLoadInterval = null;
       // Jab sab load ho jaye, search val abhi bhi wahi hai to suggestions update karo
+      // (dropdown elements seedha DOM se dhoondte hain — is loop ko kabhi bhi
+      // shuru kiya gaya ho, chahe page-load pe bina kisi dropdown reference ke)
+      var ddDesktop = dropdownEl || document.getElementById('cv-search-dropdown');
       var currentVal = document.getElementById('cv-search') ? document.getElementById('cv-search').value : '';
-      if (currentVal && dropdownEl) cvBuildSuggestions(currentVal, dropdownEl);
+      if (currentVal && ddDesktop) cvBuildSuggestions(currentVal, ddDesktop);
       var mdd = document.getElementById('cv-mobile-search-dropdown');
       var mobileVal = document.getElementById('cv-search-mobile') ? document.getElementById('cv-search-mobile').value : '';
       if (mobileVal && mdd) cvBuildSuggestions(mobileVal, mdd);
     } else if (!isLoadingMore) {
       fetchFirebasePage(false);
     }
-  }, 800);
+  }, 250);
 }
 
 // ══════════════════════════════════
@@ -5007,7 +5062,9 @@ function cvBuildSuggestions(q, dropdownEl) {
   cvSugFocusIdx = -1;
 
   if (!results.length) {
-    dropdownEl.innerHTML = '<div class="cv-sug-empty">🔍 No movies found</div>';
+    dropdownEl.innerHTML = allLoaded
+      ? '<div class="cv-sug-empty">🔍 No movies found</div>'
+      : '<div class="cv-sug-empty">🔄 Poori library search ho rahi hai, thodi der mein try karein...</div>';
     dropdownEl.classList.add('open');
     return;
   }
