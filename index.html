@@ -92,7 +92,7 @@ function cvOpenInBrowser() {
   }
 } </script> <div id="cv-ann-bar"> <div id="cv-ann-icon">📢</div> <div class="cv-ann-text"> <span class="cv-ann-title" id="cv-ann-title"></span> <span class="cv-ann-msg" id="cv-ann-msg"></span> </div> <a class="cv-ann-link" href="#" id="cv-ann-link" style="display:none">View &#8594;</a> <span class="cv-ann-close" onclick="cvCloseAnnBar()">&#10005;</span> </div> <div id="cv-newcontent-overlay" onclick="cvNcOverlayClick(event)"> <div id="cv-newcontent-popup"> <div id="cv-nc-topbar"></div> <div id="cv-nc-backdrop"></div> <div id="cv-nc-scanlines"></div> <span class="cv-nc-close" onclick="cvCloseNcPopup()">&#10005;</span> <div id="cv-nc-poster-section"> <img alt="" class="cv-nc-poster" id="cv-nc-poster" onerror="this.style.opacity=&quot;0&quot;" src=""> <div id="cv-nc-poster-overlay"></div> <div id="cv-nc-floating-badge"> <span class="cv-nc-badge-dot"></span> New Release </div> <div id="cv-nc-stars"> <span class="cv-nc-star">&#9733;</span> <span class="cv-nc-star">&#9733;</span> <span class="cv-nc-star">&#9733;</span> <span class="cv-nc-star">&#9733;</span> <span class="cv-nc-star">&#9733;</span> </div> </div> <div id="cv-nc-bottom"> <div id="cv-nc-cat-wrap"><span id="cv-nc-cat"></span></div> <div id="cv-nc-title"></div> <div id="cv-nc-desc"></div> <div id="cv-nc-actions"> <span id="cv-nc-btn">&#9654; Watch Now</span> <span class="cv-nc-btn-later" onclick="cvCloseNcPopup()">Maybe Later</span> </div> </div> </div> </div> <nav id="cv-nav"> <button type="button" id="cv-subcat-toggle" aria-label="Categories" title="Categories">
   <span class="cv-subcat-toggle-bars"><i></i><i></i><i></i></span>
-</button> <a href="/" id="cv-logo" style="display:flex;align-items:center;text-decoration:none"> <svg alt="CineNova" aria-label="CineNova" role="img" style="height:44px;width:auto;display:block" viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg"> <defs> <linearGradient id="cnCircHd" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d40"/><stop offset="50%" stop-color="#e50914"/><stop offset="100%" stop-color="#6e0309"/></linearGradient> <radialGradient cx="32%" cy="24%" id="cnShineHd" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/><stop offset="35%" stop-color="#ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient> <linearGradient id="cnPlayHd" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfcfcf"/></linearGradient> <linearGradient id="cnSilverHd" x1="0%" x2="0%" y1="0%" y2="100%"> <stop offset="0%" stop-color="#ffffff"/><stop offset="20%" stop-color="#dcdcdc"/><stop offset="38%" stop-color="#7a7a7a"/><stop offset="52%" stop-color="#ffffff"/><stop offset="68%" stop-color="#5c5c5c"/><stop offset="85%" stop-color="#c8c8c8"/><stop offset="100%" stop-color="#3d3d3d"/> </linearGradient> <linearGradient id="cnRedChromeHd" x1="0%" x2="0%" y1="0%" y2="100%"> <stop offset="0%" stop-color="#ff9a90"/><stop offset="20%" stop-color="#ff4d4d"/><stop offset="38%" stop-color="#8a0209"/><stop offset="52%" stop-color="#ff6b6b"/><stop offset="68%" stop-color="#6e0309"/><stop offset="85%" stop-color="#ff5c5c"/><stop offset="100%" stop-color="#420205"/> </linearGradient> </defs> <circle cx="33" cy="36" fill="#4a0307" r="30"/> <circle cx="33" cy="33" fill="url(#cnCircHd)" r="30"/> <circle cx="33" cy="33" fill="url(#cnShineHd)" r="30"/> <path d="M24 19 L24 47 L48 33 Z" fill="#000000" opacity="0.3" transform="translate(1.5,2)"/> <path d="M24 19 L24 47 L48 33 Z" fill="url(#cnPlayHd)"/> <g transform="skewX(-11)"> <text fill="#000000" font-family="Arial Black, Impact, sans-serif" font-size="39" font-weight="900" opacity="0.55" x="79" y="50">CineNova</text> <text font-family="Arial Black, Impact, sans-serif" font-size="39" font-weight="900" stroke="#1a0a0a" stroke-width="0.75" x="75" y="47"><tspan fill="url(#cnSilverHd)">Cine</tspan><tspan fill="url(#cnRedChromeHd)">Nova</tspan></text> <rect fill="url(#cnRedChromeHd)" height="3" opacity="0.85" rx="1.5" width="168" x="75" y="54"/> </g> </svg> </a> <div id="cv-nav-icons-wrap" style="display:flex;align-items:center;gap:8px;flex-shrink:1;min-width:0;justify-content:flex-end"> <div id="cv-search-wrap"> <span style="color:#7d7d7d;font-size:.9rem">🔍</span> <input autocomplete="off" id="cv-search" placeholder="Search movies..."> <span id="cv-search-clear" onclick="cvClearSearch(&quot;cv-search&quot;)" style="display:none;color:#888;cursor:pointer;font-size:.95rem;padding:0 2px;flex-shrink:0;line-height:1">&#10005;</span> <div id="cv-search-dropdown"></div> </div> <div id="cv-search-btn" onclick="cvOpenSearch()" role="button" aria-label="Search" tabindex="0">🔍</div> <div id="cv-nav-motd-btn" onclick="cvScrollToMotd()" style="display:none" title="Today&apos;s Pick">🔥</div> <div id="cv-header-mylist-btn" onclick="cvMyListHeaderClick()" title="My List">🔖</div> <div id="cv-adult-verified-badge" onclick="cvAdultLogoutPrompt()" style="display:none" title="18+ Verified — tap to logout"><span class="cv-verified-icon">🔞</span><span class="cv-verified-label"> Verified</span></div> </div> </nav> <nav id="cv-bottom-nav" style="display:none"> <button class="cv-bnav-item active" id="cv-bnav-home" onclick="cvBnavGo(&quot;home&quot;)"> <span class="cv-bnav-icon">🏠</span> <span class="cv-bnav-label">Home</span> </button> <button class="cv-bnav-item" id="cv-bnav-search" onclick="cvBnavGo(&quot;search&quot;)"> <span class="cv-bnav-icon">🔍</span> <span class="cv-bnav-label">Search</span> </button> <button class="cv-bnav-item" id="cv-bnav-movies" onclick="cvBnavGo(&quot;movies&quot;)"> <span class="cv-bnav-icon">🎬</span> <span class="cv-bnav-label">Movies</span> </button> <button class="cv-bnav-item" id="cv-bnav-series" onclick="cvBnavGo(&quot;series&quot;)"> <span class="cv-bnav-icon">📺</span> <span class="cv-bnav-label">Series</span> </button> <button class="cv-bnav-item" id="cv-bnav-request" onclick="cvBnavGo(&quot;request&quot;)"> <span class="cv-bnav-icon">💌</span> <span class="cv-bnav-label">Request</span> </button> </nav> <div id="cv-search-overlay"> <div id="cv-search-overlay-wrap"> <span style="color:#7d7d7d;font-size:1rem">🔍</span> <input autocomplete="off" id="cv-search-mobile" placeholder="Search movies..."> <span id="cv-search-mobile-clear" onclick="cvClearSearch(&quot;cv-search-mobile&quot;)" style="display:none;color:#888;cursor:pointer;font-size:1rem;padding:0 4px;flex-shrink:0;line-height:1">&#10005;</span> <span id="cv-search-overlay-close" onclick="cvCloseSearch()">Cancel</span> </div> <div id="cv-mobile-search-dropdown"></div> </div> <div id="cv-static-page" style="display:none;margin-top:60px;padding:40px 16px 60px;max-width:760px;margin-left:auto;margin-right:auto"></div> <div id="cv-main-content"> <div id="cv-cats-wrap">
+</button> <a href="/" id="cv-logo" style="display:flex;align-items:center;text-decoration:none"> <svg alt="CineNova" aria-label="CineNova" role="img" style="height:44px;width:auto;display:block" viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg"> <defs> <linearGradient id="cnCircHd" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d40"/><stop offset="50%" stop-color="#e50914"/><stop offset="100%" stop-color="#6e0309"/></linearGradient> <radialGradient cx="32%" cy="24%" id="cnShineHd" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/><stop offset="35%" stop-color="#ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient> <linearGradient id="cnPlayHd" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfcfcf"/></linearGradient> <linearGradient id="cnSilverHd" x1="0%" x2="0%" y1="0%" y2="100%"> <stop offset="0%" stop-color="#ffffff"/><stop offset="20%" stop-color="#dcdcdc"/><stop offset="38%" stop-color="#7a7a7a"/><stop offset="52%" stop-color="#ffffff"/><stop offset="68%" stop-color="#5c5c5c"/><stop offset="85%" stop-color="#c8c8c8"/><stop offset="100%" stop-color="#3d3d3d"/> </linearGradient> <linearGradient id="cnRedChromeHd" x1="0%" x2="0%" y1="0%" y2="100%"> <stop offset="0%" stop-color="#ff9a90"/><stop offset="20%" stop-color="#ff4d4d"/><stop offset="38%" stop-color="#8a0209"/><stop offset="52%" stop-color="#ff6b6b"/><stop offset="68%" stop-color="#6e0309"/><stop offset="85%" stop-color="#ff5c5c"/><stop offset="100%" stop-color="#420205"/> </linearGradient> </defs> <circle cx="33" cy="36" fill="#4a0307" r="30"/> <circle cx="33" cy="33" fill="url(#cnCircHd)" r="30"/> <circle cx="33" cy="33" fill="url(#cnShineHd)" r="30"/> <path d="M24 19 L24 47 L48 33 Z" fill="#000000" opacity="0.3" transform="translate(1.5,2)"/> <path d="M24 19 L24 47 L48 33 Z" fill="url(#cnPlayHd)"/> <g transform="skewX(-11)"> <text fill="#000000" font-family="Arial Black, Impact, sans-serif" font-size="39" font-weight="900" opacity="0.55" x="79" y="50">CineNova</text> <text font-family="Arial Black, Impact, sans-serif" font-size="39" font-weight="900" stroke="#1a0a0a" stroke-width="0.75" x="75" y="47"><tspan fill="url(#cnSilverHd)">Cine</tspan><tspan fill="url(#cnRedChromeHd)">Nova</tspan></text> <rect fill="url(#cnRedChromeHd)" height="3" opacity="0.85" rx="1.5" width="168" x="75" y="54"/> </g> </svg> </a> <div id="cv-nav-icons-wrap" style="display:flex;align-items:center;gap:8px;flex-shrink:1;min-width:0;justify-content:flex-end"> <div id="cv-search-wrap"> <span style="color:#7d7d7d;font-size:.9rem">🔍</span> <input autocomplete="off" id="cv-search" placeholder="Search movies..."> <span id="cv-search-clear" onclick="cvClearSearch(&quot;cv-search&quot;)" style="display:none;color:#888;cursor:pointer;font-size:.95rem;padding:0 2px;flex-shrink:0;line-height:1">&#10005;</span> <div id="cv-search-dropdown"></div> </div> <div id="cv-search-btn" onclick="cvOpenSearch()" role="button" aria-label="Search" tabindex="0">🔍</div>  <div id="cv-header-mylist-btn" onclick="cvMyListHeaderClick()" title="My List">🔖</div> <div id="cv-adult-verified-badge" onclick="cvAdultLogoutPrompt()" style="display:none" title="18+ Verified — tap to logout"><span class="cv-verified-icon">🔞</span><span class="cv-verified-label"> Verified</span></div> </div> </nav>  <div id="cv-search-overlay"> <div id="cv-search-overlay-wrap"> <span style="color:#7d7d7d;font-size:1rem">🔍</span> <input autocomplete="off" id="cv-search-mobile" placeholder="Search movies..."> <span id="cv-search-mobile-clear" onclick="cvClearSearch(&quot;cv-search-mobile&quot;)" style="display:none;color:#888;cursor:pointer;font-size:1rem;padding:0 4px;flex-shrink:0;line-height:1">&#10005;</span> <span id="cv-search-overlay-close" onclick="cvCloseSearch()">Cancel</span> </div> <div id="cv-mobile-search-dropdown"></div> </div> <div id="cv-static-page" style="display:none;margin-top:60px;padding:40px 16px 60px;max-width:760px;margin-left:auto;margin-right:auto"></div> <div id="cv-main-content"> <div id="cv-cats-wrap">
 <div id="cv-cats">
   <div class="cv-pill active" data-cat="all" role="button">Home</div>
   <div class="cv-pill" data-cat="watchlist" id="cv-pill-watchlist" role="button">🔖 My List</div>
@@ -921,14 +921,16 @@ function _cvOnFirebaseReady() {
     try { localStorage.setItem('cv_fb_off', fbEnabled ? '0' : '1'); } catch (e) {}
 
     // Movie of the Day toggle — default ON agar admin ne kabhi set nahi kiya (undefined)
-    window._cvMotdEnabled = (sl.movieOfTheDay !== false && sl.movieOfTheDay !== 'false');
+    window._cvMotdEnabled = (sl.movieOfTheDay !== false && sl.movieOfTheDay !== 'false' && sl.movieOfTheDay !== 0);
     if (!window._cvMotdEnabled) {
+      if (typeof cvMotdHide === 'function') cvMotdHide();
       var motdOuterEl = document.getElementById('cv-motd-outer');
       if (motdOuterEl) motdOuterEl.style.display = 'none';
-      var motdNavBtn = document.getElementById('cv-nav-motd-btn');
-      if (motdNavBtn) motdNavBtn.style.display = 'none';
-    } else if (typeof cvBuildMotd === 'function' && allData && allData.length) {
+    } else if (typeof cvBuildMotd === 'function') {
       cvBuildMotd();
+      // data late load ho to 1–2 retry
+      setTimeout(function(){ try { cvBuildMotd(); } catch(e){} }, 1500);
+      setTimeout(function(){ try { cvBuildMotd(); } catch(e){} }, 4000);
     }
 
     // Now Showing (hero poster stack) toggle — default ON agar admin ne set nahi kiya
@@ -1739,7 +1741,7 @@ function showLoadingMore(show) {
     el = document.createElement('div');
     el.id = 'cv-load-bar';
     el.setAttribute('aria-live', 'polite');
-    el.innerHTML = '<span class="cv-load-spin" aria-hidden="true"></span><span class="cv-load-txt">Loading more titles</span>';
+    el.innerHTML = '<span class="cv-load-spin" aria-hidden="true"></span><span class="cv-load-txt">Loading…</span>';
     document.body.appendChild(el);
   }
   if (show) {
@@ -2451,7 +2453,7 @@ function cvMotdRenderMovie(m) {
     '</a>';
   wrap.style.display = 'block';
   if (outerEl) outerEl.style.display = 'block';
-  if (navBtnEl) navBtnEl.style.display = 'flex';
+  if (navBtnEl) navBtnEl.style.display = 'none';
 }
 
 function cvMotdShowKeys(keys, rotateSec) {
@@ -2491,10 +2493,30 @@ function cvMotdShowKeys(keys, rotateSec) {
 }
 
 function cvMotdAutoPickAndShow() {
-  var pool = (allData || []).filter(function(x) { return !cvIsAdultItem(x) && (x.downloadCount || 0) > 0; });
+  var list = (typeof allData !== 'undefined' && allData) ? allData : [];
+  function nonAdult(x) { return x && !cvIsAdultItem(x); }
+  // 1) Most downloaded
+  var pool = list.filter(function(x) { return nonAdult(x) && (x.downloadCount || 0) > 0; });
   pool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
-  if (pool[0]) cvMotdRenderMovie(pool[0]);
-  else cvMotdHide();
+  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
+  // 2) Trending flag
+  pool = list.filter(function(x) { return nonAdult(x) && x.trending; });
+  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
+  // 3) Featured / banner
+  pool = list.filter(function(x) { return nonAdult(x) && (x.featured || x.isFeatured || x.banner); });
+  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
+  // 4) Newest with poster (by year then any)
+  pool = list.filter(function(x) { return nonAdult(x) && (x.thumbnail || x.poster); });
+  pool.sort(function(a, b) {
+    var ya = parseInt(a.year, 10) || 0, yb = parseInt(b.year, 10) || 0;
+    if (yb !== ya) return yb - ya;
+    return String(b._key || '').localeCompare(String(a._key || ''));
+  });
+  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
+  // 5) Any non-adult
+  pool = list.filter(nonAdult);
+  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
+  cvMotdHide();
 }
 
 function cvBuildMotd() {
@@ -2508,18 +2530,36 @@ function cvBuildMotd() {
   function applySnap(snap) {
     if (window._cvMotdEnabled === false) { cvMotdHide(); return; }
     var d = snap.val() || {};
-    var today = new Date().toISOString().substring(0, 10);
+    // Panel can disable MOTD entirely
+    if (d.enabled === false || d.enabled === 'false' || d.active === false) {
+      cvMotdHide();
+      return;
+    }
+    // Local calendar date (not UTC) so PK/IN evening matches panel
+    var now = new Date();
+    var today = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0');
     var keys = [];
     if (Array.isArray(d.manualKeys) && d.manualKeys.length) {
       keys = d.manualKeys.filter(Boolean);
     } else if (d.manualKey) {
       keys = [d.manualKey];
+    } else if (d.key) {
+      keys = [d.key];
+    } else if (d.movieKey) {
+      keys = [d.movieKey];
+    } else if (d.movieId) {
+      keys = [d.movieId];
     }
-    // Manual only valid for today's date (admin sets manualDate)
-    var isManual = keys.length > 0 && d.manualDate === today;
-    if (isManual) {
-      cvMotdShowKeys(keys, d.rotateSec || 10);
-      return;
+    // Manual pick: show if keys exist AND (no date set, date is today, or explicitly enabled)
+    if (keys.length) {
+      var dateOk = !d.manualDate || String(d.manualDate).substring(0, 10) === today;
+      var forceOn = d.enabled === true || d.enabled === 'true' || d.active === true || d.force === true;
+      if (dateOk || forceOn) {
+        cvMotdShowKeys(keys, d.rotateSec || 10);
+        return;
+      }
     }
     // Automatic: top downloads
     cvMotdAutoPickAndShow();
@@ -3424,46 +3464,70 @@ function cvBuildFilteredList() {
 // round-robin so Hollywood/Bollywood/Animation/WebSeries mixed dikhein.
 function cvInterleaveByCategory(list) {
   if (!list || list.length < 3) return list || [];
+  // Normalize related categories into families so home doesn't fill with one region
+  function family(cat) {
+    var c = ((cat || 'other') + '').toLowerCase().replace(/\s+/g, '_');
+    if (/adult|vivamax|hot_series|short_films|philippines|hot_short/.test(c)) return 'adult';
+    if (/tollywood|south|tamil|telugu|malayalam|kannada|guntur|kollywood/.test(c)) return 'south';
+    if (/bollywood|hindi_movies|hindi$/.test(c)) return 'bollywood';
+    if (/hollywood|english/.test(c)) return 'hollywood';
+    if (/webseries|web_series|series|kdrama|drama/.test(c)) return 'series';
+    if (/animat/.test(c)) return 'animation';
+    if (/punjabi/.test(c)) return 'punjabi';
+    return c || 'other';
+  }
   var groups = {};
   var order = [];
   for (var i = 0; i < list.length; i++) {
     var m = list[i];
-    var c = ((m.category || 'other') + '').toLowerCase();
-    if (c === 'adult') c = 'other'; // adult already filtered out on home
+    var c = family(m.category);
+    if (c === 'adult') continue; // home never mixes adult
     if (!groups[c]) { groups[c] = []; order.push(c); }
     groups[c].push(m);
   }
-  // Only one category in whole DB — nothing to mix
-  if (order.length < 2) {
-    list.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
-    return list;
-  }
+  var flat = [];
   order.forEach(function(c) {
     groups[c].sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
   });
-  // Prefer bigger categories slightly earlier in rotation start, but still cycle all
-  order.sort(function(a, b) { return groups[b].length - groups[a].length; });
-  var out = [];
+  if (order.length < 2) {
+    // single family — still shuffle lightly by year buckets
+    flat = list.filter(function(m) { return family(m.category) !== 'adult'; });
+    flat.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    return flat;
+  }
+  // Round-robin across families
   var idxs = {};
   order.forEach(function(c) { idxs[c] = 0; });
-  var remaining = list.length;
+  var out = [];
+  var remaining = 0;
+  order.forEach(function(c) { remaining += groups[c].length; });
+  var lastFam = '';
   while (remaining > 0) {
     var progressed = false;
-    for (var k = 0; k < order.length; k++) {
-      var cat = order[k];
+    // Prefer a family different from last
+    var tryOrder = order.slice();
+    if (lastFam) {
+      tryOrder = order.filter(function(c) { return c !== lastFam && idxs[c] < groups[c].length; })
+        .concat(order.filter(function(c) { return c === lastFam; }));
+    }
+    for (var k = 0; k < tryOrder.length; k++) {
+      var cat = tryOrder[k];
       var g = groups[cat];
       var j = idxs[cat];
       if (j < g.length) {
         out.push(g[j]);
         idxs[cat] = j + 1;
+        lastFam = cat;
         remaining--;
         progressed = true;
+        break; // one item then re-evaluate lastFam
       }
     }
     if (!progressed) break;
   }
   return out;
 }
+
 
 function cvRenderPage(silent) {
   var grid = document.getElementById('cv-grid');
@@ -6785,66 +6849,116 @@ function cvResetSEO() {
 
 // ── MOBILE BOTTOM NAV JS ──
 (function(){
-  var bnav = document.getElementById('cv-bottom-nav');
-  if(!bnav) return;
-  function syncBnav(){
-    if(window.innerWidth <= 480){ bnav.style.display='flex'; }
-    else { bnav.style.display='none'; }
-  }
-  syncBnav();
-  window.addEventListener('resize', syncBnav);
+  function bindBnav(){
+    var bnav = document.getElementById('cv-bottom-nav');
+    if(!bnav) return false;
 
-  window.cvBnavGo = function(tab){
-    // Search: overlay kholo, active mat karo — close hone ke baad home active rahe
-    if(tab==='search'){
-      if(typeof cvOpenSearch==='function'){
-        cvOpenSearch();
-        // Search close hone pe home active karo
-        var closeBtn = document.getElementById('cv-search-overlay-close');
-        if(closeBtn && !closeBtn._bnavPatched){
-          closeBtn._bnavPatched = true;
-          var origOnclick = closeBtn.onclick;
-          closeBtn.onclick = function(){
-            if(typeof cvCloseSearch==='function') cvCloseSearch();
-            document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
-            var h = document.getElementById('cv-bnav-home'); if(h) h.classList.add('active');
-          };
+    function syncBnav(){
+      bnav.style.display = '';
+      bnav.style.position = 'fixed';
+      bnav.style.bottom = '0px';
+      bnav.style.left = '0px';
+      bnav.style.right = '0px';
+      bnav.style.zIndex = '99999';
+      bnav.style.transform = 'translate3d(0,0,0)';
+    }
+    syncBnav();
+    window.addEventListener('resize', syncBnav);
+
+    window.cvBnavGo = function(tab){
+      try {
+        if(tab === 'search'){
+          if(typeof cvOpenSearch === 'function'){
+            cvOpenSearch();
+            var closeBtn = document.getElementById('cv-search-overlay-close');
+            if(closeBtn && !closeBtn._bnavPatched){
+              closeBtn._bnavPatched = true;
+              closeBtn.onclick = function(){
+                if(typeof cvCloseSearch === 'function') cvCloseSearch();
+                document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
+                var h = document.getElementById('cv-bnav-home'); if(h) h.classList.add('active');
+              };
+            }
+          }
+          return;
         }
+
+        document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
+        var el = document.getElementById('cv-bnav-' + tab);
+        if(el) el.classList.add('active');
+
+        if(tab === 'request'){
+          var r = document.getElementById('cv-request-wrap');
+          if(r){
+            r.style.display = 'block';
+            try { r.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){ r.scrollIntoView(true); }
+          } else {
+            // fallback: footer contact / whatsapp
+            var foot = document.getElementById('cv-footer');
+            if(foot) try { foot.scrollIntoView({ behavior: 'smooth' }); } catch(e){}
+          }
+          return;
+        }
+
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){ window.scrollTo(0,0); }
+
+        if(tab === 'home'){
+          var p = document.querySelector('.cv-pill[data-cat="all"]');
+          if(p) p.click();
+          else if(typeof cvApplyFilter === 'function') cvApplyFilter('all', false, null);
+        } else if(tab === 'movies'){
+          if(typeof cvApplyFilter === 'function') cvApplyFilter('group:hollywood', false, null);
+          else {
+            var p2 = document.querySelector('.cv-pill[data-cat="hollywood"], .cv-pill[data-cat="group:hollywood"], .cv-pill[data-cat="bollywood"]');
+            if(p2) p2.click();
+          }
+        } else if(tab === 'series'){
+          if(typeof cvApplyFilter === 'function') cvApplyFilter('group:webseries', false, null);
+          else {
+            var p3 = document.querySelector('.cv-pill[data-cat="webseries"], .cv-pill[data-cat="group:webseries"], .cv-pill[data-cat="drama"]');
+            if(p3) p3.click();
+          }
+        }
+      } catch(err) {
+        try { console.warn('cvBnavGo', err); } catch(e){}
       }
-      return;
-    }
+    };
 
-    // Baaki tabs: active update karo
-    document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
-    var el = document.getElementById('cv-bnav-'+tab);
-    if(el) el.classList.add('active');
+    // Also bind click listeners (more reliable than only inline onclick on some browsers)
+    bnav.querySelectorAll('.cv-bnav-item').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        var id = btn.id || '';
+        var tab = id.replace('cv-bnav-', '');
+        if(tab) window.cvBnavGo(tab);
+      }, false);
+    });
 
-    if(tab==='request'){
-      var r=document.getElementById('cv-request-wrap');
-      if(r){ r.style.display='block'; r.scrollIntoView({behavior:'smooth',block:'start'}); }
-      return;
-    }
-    window.scrollTo({top:0,behavior:'smooth'});
-    if(tab==='home'){
-      var p=document.querySelector('.cv-pill[data-cat="all"]');
-      if(p) p.click();
-    } else if(tab==='movies'){
-      if(typeof cvApplyFilter==='function') cvApplyFilter('group:hollywood', false, null);
-    } else if(tab==='series'){
-      if(typeof cvApplyFilter==='function') cvApplyFilter('group:webseries', false, null);
-    }
-  };
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      if(!t) return;
+      if(t.classList && t.classList.contains('cv-pill')){
+        var cat = (t.dataset && t.dataset.cat) || '';
+        document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
+        if(cat === '' || cat === 'all'){ var h = document.getElementById('cv-bnav-home'); if(h) h.classList.add('active'); }
+        else if(cat === 'drama' || cat === 'series' || cat === 'webseries' || cat === 'group:webseries'){ var s = document.getElementById('cv-bnav-series'); if(s) s.classList.add('active'); }
+        else { var m = document.getElementById('cv-bnav-movies'); if(m) m.classList.add('active'); }
+      }
+    });
+    return true;
+  }
 
-  // Sync bnav with category pill clicks
-  document.addEventListener('click',function(e){
-    if(!e.target||!e.target.classList||!e.target.classList.contains('cv-pill')) return;
-    var cat=(e.target.dataset&&e.target.dataset.cat)||'';
-    document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
-    if(cat===''||cat==='all'){ var h=document.getElementById('cv-bnav-home'); if(h)h.classList.add('active'); }
-    else if(cat==='drama'||cat==='series'||cat==='webseries'||cat==='kdrama'){ var s=document.getElementById('cv-bnav-series'); if(s)s.classList.add('active'); }
-    else { var m=document.getElementById('cv-bnav-movies'); if(m)m.classList.add('active'); }
-  });
+  function boot(){
+    if(bindBnav()) return;
+    // nav maybe not in DOM yet
+    setTimeout(function(){ bindBnav(); }, 0);
+    setTimeout(function(){ bindBnav(); }, 300);
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', function(){ bindBnav(); });
+    }
+  }
+  boot();
 })();
+
 
 //]]> </script> </div> <footer id="cv-footer"> <style>#cv-footer{background:#0d0d0d;font-family:inherit;color:#b3b3b3;margin-top:40px;width:100%;box-sizing:border-box;overflow:hidden;border-top:2px solid #e50914}.cvf-glow-bar{display:none}.cvf-main{background:0 0;display:grid;grid-template-columns:1.8fr 1fr 1fr;gap:0;padding:50px 5% 40px;max-width:1400px;margin:0 auto;box-sizing:border-box}@media(max-width:900px){.cvf-main{grid-template-columns:1fr 1fr;padding:36px 5% 28px}.cvf-brand{grid-column:1/-1;border-bottom:1px solid #1e1e1e;padding-bottom:24px!important;padding-right:0!important;margin-bottom:8px}}@media(max-width:540px){.cvf-main{grid-template-columns:1fr 1fr;padding:24px 5% 16px;gap:0}.cvf-brand{grid-column:1/-1;padding-bottom:20px!important}.cvf-col{border-left:none!important;padding:16px 8px!important}.cvf-col-border{border-top:1px solid #1a1a1a}}@media(max-width:360px){.cvf-main{grid-template-columns:1fr}.cvf-col{border-top:1px solid #1a1a1a;padding:14px 0!important}}.cvf-brand{padding-right:40px}.cvf-logo-stack{line-height:.9;margin-bottom:14px}.cvf-logo-red{font-size:2.2rem;font-weight:900;color:#e50914;letter-spacing:4px;display:block}.cvf-logo-wh{font-size:2.2rem;font-weight:900;color:#fff;letter-spacing:4px;display:block;margin-top:-4px}.cvf-live-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(229,9,20,.1);border:1px solid rgba(229,9,20,.3);border-radius:20px;padding:6px 16px;margin-bottom:14px}.cvf-live-dot{width:8px;height:8px;background:#e50914;border-radius:50%;flex-shrink:0;animation:cvfblink 1.6s infinite}@keyframes cvfblink{0%,100%{opacity:1}50%{opacity:.15}}.cvf-live-text{font-size:.72rem;color:#e50914;font-weight:700;letter-spacing:1px;text-transform:uppercase}.cvf-stats{display:flex;align-items:center;gap:8px;font-size:.78rem;color:#888;margin-bottom:14px}.cvf-stat b{color:#e5e5e5;font-weight:800}.cvf-stat-dot{color:#3a3a3a}.cvf-desc{font-size:.84rem;color:#666;line-height:1.9;max-width:320px}@media(max-width:540px){.cvf-desc{font-size:.8rem;max-width:100%}}.cvf-col{padding:0 24px}.cvf-col-border{border-left:1px solid #1e1e1e}.cvf-col-head{font-size:.72rem;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;gap:8px}.cvf-col-line{flex:1;height:1px;background:#1e1e1e}.cvf-ul{list-style:none;padding:0;margin:0}.cvf-ul li{margin-bottom:13px;display:flex;align-items:center;gap:10px}.cvf-ul li::before{content:'';width:3px;height:14px;background:#e50914;border-radius:2px;flex-shrink:0}.cvf-ul li a{color:#888;font-size:.88rem;text-decoration:none;transition:color .2s}.cvf-ul li a:hover{color:#fff}@media(max-width:540px){.cvf-ul li a{font-size:.84rem}.cvf-ul li{margin-bottom:11px}}.cvf-ticket{background:#0a0a0a;border-top:1px solid #1e1e1e;position:relative;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-sizing:border-box}.cvf-ticket::after,.cvf-ticket::before{display:none}.cvf-copy{font-size:.78rem;color:#7d7d7d}.cvf-badges{display:flex;gap:6px;flex-wrap:wrap}.cvf-badge{font-size:.68rem;color:#666;border:1px solid #2a2a2a;padding:4px 12px;border-radius:4px;font-family:monospace;letter-spacing:.5px;text-decoration:none;cursor:pointer;transition:all .15s;display:inline-block}.cvf-badge:hover{color:#e5e5e5;border-color:#e50914;background:rgba(229,9,20,.08)}@media(max-width:540px){.cvf-ticket{padding:14px 5%;justify-content:center;text-align:center}.cvf-badges{justify-content:center}}.cvf-genres{padding:18px 5% 20px;background:#0d0d0d;border-top:1px solid #1e1e1e}.cvf-genre-title{font-size:.75rem;color:#666;font-weight:600;text-transform:none;letter-spacing:0;margin-bottom:12px}.cvf-genre-list{display:flex;flex-wrap:wrap;gap:8px}.cvf-genre-tag{font-size:.78rem;color:#888;border:1px solid #2a2a2a;background:#111;padding:6px 14px;border-radius:20px;text-decoration:none;transition:all .2s;white-space:nowrap}.cvf-whatsapp-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.35);color:#25d366;font-size:.82rem;font-weight:700;padding:8px 16px;border-radius:20px;text-decoration:none;transition:all .2s;width:fit-content}.cvf-whatsapp-btn:hover{background:rgba(37,211,102,.18);border-color:#25d366;transform:translateY(-1px)}.cvf-whatsapp-btn svg{flex-shrink:0}@media(max-width:540px){.cvf-whatsapp-btn{font-size:.78rem;padding:7px 14px}}#cv-footer{border-top:1px solid rgba(229,9,20,.35);background:radial-gradient(ellipse 700px 260px at 50% 0,rgba(229,9,20,.06) 0,transparent 70%),#0d0d0d}.cvf-genre-tag:hover{border-color:#ff4d40;background:rgba(229,9,20,.14)}</style> <div class="cvf-glow-bar"></div> <div class="cvf-main"> <div class="cvf-brand"> <div class="cvf-logo-stack"> <svg alt="CineNova" aria-label="CineNova" role="img" style="height:52px;width:auto;display:block;margin-bottom:8px" viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg"> <defs> <linearGradient id="cnCircFt" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d40"/><stop offset="50%" stop-color="#e50914"/><stop offset="100%" stop-color="#6e0309"/></linearGradient> <radialGradient cx="32%" cy="24%" id="cnShineFt" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/><stop offset="35%" stop-color="#ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient> <linearGradient id="cnPlayFt" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfcfcf"/></linearGradient> <linearGradient id="cnNovaFt" x1="0%" x2="0%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#c40410"/></linearGradient> </defs> <circle cx="33" cy="36" fill="#4a0307" r="30"/> <circle cx="33" cy="33" fill="url(#cnCircFt)" r="30"/> <circle cx="33" cy="33" fill="url(#cnShineFt)" r="30"/> <path d="M24 19 L24 47 L48 33 Z" fill="#000000" opacity="0.3" transform="translate(1.5,2)"/> <path d="M24 19 L24 47 L48 33 Z" fill="url(#cnPlayFt)"/> <g transform="skewX(-6)"> <text fill="#000000" font-family="Arial, sans-serif" font-size="38" font-weight="700" opacity="0.55" x="78" y="49">CineNova</text> <text fill="#ffffff" font-family="Arial, sans-serif" font-size="38" font-weight="700" x="75" y="46">Cine<tspan fill="url(#cnNovaFt)">Nova</tspan></text> </g> </svg> </div> <div class="cvf-live-pill"> <div class="cvf-live-dot"></div> <span class="cvf-live-text">Live &amp; Updated Daily</span> </div> <div class="cvf-stats" id="cvf-stats"> <span class="cvf-stat"><b id="cvf-stat-movies">&#8212;</b> Movies</span> <span class="cvf-stat-dot">&#8226;</span> <span class="cvf-stat"><b id="cvf-stat-series">&#8212;</b> Series</span> </div> <p class="cvf-desc">Official free HD movie downloads — Bollywood, Hollywood Hindi dubbed &amp; South titles in 480p, 720p &amp; 1080p. Direct links, daily updates, no signup.</p> <a class="cvf-whatsapp-btn" href="https://whatsapp.com/channel/0029VbCtOwrJ3juqgYoeNQ2d" rel="noopener" target="_blank"> <svg fill="currentColor" height="18" viewBox="0 0 24 24" width="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.78 14.09c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.73-2.09.99-2.38c.26-.29.56-.36.75-.36s.38 0 .54.01c.18.01.41-.07.64.49.24.58.81 2 .88 2.15.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.92 1.06.94 1.95 1.23 2.23 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.07.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.31z"/></svg> <span>Join WhatsApp Channel</span> </a> </div> <div class="cvf-col cvf-col-border"> <div class="cvf-col-head">Explore <div class="cvf-col-line"></div></div> <ul class="cvf-ul"> <li><a href="/">Home</a></li> <li><a href="/p/about-us.html">About Us</a></li> <li><a href="/p/contact-us.html">Contact Us</a></li> <li><a href="/p/privacy-policy.html">Privacy Policy</a></li> <li><a href="/p/dmca.html">DMCA</a></li> <li><a href="/p/disclaimer.html">Disclaimer</a></li> </ul> </div> <div class="cvf-col cvf-col-border"> <div class="cvf-col-head">Categories <div class="cvf-col-line"></div></div> <ul class="cvf-ul"> <li><a href="/?cat=group:hollywood">Hollywood</a></li> <li><a href="/?cat=english_movies">English-Movies</a></li> <li><a href="/?cat=hindi_dubbed">Hindi Dubbed</a></li> <li><a href="/?cat=dual_audio">Dual Audio</a></li> <li><a href="/?cat=group:tollywood">Tollywood</a></li> <li><a href="/?cat=south_hindi">South Hindi Dubbed</a></li> <li><a href="/?cat=tamil_telugu">Tamil/Telugu</a></li> <li><a href="/?cat=bollywood_hindi">Bollywood Hindi</a></li> <li><a href="/?cat=anime_hindi">Anime Hindi Dubbed</a></li> <li><a href="/?cat=webseries_hindi">Web-Series Hindi Dubbed</a></li> <li><a href="/?cat=kdrama_hindi">K-Drama Hindi Dubbed</a></li> <li><a href="/?cat=philippines">Philippines Movies</a></li> <li><a href="/?cat=hot_short_hindi">Hot Short Movies Hindi dubbed</a></li> </ul> </div> </div> <div class="cvf-genres"> <div class="cvf-genre-title">Browse by Genre</div> <div class="cvf-genre-list"> <a class="cvf-genre-tag" href="/?genre=action">Action</a> <a class="cvf-genre-tag" href="/?genre=comedy">Comedy</a> <a class="cvf-genre-tag" href="/?genre=horror">Horror</a> <a class="cvf-genre-tag" href="/?genre=thriller">Thriller</a> <a class="cvf-genre-tag" href="/?genre=romance">Romance</a> <a class="cvf-genre-tag" href="/?genre=drama">Drama</a> <a class="cvf-genre-tag" href="/?genre=sci-fi">Sci-Fi</a> <a class="cvf-genre-tag" href="/?genre=crime">Crime</a> <a class="cvf-genre-tag" href="/?genre=adventure">Adventure</a> <a class="cvf-genre-tag" href="/?genre=fantasy">Fantasy</a> <a class="cvf-genre-tag" href="/?genre=mystery">Mystery</a> <a class="cvf-genre-tag" href="/?genre=animation">Animation</a> </div> </div> <div class="cvf-ticket">
   <div class="cvf-copy">© <span id="cvf-year">2026</span> <a href="https://www.cinenova.site/">CineNova.site</a> — Official free HD movie downloads. All rights reserved.</div>
@@ -7426,4 +7540,169 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 }
 </style>
 
+
+<style id="cv-motd-fix">
+#cv-nav-motd-btn{display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;margin:0!important;padding:0!important;border:none!important}
+</style>
+
+
+<style id="cv-mobile-pro-ui">
+/* ══ Bottom nav — fixed, Firefox-safe ══ */
+#cv-bottom-nav{
+  display: none !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  height: 58px !important;
+  height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+  padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  background: #0c0c0c !important;
+  border-top: 1px solid rgba(255,255,255,.1) !important;
+  box-shadow: 0 -6px 24px rgba(0,0,0,.55) !important;
+  z-index: 99999 !important;
+  align-items: stretch !important;
+  justify-content: space-around !important;
+  gap: 0 !important;
+  /* Firefox / Android: keep fixed during toolbar show-hide */
+  transform: translate3d(0,0,0) !important;
+  -webkit-transform: translate3d(0,0,0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  isolation: isolate !important;
+  /* avoid backdrop-filter creating containing issues on FF */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+@media (max-width: 480px){
+  #cv-bottom-nav{
+    display: flex !important;
+  }
+  body{
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  #cv-footer{
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px) + 12px) !important;
+  }
+}
+.cv-bnav-item{
+  flex: 1 1 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #888 !important;
+  font-family: inherit !important;
+  font-size: .6rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .15px !important;
+  cursor: pointer !important;
+  padding: 8px 2px 6px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  min-width: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+  transition: color .12s ease !important;
+}
+.cv-bnav-item .cv-bnav-icon{
+  font-size: 1.2rem !important;
+  line-height: 1 !important;
+  display: block !important;
+}
+.cv-bnav-item .cv-bnav-label{
+  display: block !important;
+  line-height: 1.1 !important;
+}
+.cv-bnav-item.active{
+  color: #e50914 !important;
+}
+.cv-bnav-item:active{
+  opacity: .75 !important;
+}
+
+/* Loading pill */
+#cv-load-bar{
+  position: fixed !important;
+  left: 50% !important;
+  bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+  transform: translate3d(-50%, 8px, 0) !important;
+  z-index: 99990 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 14px !important;
+  border-radius: 20px !important;
+  background: rgba(20,20,20,.96) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5) !important;
+  font-size: .75rem !important;
+  font-weight: 600 !important;
+  color: #ccc !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity .2s, transform .2s, visibility .2s !important;
+}
+#cv-load-bar.show{
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translate3d(-50%, 0, 0) !important;
+}
+#cv-load-bar .cv-load-spin{
+  width: 14px !important;
+  height: 14px !important;
+  border: 2px solid rgba(229,9,20,.25) !important;
+  border-top-color: #e50914 !important;
+  border-radius: 50% !important;
+  animation: cvLoadSpin .7s linear infinite !important;
+}
+@keyframes cvLoadSpin{ to{ transform: rotate(360deg); } }
+#cv-load-bar .cv-load-txt{ font-size: .72rem !important; color: #bbb !important; }
+
+@media (max-width: 480px){
+  #cv-pagination{ padding: 14px 12px 24px !important; gap: 6px !important; }
+  .cv-page-btn{ min-width: 36px !important; height: 36px !important; padding: 0 10px !important; border-radius: 8px !important; font-size: .8rem !important; }
+}
+</style>
+
+
+
+<script>
+//<![CDATA[
+// Fallback: define cvBnavGo early so inline onclick never ReferenceError
+if (typeof window.cvBnavGo !== 'function') {
+  window.cvBnavGo = function(tab) {
+    try {
+      if (tab === 'search' && typeof cvOpenSearch === 'function') { cvOpenSearch(); return; }
+      if (tab === 'request') {
+        var r = document.getElementById('cv-request-wrap');
+        if (r) { r.style.display = 'block'; r.scrollIntoView({behavior:'smooth',block:'center'}); }
+        return;
+      }
+      window.scrollTo(0, 0);
+      if (tab === 'home') {
+        var p = document.querySelector('.cv-pill[data-cat="all"]'); if (p) p.click();
+      } else if (tab === 'movies') {
+        if (typeof cvApplyFilter === 'function') cvApplyFilter('group:hollywood', false, null);
+      } else if (tab === 'series') {
+        if (typeof cvApplyFilter === 'function') cvApplyFilter('group:webseries', false, null);
+      }
+      document.querySelectorAll('.cv-bnav-item').forEach(function(el){ el.classList.remove('active'); });
+      var el = document.getElementById('cv-bnav-' + tab); if (el) el.classList.add('active');
+    } catch (e) {}
+  };
+}
+//]]>
+</script>
+
+<nav id="cv-bottom-nav"> <button class="cv-bnav-item active" id="cv-bnav-home" onclick="cvBnavGo(&quot;home&quot;)"> <span class="cv-bnav-icon">🏠</span> <span class="cv-bnav-label">Home</span> </button> <button class="cv-bnav-item" id="cv-bnav-search" onclick="cvBnavGo(&quot;search&quot;)"> <span class="cv-bnav-icon">🔍</span> <span class="cv-bnav-label">Search</span> </button> <button class="cv-bnav-item" id="cv-bnav-movies" onclick="cvBnavGo(&quot;movies&quot;)"> <span class="cv-bnav-icon">🎬</span> <span class="cv-bnav-label">Movies</span> </button> <button class="cv-bnav-item" id="cv-bnav-series" onclick="cvBnavGo(&quot;series&quot;)"> <span class="cv-bnav-icon">📺</span> <span class="cv-bnav-label">Series</span> </button> <button class="cv-bnav-item" id="cv-bnav-request" onclick="cvBnavGo(&quot;request&quot;)"> <span class="cv-bnav-icon">💌</span> <span class="cv-bnav-label">Request</span> </button> </nav>
 </body> </html> 
