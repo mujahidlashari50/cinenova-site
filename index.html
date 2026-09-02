@@ -4601,30 +4601,15 @@ function cnPlaymateEmbedUrl(m) {
 
 function cnOpenInVlc(httpsUrl, title) {
   if (!httpsUrl) return;
-  var isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
-  var isAndroid = /Android/i.test(navigator.userAgent);
-  var bare = httpsUrl.replace(/^https?:\/\//i, '');
-  var t = (title || '').replace(/[^\w\s\-\.\u0600-\u06FF\u0900-\u097F]/g, ' ').trim().slice(0, 80);
-
-  if (isAndroid) {
-    // Final CDN URL + title extra (MX/VLC dikhate hain)
-    var intent = 'intent://' + bare
-      + '#Intent;action=android.intent.action.VIEW;scheme=https;type=video/*;';
-    if (t) intent += 'S.title=' + encodeURIComponent(t) + ';';
-    intent += 'S.browser_fallback_url=' + encodeURIComponent(httpsUrl) + ';end';
-    window.location.href = intent;
-    return;
+  // SIMPLE: seedha final media URL open — Android/iOS/Desktop OS player chooser (VLC/MX/browser)
+  // intent:// / vlc:// hata diye — wo "Multiple media cannot be played" dete the
+  try {
+    window.location.href = httpsUrl;
+  } catch (e) {
+    try { window.open(httpsUrl, '_blank'); } catch (e2) {}
   }
-  if (isIOS) {
-    var cb = 'vlc-x-callback://x-callback-url/stream?url=' + encodeURIComponent(httpsUrl);
-    if (t) cb += '&filename=' + encodeURIComponent(t);
-    window.location.href = cb;
-    setTimeout(function() { window.location.href = 'vlc://' + bare; }, 500);
-    return;
-  }
-  // Desktop: seedha final file URL VLC protocol pe (worker proxy nahi)
-  window.location.href = 'vlc://' + bare;
 }
+
 
 // Play worker se FINAL direct URL lao → VLC seedha CDN pe (kam buffering)
 // Watch Now → FORAN VLC (no toast, no wait for JSON)
@@ -4657,8 +4642,31 @@ function cnGoToWatchWorker(movieKey, quality) {
       }
     }
   }
-  // Foran VLC open — /go?id= (default 720p smooth)
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', '', ''), (m && m.title) || '');
+  // FIX: pehle /play se FINAL direct .mp4 lao, phir VLC — /go worker URL VLC mein nahi chalti
+  cnResolveThenVlc(movieKey, quality || '720p', '', '', (m && m.title) || '');
+}
+
+function cnResolveThenVlc(movieKey, quality, season, episode, title) {
+  if (!movieKey) return;
+  var q = quality || '720p';
+  var jsonUrl = (typeof cnPlayJsonUrl === 'function')
+    ? cnPlayJsonUrl(movieKey, q, season || '', episode || '')
+    : ('https://play.cinenova.site/play?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q));
+  var goUrl = (typeof cnPlayGoUrl === 'function')
+    ? cnPlayGoUrl(movieKey, q, season || '', episode || '')
+    : ('https://play.cinenova.site/go?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q));
+  fetch(jsonUrl + (jsonUrl.indexOf('?') >= 0 ? '&' : '?') + 'nocache=1', { credentials: 'omit' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data && data.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        window.location.href = goUrl;
+      }
+    })
+    .catch(function () {
+      window.location.href = goUrl;
+    });
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
@@ -4684,7 +4692,7 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
       }
     }
   }
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || ''), title);
+  cnResolveThenVlc(movieKey, quality || '720p', season || '', episode || '', title);
 }
 
 
