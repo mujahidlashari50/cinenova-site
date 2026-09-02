@@ -4526,11 +4526,13 @@ function cnWarmDownloads(movieKey, dlData) {
 }
 
 // ══════════════════════════════════
-// WATCH NOW → dedicated PLAY worker → VLC
-// Play worker panel se link resolve karta hai, final URL /go pe redirect
-// Domain: https://play.cinenova.site  (Cloudflare pe deploy karke DNS/route set karo)
+// WATCH NOW → CineNova DL worker's /watch route (v4.9.52, Playmate-only)
+// Yehi worker /dl (download) route bhi handle karta hai — same domain.
+// /watch full HTML page deta hai (ad+timer+Playmate player), isliye
+// yahan seedha page navigate karte hain, VLC intent nahi.
+// Domain: https://download.cinenova.site
 // ══════════════════════════════════
-var CN_PLAY_WORKER = 'https://play.cinenova.site';
+var CN_PLAY_WORKER = 'https://download.cinenova.site';
 
 function cnPlayGoUrl(movieKey, quality, season, episode) {
   var params = new URLSearchParams();
@@ -4538,7 +4540,7 @@ function cnPlayGoUrl(movieKey, quality, season, episode) {
   if (quality) params.set('q', quality);
   if (season) params.set('s', season);
   if (episode) params.set('e', episode);
-  return CN_PLAY_WORKER + '/go?' + params.toString();
+  return CN_PLAY_WORKER + '/watch?' + params.toString();
 }
 
 function cnPlayJsonUrl(movieKey, quality, season, episode) {
@@ -4547,7 +4549,7 @@ function cnPlayJsonUrl(movieKey, quality, season, episode) {
   if (quality) params.set('q', quality);
   if (season) params.set('s', season);
   if (episode) params.set('e', episode);
-  return CN_PLAY_WORKER + '/play?' + params.toString();
+  return CN_PLAY_WORKER + '/watch?' + params.toString();
 }
 
 // Pixeldrain local fallback (worker down ho to theme khud try kare)
@@ -4626,9 +4628,10 @@ function cnOpenInVlc(httpsUrl, title) {
   window.location.href = 'vlc://' + bare;
 }
 
-// Play worker se FINAL direct URL lao → VLC seedha CDN pe (kam buffering)
-// Watch Now → FORAN VLC (no toast, no wait for JSON)
-// VLC ko seedha /go URL: worker cache pe instant 302, warna resolve karke redirect
+// Watch Now → agar movie ka apna Playmate ya pixeldrain link pehle se hai
+// to wahi local shortcut use hota hai (fast, worker call nahi), warna
+// seedha worker ke /watch page pe navigate karte hain jo khud ad/timer/
+// player bana ke deta hai.
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
   var m = null;
@@ -4657,8 +4660,8 @@ function cnGoToWatchWorker(movieKey, quality) {
       }
     }
   }
-  // Foran VLC open — /go?id= (default 720p smooth)
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', '', ''), (m && m.title) || '');
+  // Worker ke /watch page pe navigate — ad+timer+Playmate player wahi bana ke deta hai
+  window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
@@ -4684,7 +4687,7 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
       }
     }
   }
-  cnOpenInVlc(cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || ''), title);
+  window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
 }
 
 
