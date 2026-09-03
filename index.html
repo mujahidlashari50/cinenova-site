@@ -2572,16 +2572,13 @@ function cvBuildMotd() {
     } else if (d.movieId) {
       keys = [d.movieId];
     }
-    // Manual pick: show if keys exist AND (no date set, date is today, or explicitly enabled)
+    // Manual pick: panel se jo keys lagi hain woh ALWAYS dikhao (date expire pe mat hide)
+    // Sirf jab enabled === false ho tab hide. Date optional metadata hai.
     if (keys.length) {
-      var dateOk = !d.manualDate || String(d.manualDate).substring(0, 10) === today;
-      var forceOn = d.enabled === true || d.enabled === 'true' || d.active === true || d.force === true;
-      if (dateOk || forceOn) {
-        cvMotdShowKeys(keys, d.rotateSec || 10);
-        return;
-      }
+      cvMotdShowKeys(keys, d.rotateSec || 10);
+      return;
     }
-    // Automatic: top downloads
+    // Automatic: top downloads (jab panel se koi key nahi)
     cvMotdAutoPickAndShow();
   }
 
