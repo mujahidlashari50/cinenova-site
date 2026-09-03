@@ -438,6 +438,26 @@ window.addEventListener('error', function(e) {
   // detail nahi hoti) ko skip karo — sirf noise hoti hai, kabhi trace nahi ho sakti.
   if (e.message === 'Script error.' || e.message === 'Script error') return;
 
+  // Facebook/Instagram in-app browser (iabjs://) apna internal performance
+  // logger crash karta hai jab tab background/foreground hota hai — yeh
+  // uss app ka apna bug hai, humari site se koi lena dena nahi, user ko
+  // kuch dikhta bhi nahi. Sirf Error Logs mein noise banata tha, ab skip.
+  if (e.filename && e.filename.indexOf('iabjs://') === 0) return;
+  if (e.message && e.message.indexOf('postMessage: Java object is gone') > -1) return;
+
+  // Slow/flaky network (2G/3G/interrupted connection) par kabhi kabhi
+  // poora page load hone se pehle hi ruk jata hai — beech mein kata hua
+  // <script> tag milta hai jo genuinely invalid JS hota hai. Ye humari
+  // coding ki galti nahi, client ke network ka side-effect hai. Koi
+  // stack trace nahi hoti asli bug ke ulat — isliye safely skip.
+  var isTruncationNoise = !(e.error && e.error.stack) && (
+    e.message === 'Uncaught SyntaxError: Unexpected end of input' ||
+    e.message === 'Uncaught SyntaxError: Invalid or unexpected token' ||
+    e.message === 'SyntaxError: Unexpected end of input' ||
+    e.message === 'SyntaxError: Invalid or unexpected token'
+  );
+  if (isTruncationNoise) return;
+
   var isOwnSite = e.filename && e.filename.indexOf(location.hostname) > -1;
   cvLogError({
     message: (isOwnSite || !e.filename ? '' : '[3rd-party script] ') + e.message,
