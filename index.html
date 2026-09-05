@@ -3956,7 +3956,7 @@ function openModal(key) {
       var epUrl = ep.videoUrl || ep.url || ep.link || '';
       var epVlc = ep.vlcUrl || '';
       var epLabel = 'S' + (ep.season||1) + 'E' + (ep.episode||(i+1));
-      var hasDl = ep.dl480 || ep.dl720 || ep.dl1080 || ep.download480p || ep.download720p || ep.download1080p;
+      var hasDl = ep.dl480 || ep.dl720 || ep.dl1080 || ep.download480p || ep.download720p || ep.download1080p || ep.dlSourceUrl || ep.videoSourceUrl;
       if (hasDl) {
         var arr = [];
         var d480 = ep.dl480 || ep.download480p || '';
@@ -3965,6 +3965,13 @@ function openModal(key) {
         if (d480)  arr.push({q:'480p',  url:d480,  size:ep.sz480  || ep.size480 || ''});
         if (d720)  arr.push({q:'720p',  url:d720,  size:ep.sz720  || ep.size720 || ''});
         if (d1080) arr.push({q:'1080p', url:d1080, size:ep.sz1080 || ep.size1080 || ''});
+        if (!arr.length && (ep.dlSourceUrl || ep.videoSourceUrl)) {
+          // Sirf ek combined link hai (mp4moviez/filmslb-jaise sources
+          // ki tarah, quality-specific fields nahi) — generic Download
+          // option do, worker khud fallback se (videoSourceUrl/
+          // dlSourceUrl) resolve kar lega
+          arr.push({q:'720p', url:(ep.dlSourceUrl||ep.videoSourceUrl), size:ep.size||''});
+        }
         window._cvEpDlRegistry[i] = {
           season: String(epSeasonNum),
           episode: String(epNumVal),
