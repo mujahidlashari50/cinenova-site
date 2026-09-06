@@ -7749,4 +7749,19 @@ if (typeof window.cvBnavGo !== 'function') {
 </script>
 
 <nav id="cv-bottom-nav"> <button class="cv-bnav-item active" id="cv-bnav-home" onclick="cvBnavGo(&quot;home&quot;)"> <span class="cv-bnav-icon">🏠</span> <span class="cv-bnav-label">Home</span> </button> <button class="cv-bnav-item" id="cv-bnav-search" onclick="cvBnavGo(&quot;search&quot;)"> <span class="cv-bnav-icon">🔍</span> <span class="cv-bnav-label">Search</span> </button> <button class="cv-bnav-item" id="cv-bnav-movies" onclick="cvBnavGo(&quot;movies&quot;)"> <span class="cv-bnav-icon">🎬</span> <span class="cv-bnav-label">Movies</span> </button> <button class="cv-bnav-item" id="cv-bnav-series" onclick="cvBnavGo(&quot;series&quot;)"> <span class="cv-bnav-icon">📺</span> <span class="cv-bnav-label">Series</span> </button> <button class="cv-bnav-item" id="cv-bnav-request" onclick="cvBnavGo(&quot;request&quot;)"> <span class="cv-bnav-icon">💌</span> <span class="cv-bnav-label">Request</span> </button> </nav>
+<script>
+// ── BOTTOM NAV REMOVAL (hard delete, not just CSS hide) ──
+// CSS display:none pehle try kiya tha lekin kisi cache/stylesheet
+// clash ki wajah se kabhi kabhi phir bhi dikh raha tha. Ab element ko
+// DOM se hi turant nikaal (remove) rahe hain — koi bhi purani/cached
+// CSS ho, ab is element ka wajood hi nahi rahega, isliye kahin bhi
+// dikhna possible nahi.
+(function(){
+  var bn = document.getElementById('cv-bottom-nav');
+  if (bn && bn.parentNode) bn.parentNode.removeChild(bn);
+  var bt = document.getElementById('cv-back-top');
+  if (bt) bt.style.bottom = '18px';
+})();
+</script>
+
 </body> </html> 
