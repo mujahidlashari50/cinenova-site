@@ -384,24 +384,50 @@ function cvOpenInBrowser() {
   }catch(e){}})();</script> <div id="cv-featured-card"> <div id="cv-upcoming-wrap"> <div id="cv-upcoming-hero"> <div id="cv-upcoming-track"> <div class="cv-uh-skel"></div> </div> <button class="cv-uh-arrow" id="cv-uh-prev" aria-label="Previous movie">&#10094;</button> <button class="cv-uh-arrow" id="cv-uh-next" aria-label="Next movie">&#10095;</button> <div id="cv-upcoming-dots"></div> </div> </div> <div id="cv-featured-bg"></div> <div id="cv-featured-poster-wrap"> <img alt="" decoding="async" fetchpriority="high" loading="eager" id="cv-featured-img" src=""> </div> <div id="cv-featured-overlay"></div> <div id="cv-featured-info"> <div id="cv-featured-badge" style="display:none!important"><img alt="CineNova" id="cv-featured-logo-img" src="https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png"></div> <div id="cv-featured-actions"> <img alt="CineNova" id="cv-featured-logo-actions" src="https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png" style="height:clamp(40px,5vw,70px);width:auto;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block"> </div> </div> <div id="cv-featured-right"> <svg fill="none" id="cv-mute-icon" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></svg> </div> <div id="cv-featured-dots"></div> </div> </div> <div id="cv-ns-hero" style="display:none"> <div id="cv-ns-hero-title"></div> <div id="cv-ns-stack"> <div class="cv-ns-skel"></div> </div> </div> <script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('cat')||p.get('genre')){document.getElementById('cv-ns-hero').style.display='none';}}catch(e){}})();</script> <div id="cv-motd-outer" style="display:none"> <div id="cv-motd-label"> <span id="cv-motd-label-text">🎯 Pick of the Day</span> <span id="cv-motd-live-dot"></span> </div> <div id="cv-motd-wrap"></div> </div> <div id="cv-ts-wrap" style="display:none;padding:18px 0 10px 0;border-bottom:1px solid #1a1a1a"> <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 10px 16px"> <div style="display:flex;align-items:center;gap:8px"> <span style="font-size:1.1rem;font-weight:800;color:#e5e5e5">🔥 Trending Now</span> <span style="background:var(--red);color:#fff;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:10px">HOT</span> </div> <div style="display:flex;gap:6px"> <button onclick="cvTsMove(-1)" style="background:#1f1f1f;border:1px solid #2a2a2a;color:#e5e5e5;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1.1rem;line-height:1">&#8249;</button> <button onclick="cvTsMove(1)" style="background:#1f1f1f;border:1px solid #2a2a2a;color:#e5e5e5;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1.1rem;line-height:1">&#8250;</button> </div> </div> <div style="overflow:hidden;padding:0 16px"> <div id="cv-ts-track" style="display:flex;gap:10px;transition:transform .35s cubic-bezier(.25,.46,.45,.94);will-change:transform"></div> </div> </div> <div id="cv-sync-banner" style="display:none"></div> <main id="cv-grid"> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> <div class="cv-skel"><div class="cv-skel-img"></div><div class="cv-skel-bar"></div><div class="cv-skel-bar short"></div></div> </main> <div id="cv-pagination" style="display:none"></div> <div id="cv-seo-wrap">
 <section aria-label="About CineNova.site" class="cv-seo-card">
   <div class="cv-seo-head">
-    <span class="cv-seo-icon" aria-hidden="true">▼</span>
-    <h1>Free HD Movie Downloads &amp; Online Watch on CineNova.site</h1>
+    <span class="cv-seo-icon" aria-hidden="true">▶</span>
+    <h1>Free HD Movies on CineNova.site</h1>
   </div>
-  <p><strong>CineNova.site</strong> is the official hub for free <strong>HD movie downloads</strong> and <strong>online watch</strong>. Stream or download the latest Bollywood, Hollywood Hindi dubbed, and South titles in <strong>480p, 720p and 1080p</strong>. Tap <strong>Watch Now</strong> to play directly in <strong>VLC Player</strong> — no ads, no signup, no subscription.</p>
+  <p class="cv-seo-lead">Bollywood, Hollywood Hindi dubbed &amp; South titles — watch online or download in <strong>480p / 720p / 1080p</strong>. No signup required.</p>
+
+  <div class="cv-seo-steps" aria-label="How to watch">
+    <div class="cv-seo-step">
+      <span class="cv-seo-step-num">1</span>
+      <div>
+        <h2>Choose a movie</h2>
+        <p>Browse categories or search your title.</p>
+      </div>
+    </div>
+    <div class="cv-seo-step">
+      <span class="cv-seo-step-num">2</span>
+      <div>
+        <h2>Tap Watch Now</h2>
+        <p>A short secure page opens — wait for the timer.</p>
+      </div>
+    </div>
+    <div class="cv-seo-step">
+      <span class="cv-seo-step-num">3</span>
+      <div>
+        <h2>Play in browser</h2>
+        <p>Movie starts in CineNova’s online player. No app needed.</p>
+      </div>
+    </div>
+  </div>
+
   <div class="cv-seo-divider"></div>
+
   <div class="cv-seo-grid">
     <div class="cv-seo-block">
-      <span class="cv-seo-subicon" aria-hidden="true">◆</span>
+      <span class="cv-seo-subicon" aria-hidden="true">▶</span>
       <div>
-        <h2>Watch in VLC — No Ads</h2>
-        <p>Watch Now opens a clean direct stream in VLC (or your default player). No pop-up ads, no forced redirects — just the movie. If a Playmate ID is available, playback starts in a smooth on-site player instead.</p>
+        <h2>Online player</h2>
+        <p>Works on phone &amp; desktop. Built-in player — nothing to install.</p>
       </div>
     </div>
     <div class="cv-seo-block">
-      <span class="cv-seo-subicon" aria-hidden="true">●</span>
+      <span class="cv-seo-subicon" aria-hidden="true">⬇</span>
       <div>
-        <h2>Download + Daily Updates</h2>
-        <p>Prefer offline? Grab 480p, 720p or 1080p download links on every title. New movies and web series are added daily so the library stays fresh on CineNova.site.</p>
+        <h2>Fast downloads</h2>
+        <p>Get 480p, 720p or 1080p links. New titles added every day.</p>
       </div>
     </div>
   </div>
@@ -3949,7 +3975,7 @@ function openModal(key) {
   // Cast — sirf Firebase (panel import / TMDB fill se save)
   cvLoadCast(m);
 
-    // Buttons — Watch Now: Playmate if ID, else play.cinenova.site → VLC/direct
+    // Buttons — Watch Now → worker /watch (timer + online player)
   var btns = '';
   var _mkey = m._key || window._cvCurrentKey || '';
   var _pmEmbed = (typeof cnPlaymateEmbedUrl === 'function') ? cnPlaymateEmbedUrl(m) : '';
@@ -4029,7 +4055,7 @@ function openModal(key) {
         };
       }
       var playBtn = '';
-      // Episode: Playmate embed OR play worker → VLC
+      // Episode: worker /watch (timer + online player)
       var epPm = '';
       try {
         if (ep.playmateId || (ep.playmateUrl && /playmate\.to/i.test(ep.playmateUrl))) {
@@ -4369,9 +4395,9 @@ function playVideo(url, title) {
         '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:#0d0d0d;color:#fff;">'
         + '<div style="font-size:2.2rem;margin-bottom:10px;">🎬</div>'
         + '<div style="font-size:1rem;font-weight:800;margin-bottom:8px;">Ye video browser mein direct play nahi hoti</div>'
-        + '<div style="font-size:0.85rem;color:#aaa;max-width:380px;line-height:1.7;margin-bottom:20px;">Is source ko sirf VLC Media Player mein khola ja sakta hai. Neeche wala link copy karo, VLC kholo, <b>Ctrl+N</b> dabao (ya Media &rarr; Open Network Stream), link paste karo aur Play karo.</div>'
+        + '<div style="font-size:0.85rem;color:#aaa;max-width:380px;line-height:1.7;margin-bottom:20px;">Is source ke liye online player best option hai. Neeche se link copy karke browser mein open kar sakte ho, ya movie page se <b>Watch Now</b> use karo.</div>'
         + '<input id="cv-pd-link" readonly value="' + pdRawUrl + '" style="width:100%;max-width:420px;padding:10px 12px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#ddd;font-size:0.78rem;margin-bottom:14px;text-align:center;" onclick="this.select()"/>'
-        + '<button onclick="cvCopyVlcLink(\'' + pdRawUrl.replace(/'/g,"\\'") + '\',\'cv-pd-copybtn\')" id="cv-pd-copybtn" style="padding:12px 26px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;margin-bottom:10px;">📋 Copy VLC Link</button>'
+        + '<button onclick="cvCopyVlcLink(\'' + pdRawUrl.replace(/'/g,"\\'") + '\',\'cv-pd-copybtn\')" id="cv-pd-copybtn" style="padding:12px 26px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;margin-bottom:10px;">📋 Copy Stream Link</button>'
         + '<a href="' + pdRawUrl + '" target="_blank" rel="noopener" style="color:#888;font-size:0.78rem;text-decoration:underline;">Ya seedha download/open karne ki koshish karo</a>'
         + '</div>';
     } else if (isDirectVideo) {
@@ -6409,12 +6435,12 @@ if (cvMobileInp) {
 var _cvShareUrl = '';
 var _cvShareTitle = '';
 
-// PixelDrain "Copy VLC Link" button — safe clipboard with fallback for
+// PixelDrain "Copy Stream Link" button — safe clipboard with fallback for
 // browsers/in-app-browsers that don't support the Clipboard API.
 function cvCopyVlcLink(url, btnId) {
   var btn = document.getElementById(btnId);
   function done() {
-    if (btn) { btn.textContent = '✔ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy VLC Link'; }, 2000); }
+    if (btn) { btn.textContent = '✔ Copied!'; setTimeout(function(){ btn.textContent = '📋 Copy Stream Link'; }, 2000); }
   }
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(done).catch(function(){ cvFallbackCopy(url); done(); });
@@ -7699,5 +7725,70 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   setTimeout(ready, 1200);
 })();
 </script>
+
+
+<style id="cv-seo-pro-v3">
+.cv-seo-card .cv-seo-lead{
+  font-size: .92rem !important;
+  line-height: 1.65 !important;
+  color: #b0b0b0 !important;
+  margin: 0 0 18px !important;
+  max-width: 52rem !important;
+}
+.cv-seo-steps{
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
+  margin: 4px 0 8px !important;
+}
+.cv-seo-step{
+  display: flex !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid #1e1e1e !important;
+  border-radius: 12px !important;
+  padding: 14px 14px 12px !important;
+}
+.cv-seo-step-num{
+  flex-shrink: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: rgba(229,9,20,.15) !important;
+  border: 1px solid rgba(229,9,20,.45) !important;
+  color: #e50914 !important;
+  font-size: .82rem !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.cv-seo-step h2{
+  font-size: .88rem !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  margin: 0 0 4px !important;
+  line-height: 1.25 !important;
+}
+.cv-seo-step p{
+  font-size: .78rem !important;
+  line-height: 1.5 !important;
+  color: #8a8a8a !important;
+  margin: 0 !important;
+}
+.cv-seo-card h1{
+  font-size: 1.15rem !important;
+  letter-spacing: -.2px !important;
+}
+.cv-seo-block h2{ font-size: .9rem !important; }
+.cv-seo-block p{ font-size: .8rem !important; color: #8b8b8b !important; line-height: 1.55 !important; }
+@media (max-width: 700px){
+  .cv-seo-steps{ grid-template-columns: 1fr !important; gap: 10px !important; }
+  .cv-seo-card{ padding: 18px 16px !important; }
+  .cv-seo-card h1{ font-size: 1.05rem !important; }
+  .cv-seo-card .cv-seo-lead{ font-size: .86rem !important; }
+}
+</style>
 
 </body> </html> 
