@@ -218,7 +218,7 @@ function cvOpenInBrowser() {
     <button type="button" class="cv-subcat-item" data-cat="group:hollywood">— All Hollywood</button>
     <button type="button" class="cv-subcat-item" data-cat="english_movies">English-Movies</button>
     <button type="button" class="cv-subcat-item" data-cat="hindi_dubbed">Hindi Dubbed</button>
-    <button type="button" class="cv-subcat-item" data-cat="hindi_dubbed">Dual Audio</button>
+    <button type="button" class="cv-subcat-item" data-cat="dual_audio">Dual Audio</button>
     <div class="cv-subcat-group">🎬 Tollywood</div>
     <button type="button" class="cv-subcat-item" data-cat="group:tollywood">— All Tollywood</button>
     <button type="button" class="cv-subcat-item" data-cat="south_hindi">South Hindi Dubbed</button>
@@ -408,6 +408,7 @@ function cvOpenInBrowser() {
 // ══════════════════════════════════
 // FIREBASE CONFIG (loaded dynamically - non-blocking)
 // ══════════════════════════════════
+var CV_SCHEMA_VERSION = '2026.09.14-panel-sync';
 var firebaseConfig = {
   apiKey: "AIzaSyACX5MktMm99R2ThEbfrtwrh5ZAzT5tCM0",
   authDomain: "cinenova-8987c.firebaseapp.com",
@@ -1264,9 +1265,8 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 80;         // 80 at a time — homepage pe pagination turant sahi dikhne ke liye
-                             // buffer chahiye (40 chhota tha, kabhi 1-page-only bann jata tha
-                             // aur pagination bar chhup jati thi jab tak zyada data load na ho)
+var PAGE_SIZE = 100;        // pehli paint ke liye
+var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -1313,16 +1313,20 @@ function cvFetchByIndex(field, value, cb) {
 // Panel display-name variants jo Firebase mein save ho sakte hain
 // (slug ke alawa). Indexed query in par bhi chalao taake jaldi mile.
 var CV_CAT_ALIASES = {
-  philippines: ['Philippines Movies', 'Philippines', 'philippines movies', 'PHILIPPINES', 'Philippine Movies'],
-  hot_short_hindi: ['Hot Short Movies Hindi dubbed', 'Hot Short Movies', 'hot short movies hindi dubbed', 'Hot Short Hindi'],
+  /* SYNC with Admin Panel category slugs — v2026.09.14 */
+  english_movies: ['English Movies', 'English-Movies', 'english movies', 'english', 'hollywood'],
+  hindi_dubbed: ['Hindi Dubbed', 'hollywood_dubbed', 'Hollywood Dubbed', 'hindi-dubbed'],
+  dual_audio: ['Dual Audio', 'dual-audio', 'dual audio'],
+  south_hindi: ['South Hindi Dubbed', 'South Hindi', 'south indian', 'tollywood'],
+  bollywood_hindi: ['Bollywood Hindi', 'Bollywood'],
+  anime_hindi: ['Anime series Hindi Dubbed', 'Anime Hindi Dubbed', 'Anime'],
+  animation_hindi_dubbed: ['Animation Hindi Dubbed', 'Animation'],
+  webseries_hindi: ['Web-Series Hindi Dubbed', 'Web Series Hindi', 'Web Series'],
+  kdrama_hindi: ['K-Drama Hindi Dubbed', 'K Drama Hindi', 'kdrama hindi', 'K-Drama'],
+  philippines: ['Philippines Movies', 'Philippines', 'philippines movies', 'PHILIPPINES', 'Philippine Movies', 'VivaMax'],
+  hot_short_hindi: ['Hot Short Movies Hindi dubbed', 'Hot Short Movies', 'hot short movies hindi dubbed', 'Hot Short Hindi', 'Hot Web Series'],
   adult: ['Adult', 'Adult Movies', 'adult movies', 'ADULT'],
-  short_films: ['Short Films', 'Adult Short Film', 'short films'],
-  hindi_dubbed: ['Hindi Dubbed', 'hollywood_dubbed', 'Hollywood Dubbed'],
-  english_movies: ['English Movies', 'English-Movies', 'english movies'],
-  kdrama_hindi: ['K-Drama Hindi Dubbed', 'K Drama Hindi', 'kdrama hindi'],
-  webseries_hindi: ['Web-Series Hindi Dubbed', 'Web Series Hindi'],
-  bollywood_hindi: ['Bollywood Hindi'],
-  south_hindi: ['South Hindi Dubbed', 'South Hindi']
+  short_films: ['Short Films', 'Adult Short Film', 'short films']
 };
 
 function cvLoadCategoryData(val, isGenre) {
@@ -1343,6 +1347,7 @@ function cvLoadCategoryData(val, isGenre) {
     items.forEach(function(m) {
       if (!existingKeys[m._key]) { allData.push(m); added = true; }
     });
+    if (added) { _cvCatIndex = null; _cvCatIndexLen = -1; }
     return added;
   }
 
@@ -1354,32 +1359,25 @@ function cvLoadCategoryData(val, isGenre) {
     }
     var added = mergeItems(items);
     cvFirstResponseReceived = true;
-    if (added || !cvFilteredList.length) renderGrid(false);
+    if (added || !cvFilteredList.length) {
+      if (typeof cvScheduleRender === 'function') cvScheduleRender(false);
+      else renderGrid(false);
+    }
 
-    // 2) Alias queries (panel display names) — parallel, fast
+    // 2) Alias queries — debounced render (har alias pe full re-render mat)
     if (!isGenre && CV_CAT_ALIASES[val]) {
       CV_CAT_ALIASES[val].forEach(function(alias) {
         cvFetchByIndex(field, alias, function(aliasItems) {
           if (aliasItems && aliasItems.length && mergeItems(aliasItems)) {
-            renderGrid(false);
+            if (typeof cvScheduleRender === 'function') cvScheduleRender(false);
+            else renderGrid(false);
           }
         });
       });
     }
 
-    // 3) Background full load — remaining mismatched labels / missing index
-    if (!allLoaded) {
-      window._cvCaseFallbackTried = window._cvCaseFallbackTried || {};
-      var _cfKey = field + ':' + val;
-      if (!window._cvCaseFallbackTried[_cfKey]) {
-        window._cvCaseFallbackTried[_cfKey] = true;
-        setTimeout(function() {
-          if (!allLoaded && typeof _cvLoadAllForCategory === 'function') {
-            _cvLoadAllForCategory();
-          }
-        }, 250);
-      }
-    }
+    // 3) PERF: category click pe poori library load NA karo (ye hang ka main cause tha).
+    // Indexed query + aliases kaafi hain. Full load sirf search / last-page pe.
   });
 }
 
@@ -1441,7 +1439,7 @@ function idbSaveAll(movies) {
         var tx = idb.transaction(['movies','meta'], 'readwrite');
         var store = tx.objectStore('movies');
         // Sirf pehle 150 cache (home fast start) — poori 17k IDB mein mat thelo
-        var maxCache = 150;
+        var maxCache = 800; // return visit pe zyada cache = faster
         var slice = list.length > maxCache ? list.slice(0, maxCache) : list;
         slice.forEach(function(m) { try { store.put(m); } catch(e){} });
         tx.objectStore('meta').put({k:'ts', v: Date.now()});
@@ -1500,6 +1498,69 @@ function loadMoviesFirstPage() {
   });
 }
 
+
+// ══ FAST FULL LOAD (~2880 movies, ek request) ══
+var _cvBulkStarted = false;
+function cvBulkLoadAllMovies() {
+  if (_cvBulkStarted || allLoaded || !db) return;
+  _cvBulkStarted = true;
+  var n = typeof PAGE_SIZE_BULK !== 'undefined' ? PAGE_SIZE_BULK : 4000;
+  try {
+    if (typeof showLoadingMore === 'function') showLoadingMore(true);
+  } catch (e) {}
+  db.ref('movies').orderByKey().limitToLast(n).once('value', function(snap) {
+    try { if (typeof showLoadingMore === 'function') showLoadingMore(false); } catch (e) {}
+    if (!snap || !snap.exists()) {
+      allLoaded = true;
+      return;
+    }
+    var items = [];
+    snap.forEach(function(child) {
+      var item = child.val();
+      if (!item) return;
+      item._key = child.key;
+      items.push(item);
+    });
+    // Newest first (push keys chronological)
+    items.sort(function(a, b) {
+      var ta = a.addedAt || 0, tb = b.addedAt || 0;
+      if (tb !== ta) return tb - ta;
+      return (a._key < b._key) ? 1 : -1;
+    });
+    allData = items;
+    allLoaded = true;
+    lastFirebaseKey = items.length ? items[items.length - 1]._key : null;
+    _cvCatIndex = null;
+    _cvCatIndexLen = -1;
+    try {
+      if (typeof renderGrid === 'function') renderGrid(false, true);
+    } catch (e) {}
+    try {
+      if (typeof buildTrending === 'function') buildTrending();
+      if (typeof buildTsSlider === 'function') buildTsSlider();
+      if (typeof buildFeatured === 'function') buildFeatured();
+      if (typeof buildNsHero === 'function') buildNsHero();
+    } catch (e2) {}
+    try {
+      if (typeof idbSaveAll === 'function') {
+        if ('requestIdleCallback' in window) requestIdleCallback(function(){ idbSaveAll(allData); });
+        else setTimeout(function(){ idbSaveAll(allData); }, 500);
+      }
+    } catch (e3) {}
+    try {
+      if (typeof watchNewMovies === 'function') watchNewMovies();
+    } catch (e4) {}
+  }, function(err) {
+    _cvBulkStarted = false;
+    try { if (typeof showLoadingMore === 'function') showLoadingMore(false); } catch (e) {}
+    // fallback: continue pagination
+    if (!allLoaded && typeof fetchFirebasePage === 'function') {
+      setTimeout(function(){ fetchFirebasePage(false); }, 400);
+    }
+  });
+}
+
+
 function fetchFirebasePage(isFirst, _retryCount) {
   if (isLoadingMore || (allLoaded && !isFirst)) return;
   // PERF/CRASH FIX: agar Firebase abhi load hi nahi hui (slow/blocked
@@ -1516,7 +1577,7 @@ function fetchFirebasePage(isFirst, _retryCount) {
       }
       return;
     }
-    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount + 1); }, 400);
+    setTimeout(function() { fetchFirebasePage(isFirst, _retryCount + 1); }, 200);
     return;
   }
   isLoadingMore = true;
@@ -1595,6 +1656,10 @@ function fetchFirebasePage(isFirst, _retryCount) {
     if (isFirst) {
       allData = newItems;
       idbClear();
+      // Turant baqi saari movies ek request mein (2880 ke liye best)
+      setTimeout(function() {
+        if (typeof cvBulkLoadAllMovies === 'function') cvBulkLoadAllMovies();
+      }, 50);
     } else {
       // Append, dedupe
       var existingKeys = {};
@@ -3049,11 +3114,51 @@ var CV_PAGE_SIZE = 36;
 var cvFilteredList = [];
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
+var _cvRenderTimer = null;
+var _cvRenderPending = null;
+function cvScheduleRender(resetPage, silent) {
+  _cvRenderPending = { resetPage: resetPage, silent: silent };
+  if (_cvRenderTimer) return;
+  _cvRenderTimer = setTimeout(function() {
+    _cvRenderTimer = null;
+    var p = _cvRenderPending || {};
+    _cvRenderPending = null;
+    renderGrid(p.resetPage, p.silent);
+  }, 60);
+}
+
+// Category index — filter O(n) har baar poori list pe na chale repeatedly
+var _cvCatIndex = null;
+var _cvCatIndexLen = -1;
+function cvRebuildCatIndex() {
+  _cvCatIndex = {};
+  _cvCatIndexLen = allData ? allData.length : 0;
+  if (!allData) return;
+  for (var i = 0; i < allData.length; i++) {
+    var m = allData[i];
+    var cat = (typeof cvNormalizeCategory === 'function')
+      ? cvNormalizeCategory(m.category)
+      : String(m.category || '').toLowerCase();
+    if (!_cvCatIndex[cat]) _cvCatIndex[cat] = [];
+    _cvCatIndex[cat].push(m);
+  }
+}
+function cvGetCatBucket(cat) {
+  if (!_cvCatIndex || _cvCatIndexLen !== (allData ? allData.length : 0)) cvRebuildCatIndex();
+  return (_cvCatIndex && _cvCatIndex[cat]) ? _cvCatIndex[cat] : null;
+}
+
 function renderGrid(resetPage, silent) {
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
   cvRenderPage(silent);
-  cvUpdateFooterStats();
+  // Footer stats — har render pe full loop mat; throttle
+  if (!window._cvFooterStatsT) {
+    window._cvFooterStatsT = setTimeout(function() {
+      window._cvFooterStatsT = null;
+      try { cvUpdateFooterStats(); } catch (e) {}
+    }, 400);
+  }
 }
 
 // Footer "live stats" badge — total movies vs series seen so far in allData.
@@ -3434,6 +3539,30 @@ function cvBuildFilteredList() {
       return cvTitleMatchesSearch(m, q);
     });
     return;
+  }
+
+  // PERF: simple category (no search/genre/year/lang) — index se fast list
+  if (!q && !selGenre && !selYear && !selLang && selCat && selCat !== 'all' && selCat !== 'watchlist'
+      && String(selCat).indexOf('group:') !== 0
+      && typeof cvGetCatBucket === 'function') {
+    var bucket = cvGetCatBucket(
+      (typeof cvNormalizeCategory === 'function') ? cvNormalizeCategory(selCat) : String(selCat).toLowerCase()
+    );
+    if (bucket && bucket.length) {
+      var adultUnlockedFast = adultUnlocked;
+      cvFilteredList = bucket.filter(function(m) {
+        if (cvIsAdultItem(m) && !adultUnlockedFast) return false;
+        if (m.published === false) return false;
+        return true;
+      });
+      // still apply sort
+      try {
+        if (typeof cvInterleaveByCategory === 'function' && selCat === 'all') {
+          /* n/a */
+        }
+      } catch (e) {}
+      return;
+    }
   }
 
   cvFilteredList = allData.filter(function(m) {
@@ -3869,6 +3998,24 @@ function showError(msg) {
 // ══════════════════════════════════
 function openModal(key) {
   var m = allData.find(function(x) { return x._key === key; });
+  if (!m && db && key) {
+    // Fast path: single movie fetch (not in memory yet)
+    try {
+      var box = document.getElementById('cv-modal-box');
+      if (box) box.scrollTop = 0;
+      var modal = document.getElementById('cv-modal');
+      if (modal) modal.classList.add('open');
+    } catch (e) {}
+    db.ref('movies/' + key).once('value').then(function(snap) {
+      if (!snap.exists()) return;
+      var item = snap.val();
+      item._key = snap.key;
+      var exists = allData.some(function(x) { return x._key === item._key; });
+      if (!exists) allData.unshift(item);
+      openModal(key);
+    }).catch(function() {});
+    return;
+  }
   if (!m) return;
 
   // Adult movie ko direct slug/link se bhi kabhi bina verification ke mat
@@ -4838,20 +4985,21 @@ document.querySelectorAll('.cv-pill').forEach(function(pill) {
 
 // Category hierarchy (same as Admin Panel)
 window.CV_CAT_GROUPS = {
-  hollywood: ['english_movies','hindi_dubbed','dual_audio','hollywood','hollywood_dubbed'],
-  tollywood: ['south_hindi','tamil_telugu','tollywood','south','tamil','telugu'],
-  bollywood: ['bollywood_hindi','bollywood'],
-  animation: ['anime_hindi','animation'],
-  webseries: ['webseries_hindi','webseries'],
-  kdrama: ['kdrama_hindi','kdrama'],
-  adult: ['philippines','hot_short_hindi','adult','short_films','adult_hindi','adult_english','hot_series','vivamax']
+  /* SYNC with Admin Panel CAT_GROUPS — v2026.09.14 */
+  hollywood: ['english_movies','hindi_dubbed','dual_audio'],
+  tollywood: ['south_hindi'],
+  bollywood: ['bollywood_hindi'],
+  animation: ['anime_hindi','animation_hindi_dubbed'],
+  webseries: ['webseries_hindi'],
+  kdrama: ['kdrama_hindi'],
+  adult: ['philippines','hot_short_hindi']
 };
 window.CV_CAT_SUBS = {
   hollywood: [
     {cat:'group:hollywood', label:'— All Hollywood'},
     {cat:'english_movies', label:'English-Movies'},
     {cat:'hindi_dubbed', label:'Hindi Dubbed'},
-    {cat:'hindi_dubbed', label:'Dual Audio'}
+    {cat:'dual_audio', label:'Dual Audio'}
   ],
   tollywood: [
     {cat:'group:tollywood', label:'— All Tollywood'},
@@ -4863,7 +5011,8 @@ window.CV_CAT_SUBS = {
   ],
   animation: [
     {cat:'group:animation', label:'— All Animated'},
-    {cat:'anime_hindi', label:'Anime Hindi Dubbed'}
+    {cat:'anime_hindi', label:'Anime series Hindi Dubbed'},
+    {cat:'animation_hindi_dubbed', label:'Animation Hindi Dubbed'}
   ],
   webseries: [
     {cat:'group:webseries', label:'— All Web-Series'},
@@ -5155,12 +5304,13 @@ function _cvLoadAllForCategory() {
       clearInterval(_cvCatLoadInterval);
       _cvCatLoadInterval = null;
       showLoadingMore(false);
-      renderGrid(false);
+      if (typeof cvScheduleRender === 'function') cvScheduleRender(false, true);
+      else renderGrid(false, true);
     } else if (!isLoadingMore) {
       showLoadingMore(true);
       fetchFirebasePage(false);
     }
-  }, 800);
+  }, 1200);
 }
 
 // Search ke liye saara data load karo background mein — phir suggestions rebuild karo
@@ -6877,7 +7027,7 @@ function cvResetSEO() {
 })();
 
 
-//]]> </script> </div> <footer id="cv-footer"> <style>#cv-footer{background:#0d0d0d;font-family:inherit;color:#b3b3b3;margin-top:40px;width:100%;box-sizing:border-box;overflow:hidden;border-top:2px solid #e50914}.cvf-glow-bar{display:none}.cvf-main{background:0 0;display:grid;grid-template-columns:1.8fr 1fr 1fr;gap:0;padding:50px 5% 40px;max-width:1400px;margin:0 auto;box-sizing:border-box}@media(max-width:900px){.cvf-main{grid-template-columns:1fr 1fr;padding:36px 5% 28px}.cvf-brand{grid-column:1/-1;border-bottom:1px solid #1e1e1e;padding-bottom:24px!important;padding-right:0!important;margin-bottom:8px}}@media(max-width:540px){.cvf-main{grid-template-columns:1fr 1fr;padding:24px 5% 16px;gap:0}.cvf-brand{grid-column:1/-1;padding-bottom:20px!important}.cvf-col{border-left:none!important;padding:16px 8px!important}.cvf-col-border{border-top:1px solid #1a1a1a}}@media(max-width:360px){.cvf-main{grid-template-columns:1fr}.cvf-col{border-top:1px solid #1a1a1a;padding:14px 0!important}}.cvf-brand{padding-right:40px}.cvf-logo-stack{line-height:.9;margin-bottom:14px}.cvf-logo-red{font-size:2.2rem;font-weight:900;color:#e50914;letter-spacing:4px;display:block}.cvf-logo-wh{font-size:2.2rem;font-weight:900;color:#fff;letter-spacing:4px;display:block;margin-top:-4px}.cvf-live-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(229,9,20,.1);border:1px solid rgba(229,9,20,.3);border-radius:20px;padding:6px 16px;margin-bottom:14px}.cvf-live-dot{width:8px;height:8px;background:#e50914;border-radius:50%;flex-shrink:0;animation:cvfblink 1.6s infinite}@keyframes cvfblink{0%,100%{opacity:1}50%{opacity:.15}}.cvf-live-text{font-size:.72rem;color:#e50914;font-weight:700;letter-spacing:1px;text-transform:uppercase}.cvf-stats{display:flex;align-items:center;gap:8px;font-size:.78rem;color:#888;margin-bottom:14px}.cvf-stat b{color:#e5e5e5;font-weight:800}.cvf-stat-dot{color:#3a3a3a}.cvf-desc{font-size:.84rem;color:#666;line-height:1.9;max-width:320px}@media(max-width:540px){.cvf-desc{font-size:.8rem;max-width:100%}}.cvf-col{padding:0 24px}.cvf-col-border{border-left:1px solid #1e1e1e}.cvf-col-head{font-size:.72rem;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;gap:8px}.cvf-col-line{flex:1;height:1px;background:#1e1e1e}.cvf-ul{list-style:none;padding:0;margin:0}.cvf-ul li{margin-bottom:13px;display:flex;align-items:center;gap:10px}.cvf-ul li::before{content:'';width:3px;height:14px;background:#e50914;border-radius:2px;flex-shrink:0}.cvf-ul li a{color:#888;font-size:.88rem;text-decoration:none;transition:color .2s}.cvf-ul li a:hover{color:#fff}@media(max-width:540px){.cvf-ul li a{font-size:.84rem}.cvf-ul li{margin-bottom:11px}}.cvf-ticket{background:#0a0a0a;border-top:1px solid #1e1e1e;position:relative;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-sizing:border-box}.cvf-ticket::after,.cvf-ticket::before{display:none}.cvf-copy{font-size:.78rem;color:#7d7d7d}.cvf-badges{display:flex;gap:6px;flex-wrap:wrap}.cvf-badge{font-size:.68rem;color:#666;border:1px solid #2a2a2a;padding:4px 12px;border-radius:4px;font-family:monospace;letter-spacing:.5px;text-decoration:none;cursor:pointer;transition:all .15s;display:inline-block}.cvf-badge:hover{color:#e5e5e5;border-color:#e50914;background:rgba(229,9,20,.08)}@media(max-width:540px){.cvf-ticket{padding:14px 5%;justify-content:center;text-align:center}.cvf-badges{justify-content:center}}.cvf-genres{padding:18px 5% 20px;background:#0d0d0d;border-top:1px solid #1e1e1e}.cvf-genre-title{font-size:.75rem;color:#666;font-weight:600;text-transform:none;letter-spacing:0;margin-bottom:12px}.cvf-genre-list{display:flex;flex-wrap:wrap;gap:8px}.cvf-genre-tag{font-size:.78rem;color:#888;border:1px solid #2a2a2a;background:#111;padding:6px 14px;border-radius:20px;text-decoration:none;transition:all .2s;white-space:nowrap}.cvf-whatsapp-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.35);color:#25d366;font-size:.82rem;font-weight:700;padding:8px 16px;border-radius:20px;text-decoration:none;transition:all .2s;width:fit-content}.cvf-whatsapp-btn:hover{background:rgba(37,211,102,.18);border-color:#25d366;transform:translateY(-1px)}.cvf-whatsapp-btn svg{flex-shrink:0}@media(max-width:540px){.cvf-whatsapp-btn{font-size:.78rem;padding:7px 14px}}#cv-footer{border-top:1px solid rgba(229,9,20,.35);background:radial-gradient(ellipse 700px 260px at 50% 0,rgba(229,9,20,.06) 0,transparent 70%),#0d0d0d}.cvf-genre-tag:hover{border-color:#ff4d40;background:rgba(229,9,20,.14)}</style> <div class="cvf-glow-bar"></div> <div class="cvf-main"> <div class="cvf-brand"> <div class="cvf-logo-stack"> <svg alt="CineNova" aria-label="CineNova" role="img" style="height:52px;width:auto;display:block;margin-bottom:8px" viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg"> <defs> <linearGradient id="cnCircFt" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d40"/><stop offset="50%" stop-color="#e50914"/><stop offset="100%" stop-color="#6e0309"/></linearGradient> <radialGradient cx="32%" cy="24%" id="cnShineFt" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/><stop offset="35%" stop-color="#ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient> <linearGradient id="cnPlayFt" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfcfcf"/></linearGradient> <linearGradient id="cnNovaFt" x1="0%" x2="0%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#c40410"/></linearGradient> </defs> <circle cx="33" cy="36" fill="#4a0307" r="30"/> <circle cx="33" cy="33" fill="url(#cnCircFt)" r="30"/> <circle cx="33" cy="33" fill="url(#cnShineFt)" r="30"/> <path d="M24 19 L24 47 L48 33 Z" fill="#000000" opacity="0.3" transform="translate(1.5,2)"/> <path d="M24 19 L24 47 L48 33 Z" fill="url(#cnPlayFt)"/> <g transform="skewX(-6)"> <text fill="#000000" font-family="Arial, sans-serif" font-size="38" font-weight="700" opacity="0.55" x="78" y="49">CineNova</text> <text fill="#ffffff" font-family="Arial, sans-serif" font-size="38" font-weight="700" x="75" y="46">Cine<tspan fill="url(#cnNovaFt)">Nova</tspan></text> </g> </svg> </div> <div class="cvf-live-pill"> <div class="cvf-live-dot"></div> <span class="cvf-live-text">Live &amp; Updated Daily</span> </div> <div class="cvf-stats" id="cvf-stats"> <span class="cvf-stat"><b id="cvf-stat-movies">&#8212;</b> Movies</span> <span class="cvf-stat-dot">&#8226;</span> <span class="cvf-stat"><b id="cvf-stat-series">&#8212;</b> Series</span> </div> <p class="cvf-desc">Official free HD movie downloads — Bollywood, Hollywood Hindi dubbed &amp; South titles in 480p, 720p &amp; 1080p. Direct links, daily updates, no signup.</p> <a class="cvf-whatsapp-btn" href="https://whatsapp.com/channel/0029VbCtOwrJ3juqgYoeNQ2d" rel="noopener" target="_blank"> <svg fill="currentColor" height="18" viewBox="0 0 24 24" width="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.78 14.09c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.73-2.09.99-2.38c.26-.29.56-.36.75-.36s.38 0 .54.01c.18.01.41-.07.64.49.24.58.81 2 .88 2.15.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.92 1.06.94 1.95 1.23 2.23 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.07.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.31z"/></svg> <span>Join WhatsApp Channel</span> </a> </div> <div class="cvf-col cvf-col-border"> <div class="cvf-col-head">Explore <div class="cvf-col-line"></div></div> <ul class="cvf-ul"> <li><a href="/">Home</a></li> <li><a href="/p/about-us.html">About Us</a></li> <li><a href="/p/contact-us.html">Contact Us</a></li> <li><a href="/p/privacy-policy.html">Privacy Policy</a></li> <li><a href="/p/dmca.html">DMCA</a></li> <li><a href="/p/disclaimer.html">Disclaimer</a></li> </ul> </div> <div class="cvf-col cvf-col-border"> <div class="cvf-col-head">Categories <div class="cvf-col-line"></div></div> <ul class="cvf-ul"> <li><a href="/?cat=group:hollywood">Hollywood</a></li> <li><a href="/?cat=english_movies">English-Movies</a></li> <li><a href="/?cat=hindi_dubbed">Hindi Dubbed</a></li> <li><a href="/?cat=hindi_dubbed">Dual Audio</a></li> <li><a href="/?cat=group:tollywood">Tollywood</a></li> <li><a href="/?cat=south_hindi">South Hindi Dubbed</a></li> <li><a href="/?cat=tamil_telugu">Tamil/Telugu</a></li> <li><a href="/?cat=bollywood_hindi">Bollywood Hindi</a></li> <li><a href="/?cat=anime_hindi">Anime Hindi Dubbed</a></li> <li><a href="/?cat=webseries_hindi">Web-Series Hindi Dubbed</a></li> <li><a href="/?cat=kdrama_hindi">K-Drama Hindi Dubbed</a></li> <li><a href="/?cat=philippines">Philippines Movies</a></li> <li><a href="/?cat=hot_short_hindi">Hot Short Movies Hindi dubbed</a></li> </ul> </div> </div> <div class="cvf-genres"> <div class="cvf-genre-title">Browse by Genre</div> <div class="cvf-genre-list"> <a class="cvf-genre-tag" href="/?genre=action">Action</a> <a class="cvf-genre-tag" href="/?genre=comedy">Comedy</a> <a class="cvf-genre-tag" href="/?genre=horror">Horror</a> <a class="cvf-genre-tag" href="/?genre=thriller">Thriller</a> <a class="cvf-genre-tag" href="/?genre=romance">Romance</a> <a class="cvf-genre-tag" href="/?genre=drama">Drama</a> <a class="cvf-genre-tag" href="/?genre=sci-fi">Sci-Fi</a> <a class="cvf-genre-tag" href="/?genre=crime">Crime</a> <a class="cvf-genre-tag" href="/?genre=adventure">Adventure</a> <a class="cvf-genre-tag" href="/?genre=fantasy">Fantasy</a> <a class="cvf-genre-tag" href="/?genre=mystery">Mystery</a> <a class="cvf-genre-tag" href="/?genre=animation">Animation</a> </div> </div> <div class="cvf-ticket">
+//]]> </script> </div> <footer id="cv-footer"> <style>#cv-footer{background:#0d0d0d;font-family:inherit;color:#b3b3b3;margin-top:40px;width:100%;box-sizing:border-box;overflow:hidden;border-top:2px solid #e50914}.cvf-glow-bar{display:none}.cvf-main{background:0 0;display:grid;grid-template-columns:1.8fr 1fr 1fr;gap:0;padding:50px 5% 40px;max-width:1400px;margin:0 auto;box-sizing:border-box}@media(max-width:900px){.cvf-main{grid-template-columns:1fr 1fr;padding:36px 5% 28px}.cvf-brand{grid-column:1/-1;border-bottom:1px solid #1e1e1e;padding-bottom:24px!important;padding-right:0!important;margin-bottom:8px}}@media(max-width:540px){.cvf-main{grid-template-columns:1fr 1fr;padding:24px 5% 16px;gap:0}.cvf-brand{grid-column:1/-1;padding-bottom:20px!important}.cvf-col{border-left:none!important;padding:16px 8px!important}.cvf-col-border{border-top:1px solid #1a1a1a}}@media(max-width:360px){.cvf-main{grid-template-columns:1fr}.cvf-col{border-top:1px solid #1a1a1a;padding:14px 0!important}}.cvf-brand{padding-right:40px}.cvf-logo-stack{line-height:.9;margin-bottom:14px}.cvf-logo-red{font-size:2.2rem;font-weight:900;color:#e50914;letter-spacing:4px;display:block}.cvf-logo-wh{font-size:2.2rem;font-weight:900;color:#fff;letter-spacing:4px;display:block;margin-top:-4px}.cvf-live-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(229,9,20,.1);border:1px solid rgba(229,9,20,.3);border-radius:20px;padding:6px 16px;margin-bottom:14px}.cvf-live-dot{width:8px;height:8px;background:#e50914;border-radius:50%;flex-shrink:0;animation:cvfblink 1.6s infinite}@keyframes cvfblink{0%,100%{opacity:1}50%{opacity:.15}}.cvf-live-text{font-size:.72rem;color:#e50914;font-weight:700;letter-spacing:1px;text-transform:uppercase}.cvf-stats{display:flex;align-items:center;gap:8px;font-size:.78rem;color:#888;margin-bottom:14px}.cvf-stat b{color:#e5e5e5;font-weight:800}.cvf-stat-dot{color:#3a3a3a}.cvf-desc{font-size:.84rem;color:#666;line-height:1.9;max-width:320px}@media(max-width:540px){.cvf-desc{font-size:.8rem;max-width:100%}}.cvf-col{padding:0 24px}.cvf-col-border{border-left:1px solid #1e1e1e}.cvf-col-head{font-size:.72rem;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;gap:8px}.cvf-col-line{flex:1;height:1px;background:#1e1e1e}.cvf-ul{list-style:none;padding:0;margin:0}.cvf-ul li{margin-bottom:13px;display:flex;align-items:center;gap:10px}.cvf-ul li::before{content:'';width:3px;height:14px;background:#e50914;border-radius:2px;flex-shrink:0}.cvf-ul li a{color:#888;font-size:.88rem;text-decoration:none;transition:color .2s}.cvf-ul li a:hover{color:#fff}@media(max-width:540px){.cvf-ul li a{font-size:.84rem}.cvf-ul li{margin-bottom:11px}}.cvf-ticket{background:#0a0a0a;border-top:1px solid #1e1e1e;position:relative;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-sizing:border-box}.cvf-ticket::after,.cvf-ticket::before{display:none}.cvf-copy{font-size:.78rem;color:#7d7d7d}.cvf-badges{display:flex;gap:6px;flex-wrap:wrap}.cvf-badge{font-size:.68rem;color:#666;border:1px solid #2a2a2a;padding:4px 12px;border-radius:4px;font-family:monospace;letter-spacing:.5px;text-decoration:none;cursor:pointer;transition:all .15s;display:inline-block}.cvf-badge:hover{color:#e5e5e5;border-color:#e50914;background:rgba(229,9,20,.08)}@media(max-width:540px){.cvf-ticket{padding:14px 5%;justify-content:center;text-align:center}.cvf-badges{justify-content:center}}.cvf-genres{padding:18px 5% 20px;background:#0d0d0d;border-top:1px solid #1e1e1e}.cvf-genre-title{font-size:.75rem;color:#666;font-weight:600;text-transform:none;letter-spacing:0;margin-bottom:12px}.cvf-genre-list{display:flex;flex-wrap:wrap;gap:8px}.cvf-genre-tag{font-size:.78rem;color:#888;border:1px solid #2a2a2a;background:#111;padding:6px 14px;border-radius:20px;text-decoration:none;transition:all .2s;white-space:nowrap}.cvf-whatsapp-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.35);color:#25d366;font-size:.82rem;font-weight:700;padding:8px 16px;border-radius:20px;text-decoration:none;transition:all .2s;width:fit-content}.cvf-whatsapp-btn:hover{background:rgba(37,211,102,.18);border-color:#25d366;transform:translateY(-1px)}.cvf-whatsapp-btn svg{flex-shrink:0}@media(max-width:540px){.cvf-whatsapp-btn{font-size:.78rem;padding:7px 14px}}#cv-footer{border-top:1px solid rgba(229,9,20,.35);background:radial-gradient(ellipse 700px 260px at 50% 0,rgba(229,9,20,.06) 0,transparent 70%),#0d0d0d}.cvf-genre-tag:hover{border-color:#ff4d40;background:rgba(229,9,20,.14)}</style> <div class="cvf-glow-bar"></div> <div class="cvf-main"> <div class="cvf-brand"> <div class="cvf-logo-stack"> <svg alt="CineNova" aria-label="CineNova" role="img" style="height:52px;width:auto;display:block;margin-bottom:8px" viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg"> <defs> <linearGradient id="cnCircFt" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d40"/><stop offset="50%" stop-color="#e50914"/><stop offset="100%" stop-color="#6e0309"/></linearGradient> <radialGradient cx="32%" cy="24%" id="cnShineFt" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/><stop offset="35%" stop-color="#ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient> <linearGradient id="cnPlayFt" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfcfcf"/></linearGradient> <linearGradient id="cnNovaFt" x1="0%" x2="0%" y1="0%" y2="100%"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#c40410"/></linearGradient> </defs> <circle cx="33" cy="36" fill="#4a0307" r="30"/> <circle cx="33" cy="33" fill="url(#cnCircFt)" r="30"/> <circle cx="33" cy="33" fill="url(#cnShineFt)" r="30"/> <path d="M24 19 L24 47 L48 33 Z" fill="#000000" opacity="0.3" transform="translate(1.5,2)"/> <path d="M24 19 L24 47 L48 33 Z" fill="url(#cnPlayFt)"/> <g transform="skewX(-6)"> <text fill="#000000" font-family="Arial, sans-serif" font-size="38" font-weight="700" opacity="0.55" x="78" y="49">CineNova</text> <text fill="#ffffff" font-family="Arial, sans-serif" font-size="38" font-weight="700" x="75" y="46">Cine<tspan fill="url(#cnNovaFt)">Nova</tspan></text> </g> </svg> </div> <div class="cvf-live-pill"> <div class="cvf-live-dot"></div> <span class="cvf-live-text">Live &amp; Updated Daily</span> </div> <div class="cvf-stats" id="cvf-stats"> <span class="cvf-stat"><b id="cvf-stat-movies">&#8212;</b> Movies</span> <span class="cvf-stat-dot">&#8226;</span> <span class="cvf-stat"><b id="cvf-stat-series">&#8212;</b> Series</span> </div> <p class="cvf-desc">Official free HD movie downloads — Bollywood, Hollywood Hindi dubbed &amp; South titles in 480p, 720p &amp; 1080p. Direct links, daily updates, no signup.</p> <a class="cvf-whatsapp-btn" href="https://whatsapp.com/channel/0029VbCtOwrJ3juqgYoeNQ2d" rel="noopener" target="_blank"> <svg fill="currentColor" height="18" viewBox="0 0 24 24" width="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.78 14.09c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94s.73-2.09.99-2.38c.26-.29.56-.36.75-.36s.38 0 .54.01c.18.01.41-.07.64.49.24.58.81 2 .88 2.15.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.92 1.06.94 1.95 1.23 2.23 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.07.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.31z"/></svg> <span>Join WhatsApp Channel</span> </a> </div> <div class="cvf-col cvf-col-border"> <div class="cvf-col-head">Explore <div class="cvf-col-line"></div></div> <ul class="cvf-ul"> <li><a href="/">Home</a></li> <li><a href="/p/about-us.html">About Us</a></li> <li><a href="/p/contact-us.html">Contact Us</a></li> <li><a href="/p/privacy-policy.html">Privacy Policy</a></li> <li><a href="/p/dmca.html">DMCA</a></li> <li><a href="/p/disclaimer.html">Disclaimer</a></li> </ul> </div> <div class="cvf-col cvf-col-border"> <div class="cvf-col-head">Categories <div class="cvf-col-line"></div></div> <ul class="cvf-ul"> <li><a href="/?cat=group:hollywood">Hollywood</a></li> <li><a href="/?cat=english_movies">English-Movies</a></li> <li><a href="/?cat=hindi_dubbed">Hindi Dubbed</a></li> <li><a href="/?cat=dual_audio">Dual Audio</a></li> <li><a href="/?cat=group:tollywood">Tollywood</a></li> <li><a href="/?cat=south_hindi">South Hindi Dubbed</a></li> <li><a href="/?cat=tamil_telugu">Tamil/Telugu</a></li> <li><a href="/?cat=bollywood_hindi">Bollywood Hindi</a></li> <li><a href="/?cat=anime_hindi">Anime Hindi Dubbed</a></li> <li><a href="/?cat=webseries_hindi">Web-Series Hindi Dubbed</a></li> <li><a href="/?cat=kdrama_hindi">K-Drama Hindi Dubbed</a></li> <li><a href="/?cat=philippines">Philippines Movies</a></li> <li><a href="/?cat=hot_short_hindi">Hot Short Movies Hindi dubbed</a></li> </ul> </div> </div> <div class="cvf-genres"> <div class="cvf-genre-title">Browse by Genre</div> <div class="cvf-genre-list"> <a class="cvf-genre-tag" href="/?genre=action">Action</a> <a class="cvf-genre-tag" href="/?genre=comedy">Comedy</a> <a class="cvf-genre-tag" href="/?genre=horror">Horror</a> <a class="cvf-genre-tag" href="/?genre=thriller">Thriller</a> <a class="cvf-genre-tag" href="/?genre=romance">Romance</a> <a class="cvf-genre-tag" href="/?genre=drama">Drama</a> <a class="cvf-genre-tag" href="/?genre=sci-fi">Sci-Fi</a> <a class="cvf-genre-tag" href="/?genre=crime">Crime</a> <a class="cvf-genre-tag" href="/?genre=adventure">Adventure</a> <a class="cvf-genre-tag" href="/?genre=fantasy">Fantasy</a> <a class="cvf-genre-tag" href="/?genre=mystery">Mystery</a> <a class="cvf-genre-tag" href="/?genre=animation">Animation</a> </div> </div> <div class="cvf-ticket">
   <div class="cvf-copy">© <span id="cvf-year">2026</span> <a href="https://www.cinenova.site/">CineNova.site</a> — Official free HD movie downloads. All rights reserved.</div>
   <nav class="cvf-legal" aria-label="Legal">
     <a href="/p/about-us.html">About</a>
@@ -7566,6 +7716,44 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   if(document.readyState==='complete') ready();
   else window.addEventListener('load', ready);
   setTimeout(ready, 1200);
+})();
+</script>
+
+
+<style id="cv-perf-fix">
+/* Cards: browser skip offscreen layout */
+#cv-grid .cv-card{
+  content-visibility: auto;
+  contain-intrinsic-size: 150px 280px;
+}
+#cv-grid{
+  content-visibility: auto;
+}
+/* Scroll jank kam: heavy blur kam */
+@media (max-width: 900px){
+  #cv-nav.scrolled{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(10,10,10,.97) !important;
+  }
+  #cv-cats{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+/* Smooth but cheap transitions */
+.cv-card{ will-change: auto; }
+body.cv-scrolling .cv-card{ pointer-events: none; }
+body.cv-scrolling #cv-nav{ transition: none !important; }
+</style>
+<script id="cv-perf-scroll">
+(function(){
+  var t = null;
+  window.addEventListener('scroll', function(){
+    document.body.classList.add('cv-scrolling');
+    if (t) clearTimeout(t);
+    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 120);
+  }, { passive: true });
 })();
 </script>
 
