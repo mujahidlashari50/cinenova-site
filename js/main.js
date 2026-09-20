@@ -6086,6 +6086,22 @@ function cvStartOnlinePing() {
   });
 }
 
+// ── Firebase Realtime Database keeps a persistent WebSocket connection
+//    open for the whole life of the page. An open WebSocket is ALSO a
+//    bfcache blocker (separately from the beforeunload issue above), so
+//    without this, back/forward navigation still forces a fresh reload
+//    even after removing beforeunload. Standard fix: close the socket
+//    right before the page is hidden/frozen, and reopen it if the page
+//    is restored from bfcache (event.persisted === true). ──
+window.addEventListener('pagehide', function() {
+  try { if (db && typeof db.goOffline === 'function') db.goOffline(); } catch(e) {}
+});
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    try { if (db && typeof db.goOnline === 'function') db.goOnline(); } catch(e) {}
+  }
+});
+
 // ══════════════════════════════════
 // RATINGS
 // ══════════════════════════════════
