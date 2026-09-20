@@ -12,9 +12,6 @@
   <meta property="og:description" content="Contact CineNova.site – official free HD movie download website. Reach us for support, feedback or partnership.">
   <meta property="og:image" content="https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Contact Us | CineNova.site – Official Free HD Movie Downloads">
-  <meta name="twitter:description" content="Contact CineNova.site – official free HD movie download website. Reach us for support, feedback or partnership.">
-  <meta name="twitter:image" content="https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png">
   <link rel="canonical" href="https://www.cinenova.site/p/contact-us.html">
   <meta name="robots" content="index, follow">
   <title>Contact Us | CineNova.site – Official Free HD Movie Downloads</title>
@@ -26,101 +23,116 @@
   <link rel="stylesheet" href="/css/critical.css">
   <link rel="stylesheet" href="/css/main.css">
   <style>
-    /* Static page layout */
-    .cv-static-wrap{
-      max-width:780px;margin:0 auto;padding:100px 20px 40px;
-    }
-    .cv-static-card{
-      background:#181818;border:1px solid #2a2a2a;border-radius:16px;
-      padding:28px 24px;margin-bottom:18px;
-    }
-    .cv-static-card h2{
-      font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:12px;
-      display:flex;align-items:center;gap:10px;
-    }
-    .cv-static-card p{
-      font-size:.9rem;color:#aaa;line-height:1.75;margin-bottom:12px;
-    }
-    .cv-static-card p:last-child{margin-bottom:0}
-    .cv-static-hero{
-      text-align:center;padding:20px 10px 36px;position:relative;
-    }
+    .cv-static-wrap{max-width:780px;margin:0 auto;padding:100px 20px 40px}
+    .cv-static-card{background:#181818;border:1px solid #2a2a2a;border-radius:16px;padding:28px 24px;margin-bottom:18px}
+    .cv-static-card h2{font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+    .cv-static-card p{font-size:.9rem;color:#aaa;line-height:1.75;margin-bottom:12px}
+    .cv-static-hero{text-align:center;padding:20px 10px 36px}
     .cv-static-hero .icon{font-size:3.2rem;display:block;margin-bottom:14px}
-    .cv-static-hero h1{
-      font-size:1.9rem;font-weight:900;color:#fff;margin-bottom:10px;letter-spacing:-.3px;
-    }
+    .cv-static-hero h1{font-size:1.9rem;font-weight:900;color:#fff;margin-bottom:10px}
     .cv-static-hero h1 span{color:#e50914}
-    .cv-static-hero p{
-      font-size:.92rem;color:#888;line-height:1.7;max-width:520px;margin:0 auto;
+    .cv-static-hero p{font-size:.92rem;color:#888;line-height:1.7;max-width:520px;margin:0 auto}
+    .cv-icon-box{width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,.12);border:1px solid rgba(229,9,20,.25);display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+    .cv-form-label{display:block;font-size:.8rem;font-weight:700;color:#ccc;margin-bottom:6px}
+    .cv-form-input,.cv-form-select,.cv-form-textarea{
+      width:100%;padding:11px 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;
+      color:#fff;font-size:.88rem;outline:none;font-family:inherit;box-sizing:border-box;
     }
-    .cv-stat-row{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;
+    .cv-form-input:focus,.cv-form-select:focus,.cv-form-textarea:focus{border-color:#e50914}
+    .cv-form-select{color:#aaa}
+    .cv-form-textarea{resize:vertical;min-height:110px;line-height:1.6}
+    .cv-form-btn{
+      width:100%;padding:13px;background:#e50914;color:#fff;border:none;border-radius:10px;
+      font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;
     }
-    .cv-stat{
-      background:#1f1f1f;border:1px solid #2a2a2a;border-radius:12px;
-      padding:18px 10px;text-align:center;
-    }
-    .cv-stat .num{font-size:1.5rem;font-weight:900;color:#e50914;margin-bottom:4px}
-    .cv-stat .lbl{font-size:.7rem;color:#777;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-    .cv-icon-box{
-      width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,.12);
-      border:1px solid rgba(229,9,20,.25);display:flex;align-items:center;
-      justify-content:center;font-size:1.15rem;flex-shrink:0;
-    }
-    .cv-contact-btn{
-      display:inline-flex;align-items:center;gap:8px;background:#e50914;color:#fff;
-      font-weight:700;padding:12px 22px;border-radius:10px;text-decoration:none;
-      font-size:.9rem;margin-top:8px;transition:filter .15s;
-    }
-    .cv-contact-btn:hover{filter:brightness(1.1)}
+    .cv-form-btn:hover{filter:brightness(1.08)}
+    .cv-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+    .cv-form-group{margin-bottom:14px}
+    .cv-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+    .cv-info-card{background:#181818;border:1px solid #1e1e1e;border-radius:14px;padding:22px;text-align:center}
+    .cv-info-card h3{font-size:.9rem;font-weight:800;margin-bottom:6px;color:#fff}
+    .cv-info-card p{font-size:.8rem;color:#888;line-height:1.5;margin-bottom:12px}
+    .cv-info-link{display:inline-flex;align-items:center;gap:6px;background:#1f1f1f;border:1px solid #2a2a2a;color:#ccc;padding:8px 16px;border-radius:8px;font-size:.8rem;font-weight:600;text-decoration:none}
+    .cv-info-link:hover{border-color:#e50914;color:#fff}
     @media(max-width:600px){
       .cv-static-wrap{padding:88px 14px 30px}
       .cv-static-card{padding:20px 16px}
-      .cv-stat-row{gap:8px}
+      .cv-form-row,.cv-info-grid{grid-template-columns:1fr}
       .cv-static-hero h1{font-size:1.55rem}
     }
   </style>
 </head>
 <body>
-  <!-- NAV -->
   <nav id="cv-nav">
-    <a href="/" id="cv-logo">
-      <span>CineNova</span>
-    </a>
+    <a href="/" id="cv-logo"><span>CineNova</span></a>
     <div style="display:flex;align-items:center;gap:10px">
       <a href="/" style="color:#aaa;font-size:.88rem;font-weight:600;padding:8px 14px;border:1px solid #2a2a2a;border-radius:8px;background:#1a1a1a">← Home</a>
     </div>
   </nav>
 
   <div class="cv-static-wrap">
-    
-<div class="cv-static-hero">
-  <span class="icon">📩</span>
-  <h1>Contact <span>Us</span></h1>
-  <p>Have a question, suggestion, or movie request? We’d love to hear from you.</p>
-</div>
+    <div class="cv-static-hero">
+      <span class="icon">📩</span>
+      <h1>Contact <span>Us</span></h1>
+      <p>Have a question, suggestion, or movie request? We'd love to hear from you.</p>
+    </div>
 
-<div class="cv-static-card">
-  <h2><span class="cv-icon-box">💬</span> Get in Touch</h2>
-  <p>For support, feedback, partnership inquiries, or content requests, reach out to us. We try to respond as quickly as possible.</p>
-  <p style="margin-top:16px">
-    <a class="cv-contact-btn" href="https://whatsapp.com/channel/0029VbCtOwrJ3juqgYoeNQ2d" target="_blank" rel="noopener">Join WhatsApp Channel</a>
-  </p>
-</div>
+    <div class="cv-info-grid">
+      <div class="cv-info-card">
+        <span style="font-size:2rem;margin-bottom:12px;display:block">📧</span>
+        <h3>Email Us</h3>
+        <p>Reply within 24–48 hours</p>
+        <a class="cv-info-link" href="mailto:contact@cinenova.site">✉️ Send Email</a>
+      </div>
+      <div class="cv-info-card">
+        <span style="font-size:2rem;margin-bottom:12px;display:block">🎬</span>
+        <h3>Movie Request</h3>
+        <p>Can't find a movie? Request it!</p>
+        <a class="cv-info-link" href="/">📤 Request Now</a>
+      </div>
+    </div>
 
-<div class="cv-static-card">
-  <h2><span class="cv-icon-box">📬</span> Movie Requests</h2>
-  <p>Want a specific movie or series added? Use the Request feature on the homepage or message us on our WhatsApp channel. We review requests regularly and add popular titles when available.</p>
-</div>
+    <div class="cv-static-card">
+      <h2><span class="cv-icon-box">✍️</span> Send Us a Message</h2>
+      
+      <div class="cv-form-row">
+        <div>
+          <label class="cv-form-label">Your Name</label>
+          <input class="cv-form-input" id="sp-name" placeholder="Enter your name" type="text">
+        </div>
+        <div>
+          <label class="cv-form-label">Email Address</label>
+          <input class="cv-form-input" id="sp-email" placeholder="your@email.com" type="email">
+        </div>
+      </div>
 
-<div class="cv-static-card">
-  <h2><span class="cv-icon-box">⚠️</span> Important</h2>
-  <p>We do not provide customer support for third-party download links or external players. For copyright-related issues, please see our <a href="/p/dmca.html" style="color:#e50914;font-weight:700">DMCA page</a>.</p>
-</div>
+      <div class="cv-form-group">
+        <label class="cv-form-label">Subject</label>
+        <select class="cv-form-select" id="sp-subject">
+          <option value="">Select a topic...</option>
+          <option>🎬 Movie Request</option>
+          <option>🐛 Report a Bug</option>
+          <option>⚖️ DMCA / Copyright Issue</option>
+          <option>💡 Suggestion / Feedback</option>
+          <option>❓ General Question</option>
+          <option>🤝 Business / Collaboration</option>
+        </select>
+      </div>
 
+      <div class="cv-form-group">
+        <label class="cv-form-label">Message</label>
+        <textarea class="cv-form-textarea" id="sp-message" placeholder="Write your message here..."></textarea>
+      </div>
+
+      <button class="cv-form-btn" onclick="cvSendContact()">📨 Send Message</button>
+      <div id="sp-msg" style="text-align:center;font-size:.8rem;margin-top:10px;min-height:16px"></div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#0d0d0d,#111);border:1px solid rgba(229,9,20,.15);border-radius:16px;padding:20px;text-align:center">
+      <p style="font-size:.82rem;color:#888;line-height:1.7;margin:0">⚠️ For <strong style="color:#ccc">DMCA / copyright</strong> requests, please use the <a href="/p/dmca.html" style="color:#e50914;font-weight:700">DMCA page</a> for faster processing.</p>
+    </div>
   </div>
 
-  <!-- FOOTER (simplified consistent) -->
   <footer id="cv-footer">
     <div class="cvf-main" style="padding-top:36px">
       <div class="cvf-brand">
@@ -173,16 +185,60 @@
       </nav>
     </div>
   </footer>
-  <script>document.getElementById('cvf-year').textContent=new Date().getFullYear();</script>
+
+  <!-- Firebase (same as main site) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
+  document.getElementById('cvf-year').textContent = new Date().getFullYear();
   (function(){
     var nav=document.getElementById('cv-nav');
-    if(!nav) return;
-    window.addEventListener('scroll',function(){
+    if(nav) window.addEventListener('scroll',function(){
       if(window.scrollY>40) nav.classList.add('scrolled');
       else nav.classList.remove('scrolled');
     },{passive:true});
   })();
+
+  // Firebase config - same project as main site
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        databaseURL: "https://cinenova-8987c-default-rtdb.firebaseio.com"
+      });
+    }
+  } catch(e) {}
+
+  function cvSendContact() {
+    var n = (document.getElementById('sp-name').value || '').trim();
+    var e = (document.getElementById('sp-email').value || '').trim();
+    var s = document.getElementById('sp-subject').value;
+    var m = (document.getElementById('sp-message').value || '').trim();
+    var d = document.getElementById('sp-msg');
+    if (!n || !e || !s || !m) {
+      d.style.color = '#e50914';
+      d.textContent = '⚠️ Please fill in all fields.';
+      return;
+    }
+    d.style.color = '#aaa';
+    d.textContent = '⏳ Sending...';
+    var msgData = { name: n, email: e, subject: s, message: m, timestamp: Date.now(), status: 'unread' };
+    try {
+      firebase.database().ref('contacts').push(msgData).then(function() {
+        d.style.color = '#22c55e';
+        d.textContent = '✅ Message sent! We\'ll reply within 24–48 hours.';
+        document.getElementById('sp-name').value = '';
+        document.getElementById('sp-email').value = '';
+        document.getElementById('sp-subject').value = '';
+        document.getElementById('sp-message').value = '';
+      }).catch(function(err) {
+        d.style.color = '#e50914';
+        d.textContent = '❌ Error: ' + (err.message || 'Could not send');
+      });
+    } catch(err) {
+      d.style.color = '#e50914';
+      d.textContent = '❌ Error sending message. Please try again.';
+    }
+  }
   </script>
 </body>
 </html>
