@@ -6075,8 +6075,13 @@ function cvStartOnlinePing() {
   }
   doPing();
   _cvPingTimer = setInterval(doPing, 30000);
-  // Remove on tab close
-  window.addEventListener('beforeunload', function() {
+  // Remove on tab close.
+  // NOTE: `beforeunload` disqualifies the page from bfcache in Chrome/Firefox,
+  // which forces a full fresh reload (instead of instant restore) on every
+  // back/forward navigation — that's what was causing the unstyled/broken
+  // page on back button. `pagehide` does the same cleanup job without
+  // blocking bfcache.
+  window.addEventListener('pagehide', function() {
     try { db.ref('analytics/online/' + _cvSessionId).remove(); } catch(e) {}
   });
 }
