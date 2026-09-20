@@ -1,0 +1,22 @@
+/* === cv-critical-boot === */
+html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:0;}
+#cv-cats,.cv-pill,#cv-years,.cv-year-pill,#cv-nav{
+  background-color:rgba(20,20,20,.95);
+  color:#aaa;
+  border-color:rgba(255,255,255,.12);
+}
+.cv-pill,.cv-year-pill,.cv-cat-parent{
+  background:rgba(255,255,255,.05)!important;
+  color:#aaa!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:20px;
+}
+.cv-pill.active,.cv-year-pill.active{
+  background:#e50914!important;color:#fff!important;border-color:#e50914!important;
+}
+#cv-nav{background:linear-gradient(180deg,rgba(0,0,0,.85),transparent)!important}
+/* hide unstyled flash of late style blocks */
+body.cv-booting #cv-grid,
+body.cv-booting #cv-ns-hero{opacity:0}
+body.cv-ready #cv-grid,
+body.cv-ready #cv-ns-hero{opacity:1;transition:opacity .2s ease}
