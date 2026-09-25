@@ -3890,7 +3890,7 @@ function openModal(key) {
   if (hasDownload) {
     var dlData = [];
     // Worker URL use karo — fresh token har baar milega
-    var _wBase = 'https://download.cinenova.site/get?id=' + encodeURIComponent(_mkey) + '&q=';
+    var _wBase = 'https://www.cinenova.site/get?id=' + encodeURIComponent(_mkey) + '&q=';
     if (m.download480p)  dlData.push({q:'480p',  url: _wBase + '480p',  size:m.size480||''});
     if (m.download720p)  dlData.push({q:'720p',  url: _wBase + '720p',  size:m.size720||''});
     if (m.download1080p) dlData.push({q:'1080p', url: _wBase + '1080p', size:m.size1080||''});
@@ -4489,7 +4489,7 @@ function cnBumpDownloadCount(movieKey) {
 }
 
 function cnGoToDownloadWorker(movieKey, quality, season, episode) {
-  var WORKER_DL_BASE = 'https://download.cinenova.site/dl';
+  var WORKER_DL_BASE = 'https://www.cinenova.site/dl';
   if (!movieKey) return;
   cnBumpDownloadCount(movieKey);
   var params = new URLSearchParams();
@@ -4516,7 +4516,7 @@ function cnWarmDownloads(movieKey, dlData) {
   qs.slice(0, 3).forEach(function(q) {
     if (seen[q]) return;
     seen[q] = 1;
-    var u = 'https://download.cinenova.site/warm?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+    var u = 'https://www.cinenova.site/warm?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
     try {
       fetch(u, { mode: 'cors', credentials: 'omit' }).catch(function(){});
     } catch (e) {}
@@ -4528,9 +4528,9 @@ function cnWarmDownloads(movieKey, dlData) {
 // Yehi worker /dl (download) route bhi handle karta hai — same domain.
 // /watch full HTML page deta hai (ad+timer+Playmate player), isliye
 // yahan seedha page navigate karte hain, VLC intent nahi.
-// Domain: https://download.cinenova.site
+// Domain: https://www.cinenova.site (timer/ads same verified domain)
 // ══════════════════════════════════
-var CN_PLAY_WORKER = 'https://download.cinenova.site';
+var CN_PLAY_WORKER = 'https://www.cinenova.site';
 
 function cnPlayGoUrl(movieKey, quality, season, episode) {
   var params = new URLSearchParams();
@@ -6648,7 +6648,7 @@ function cvUpdateSEO(m, slug) {
     return;
   }
 
-  // JSON-LD Structured Data — enriched with all available fields
+  // JSON-LD Structured Data — Google Movie rich results (dateCreated + director fix)
   var jsonld = {
     '@context': 'https://schema.org',
     '@type': 'Movie',
@@ -6657,18 +6657,41 @@ function cvUpdateSEO(m, slug) {
     'description': desc,
     'image': image
   };
-  if (m.year) {
-    jsonld['dateCreated']  = String(m.year);
-    // Publish/modified dates — Ooty "no date markup" warning fix.
-    // Firebase se addedDate/updatedDate ho to wahi use karo, warna
-    // year ke January 1 ko fallback publish date maan lo (behtar
-    // hai date bilkul na hone se).
-    jsonld['datePublished'] = m.addedDate   ? new Date(m.addedDate).toISOString()   : (m.year + '-01-01');
-    jsonld['dateModified']  = m.updatedDate ? new Date(m.updatedDate).toISOString() : jsonld['datePublished'];
+
+  // dateCreated / datePublished — ISO format (Google optional fields)
+  // Priority: dateCreated > addedAt > addedDate > year-01-01
+  function _cvIsoDate(v) {
+    if (v == null || v === '') return null;
+    try {
+      if (typeof v === 'number' || /^\d{10,13}$/.test(String(v))) {
+        var n = Number(v);
+        if (n < 1e12) n *= 1000; // seconds → ms
+        var d = new Date(n);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+      var d2 = new Date(v);
+      if (!isNaN(d2.getTime())) return d2.toISOString();
+    } catch (e) {}
+    return null;
   }
-  // Rating scale fix: ratingValue ko number mein convert + 0-10 range mein clamp karo,
-  // warna Google "Couldn't determine the rating scale" error deta hai jab value
-  // string ho, NaN ho, ya bestRating se bahar ho. worstRating bhi zaroori hai.
+  var _created =
+    _cvIsoDate(m.dateCreated) ||
+    _cvIsoDate(m.addedAt) ||
+    _cvIsoDate(m.addedDate) ||
+    (m.year && /^\d{4}$/.test(String(m.year)) ? (String(m.year) + '-01-01T00:00:00.000Z') : null);
+  var _published =
+    _cvIsoDate(m.addedDate) ||
+    _cvIsoDate(m.addedAt) ||
+    _created;
+  var _modified =
+    _cvIsoDate(m.updatedDate) ||
+    _cvIsoDate(m.updatedAt) ||
+    _published;
+  if (_created) jsonld['dateCreated'] = _created;
+  if (_published) jsonld['datePublished'] = _published;
+  if (_modified) jsonld['dateModified'] = _modified;
+
+  // Rating scale fix
   if (m.rating) {
     var _rv = parseFloat(m.rating);
     if (!isNaN(_rv)) {
@@ -6679,29 +6702,55 @@ function cvUpdateSEO(m, slug) {
         'ratingValue': String(_rv),
         'bestRating': '10',
         'worstRating': '0',
-        'ratingCount': '1'
+        'ratingCount': String(m.ratingCount || m.voteCount || 1)
       };
     }
   }
   if (m.genre)    jsonld['genre'] = m.genre;
   if (m.language) jsonld['inLanguage'] = m.language;
   if (m.seoKeywords) jsonld['keywords'] = m.seoKeywords;
-  // Extra recommended Movie schema fields — Schema score badhane ke liye
+
+  // Duration — support "142", "2h 10m", "2:10"
   if (m.duration) {
-    // Minutes ko ISO 8601 duration format mein convert karo (e.g. 142 -> PT142M)
-    var _durMin = parseInt(m.duration, 10);
-    if (!isNaN(_durMin) && _durMin > 0) jsonld['duration'] = 'PT' + _durMin + 'M';
+    var _ds = String(m.duration).trim();
+    var _durMin = parseInt(_ds, 10);
+    if (/^\d+$/.test(_ds) && _durMin > 0) {
+      jsonld['duration'] = 'PT' + _durMin + 'M';
+    } else {
+      var _h = _ds.match(/(\d+)\s*h/i);
+      var _min = _ds.match(/(\d+)\s*m/i);
+      var _total = 0;
+      if (_h) _total += parseInt(_h[1], 10) * 60;
+      if (_min) _total += parseInt(_min[1], 10);
+      if (!_total) {
+        var _colon = _ds.match(/^(\d+):(\d+)/);
+        if (_colon) _total = parseInt(_colon[1], 10) * 60 + parseInt(_colon[2], 10);
+      }
+      if (_total > 0) jsonld['duration'] = 'PT' + _total + 'M';
+    }
   }
-  if (m.director) {
-    jsonld['director'] = String(m.director).split(',').map(function(n){
+
+  // director — always Person objects when present
+  if (m.director && String(m.director).trim()) {
+    jsonld['director'] = String(m.director).split(/[,|\/]/).map(function(n){
       return { '@type': 'Person', 'name': n.trim() };
-    });
+    }).filter(function(p){ return p.name; });
   }
-  if (m.cast) {
-    jsonld['actor'] = String(m.cast).split(',').slice(0, 10).map(function(n){
+
+  // actor — castList (panel) first, then cast string
+  var _actors = [];
+  if (m.castList && Array.isArray(m.castList) && m.castList.length) {
+    _actors = m.castList.slice(0, 12).map(function(c){
+      var nm = (typeof c === 'string') ? c : (c.name || c.n || '');
+      return nm ? { '@type': 'Person', 'name': String(nm).trim() } : null;
+    }).filter(Boolean);
+  } else if (m.cast && String(m.cast).trim()) {
+    _actors = String(m.cast).split(/[,|\/]/).slice(0, 12).map(function(n){
       return { '@type': 'Person', 'name': n.trim() };
-    });
+    }).filter(function(p){ return p.name; });
   }
+  if (_actors.length) jsonld['actor'] = _actors;
+
   if (m.contentRating) {
     jsonld['contentRating'] = m.contentRating;
   }
