@@ -24,16 +24,15 @@ body.cv-ready #cv-ns-hero{opacity:1;transition:opacity .2s ease}
 /* === CWV critical v2: space reserved before main.css loads === */
 #cv-grid{
   display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:8px;
-  min-height:280px;
+  min-height:0;
   align-items:start;
 }
 @media(min-width:700px){
-  #cv-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;min-height:360px}
+  #cv-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;min-height:0}
 }
-#cv-grid .cv-skel,
-#cv-grid .cv-card{min-height:160px}
+/* skel size from aspect-ratio only */
 .cv-skel-img,
 .cv-card-img-wrap{
   aspect-ratio:2/3;
