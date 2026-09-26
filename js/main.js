@@ -1279,6 +1279,12 @@ function cvBulkLoadAllMovies() {
     } catch (e4) {}
     try { if (typeof buildTrending === 'function') buildTrending(); } catch (e5) {}
     try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e6) {}
+    // Search open ho to puri library se results turant dikhao
+    try {
+      if (typeof searchQ === 'string' && searchQ.trim() && typeof cvRefreshSearchUI === 'function') {
+        cvRefreshSearchUI();
+      }
+    } catch (e7) {}
   }, function(err) {
     _cvBulkStarted = false;
     try { if (typeof showLoadingMore === 'function') showLoadingMore(false); } catch (e) {}
@@ -3003,32 +3009,57 @@ function cvFuzzyTitleMatch(title, q) {
   return matched === qWords.length && matched > 0;
 }
 
-/** Search score — higher = better match (title only) */
+/** Normalize title/query for fast search (strip noise) */
+function cvSearchNorm(s) {
+  return String(s || '').toLowerCase()
+    .replace(/\b(19|20)\d{2}\b/g, ' ')
+    .replace(/\b(full\s*movie|movie\s*download|download|watch\s*online|hindi\s*dubbed|dual\s*audio|1080p|720p|480p|web-?dl|hdrip)\b/gi, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/** Search score — higher = better match (title + cast, old movies included) */
 function cvSearchScore(m, q) {
   if (!q) return 0;
-  var title = (m.title || '').toLowerCase().trim();
-  if (!title) return 0;
-  var year = String(m.year || '');
-  // Exact title
-  if (title === q) return 1000;
-  // Starts with query
-  if (title.indexOf(q) === 0) return 900;
-  // Title contains full query as substring
-  if (title.indexOf(q) > -1) return 800 - Math.min(title.indexOf(q), 50);
-  // All query words present in title (order free)
-  var qWords = q.split(/\s+/).filter(Boolean);
-  if (qWords.length > 1) {
-    var allIn = true;
+  q = String(q).toLowerCase().trim();
+  var titleRaw = (m.title || '').toLowerCase().trim();
+  if (!titleRaw && !(m.cast)) return 0;
+  var title = cvSearchNorm(titleRaw);
+  var qn = cvSearchNorm(q) || q;
+  var year = String(m.year || '').replace(/\D/g, '').substring(0, 4);
+  var score = 0;
+
+  // Exact / starts / contains on raw + cleaned title
+  if (titleRaw === q || title === qn) score = Math.max(score, 1000);
+  else if (titleRaw.indexOf(q) === 0 || (qn && title.indexOf(qn) === 0)) score = Math.max(score, 920);
+  else if (titleRaw.indexOf(q) > -1) score = Math.max(score, 850 - Math.min(titleRaw.indexOf(q), 40));
+  else if (qn && title.indexOf(qn) > -1) score = Math.max(score, 820 - Math.min(title.indexOf(qn), 40));
+
+  // All query words in cleaned title (any order) — "unabomber" finds long titles
+  var qWords = qn.split(/\s+/).filter(function(w){ return w.length >= 1; });
+  if (qWords.length && title) {
+    var allIn = true, prefixHits = 0;
     for (var i = 0; i < qWords.length; i++) {
-      if (title.indexOf(qWords[i]) === -1) { allIn = false; break; }
+      var w = qWords[i];
+      if (title.indexOf(w) === -1) { allIn = false; break; }
+      // word starts a token
+      if (new RegExp('(?:^|\\s)' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(title)) prefixHits++;
     }
-    if (allIn) return 700;
+    if (allIn) score = Math.max(score, 750 + prefixHits * 20);
   }
-  // Year match alone is weak — only with some title hint
-  if (year && q === year) return 50;
-  // Fuzzy title (typos)
-  if (cvFuzzyTitleMatch(title, q)) return 400;
-  return 0;
+
+  // Cast match (weaker)
+  var cast = (m.cast || '').toLowerCase();
+  if (cast && q.length >= 3 && cast.indexOf(q) > -1) score = Math.max(score, 500);
+
+  // Year only
+  if (year && q === year) score = Math.max(score, 50);
+
+  // Fuzzy typos on cleaned title
+  if (score < 400 && title && cvFuzzyTitleMatch(title, qn || q)) score = Math.max(score, 420);
+
+  // Slight boost: older library items still rank by name match first (score already name-based)
+  return score;
 }
 
 function cvTitleMatchesSearch(m, q) {
@@ -5190,7 +5221,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     if (sc > 0) scored.push({ m: m, sc: sc });
   }
   scored.sort(function(a, b) { return b.sc - a.sc; });
-  var results = scored.slice(0, 8).map(function(x){ return x.m; });
+  var results = scored.slice(0, 12).map(function(x){ return x.m; });
 
   cvSugFocusIdx = -1;
 
@@ -5204,7 +5235,7 @@ function cvBuildSuggestions(q, dropdownEl) {
   }
 
   var totalMatch = scored.length;
-  var html = '<div class="cv-sug-header">Results (' + totalMatch + (totalMatch > 8 ? '+, showing top 8' : '') + (!allLoaded ? ' · scanning…' : '') + ')</div>';
+  var html = '<div class="cv-sug-header">Results (' + totalMatch + (totalMatch > 12 ? '+, showing top 12' : '') + (!allLoaded ? ' · scanning…' : '') + ')</div>';
   results.forEach(function(m, i) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
@@ -5276,21 +5307,27 @@ function cvMoveSugFocus(dropdownEl, dir) {
   items[cvSugFocusIdx].scrollIntoView({ block: 'nearest' });
 }
 
-// Desktop search input
+// Desktop search input — fast: instant suggestions + bulk library load
 document.getElementById('cv-search').addEventListener('input', function() {
   clearTimeout(searchTimer);
   var val = this.value;
   var clr = document.getElementById('cv-search-clear');
   if (clr) clr.style.display = val ? 'flex' : 'none';
   var dd = document.getElementById('cv-search-dropdown');
-  // Jab bhi user search kare — pura data load karo background mein (agar nahi hua)
+  // Poori library ek bulk request se (purani movies bhi search mein aayein)
   if (val && !allLoaded) {
+    window._cvSearchMode = true;
+    try { if (typeof cvBulkLoadAllMovies === 'function') cvBulkLoadAllMovies(); } catch (eB) {}
     _cvLoadAllForSearch(val, dd);
   }
+  // Turant jo data already loaded hai us se suggestions
+  searchQ = val;
+  if (val && allData.length) {
+    if (dd) cvBuildSuggestions(val, dd);
+  }
   searchTimer = setTimeout(function() {
-    // If Firebase not loaded yet, show loading message
     if (val && allData.length === 0) {
-      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Data is loading, please try again...</div>'; dd.classList.add('open'); }
+      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Loading library…</div>'; dd.classList.add('open'); }
       return;
     }
     searchQ = val;
@@ -5303,7 +5340,7 @@ document.getElementById('cv-search').addEventListener('input', function() {
     }
     renderGrid();
     if (dd) cvBuildSuggestions(val, dd);
-  }, 250);
+  }, 80);
 });
 
 // Desktop keyboard nav
@@ -6329,6 +6366,10 @@ if (cvMobileInp) {
     var val = this.value;
     var mclr = document.getElementById('cv-search-mobile-clear');
     if (mclr) mclr.style.display = val ? 'flex' : 'none';
+    if (val && !allLoaded) {
+      window._cvSearchMode = true;
+      try { if (typeof cvBulkLoadAllMovies === 'function') cvBulkLoadAllMovies(); } catch (eM) {}
+    }
     if (cvDesktopInp) cvDesktopInp.value = val;
     cvDesktopInp && cvDesktopInp.dispatchEvent(new Event('input'));
     var mdd = document.getElementById('cv-mobile-search-dropdown');
