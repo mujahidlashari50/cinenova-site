@@ -977,7 +977,7 @@ setTimeout(function() {
 var PAGE_SIZE = 100;        // pehli paint ke liye
 var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
 var CACHE_NAME = 'cv_movies_v1';
-var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
+var CACHE_TTL = 30 * 60 * 1000; // 30 min — deleted/merged posts jaldi site se hatain
 var lastFirebaseKey = null; // Firebase pagination cursor
 var allLoaded = false;      // All loaded?
 var isLoadingMore = false;  // Loading in progress?
@@ -1259,6 +1259,8 @@ function cvBulkLoadAllMovies() {
     lastFirebaseKey = items.length ? items[items.length - 1]._key : null;
     _cvCatIndex = null;
     _cvCatIndexLen = -1;
+    // Deleted posts (merge/trash) purani IDB cache se wapas na aayein
+    try { if (typeof idbClear === 'function') idbClear(); } catch (eIdb) {}
     try {
       if (typeof renderGrid === 'function') renderGrid(false, true);
     } catch (e) {}
@@ -1579,6 +1581,15 @@ function watchNewMovies() {
   watchQuery.on('child_removed', function(snap) {
     var removedKey = snap.key;
     allData = allData.filter(function(m) { return m._key !== removedKey; });
+    try {
+      idbOpen(function(err, idb) {
+        if (err || !idb) return;
+        try {
+          var tx = idb.transaction(['movies'], 'readwrite');
+          tx.objectStore('movies').delete(removedKey);
+        } catch (e2) {}
+      });
+    } catch (e3) {}
     _cvDebouncedRefresh();
   });
 }
