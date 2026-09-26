@@ -802,3 +802,162 @@ html.cv-maint-lock,body.cv-maint-lock{overflow:hidden!important}
 .cv-card{ will-change: auto; }
 body.cv-scrolling .cv-card{ pointer-events: none; }
 body.cv-scrolling #cv-nav{ transition: none !important; }
+
+
+/* === CineNova CWV FIX v2 (CLS / LCP / INP) — 2026-09-26 === */
+/* Goal: stop layout jump on mobile (GSC CLS > 0.25) */
+
+/* Grid: stable columns + reserved space while Firebase loads */
+#cv-grid{
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  align-items: start !important;
+  min-height: 280px;
+}
+@media (min-width: 700px){
+  #cv-grid{
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    min-height: 360px;
+  }
+}
+
+/* Cards + images: fixed aspect so posters don't shift page */
+#cv-grid .cv-card,
+#cv-grid > a.cv-card,
+#cv-grid > .cv-card,
+.cv-card{
+  contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+  height: auto !important;
+  align-self: start !important;
+  overflow: hidden;
+}
+#cv-grid .cv-card-img-wrap,
+#cv-grid .cv-card-img,
+#cv-grid .cv-card-no-img,
+.cv-card-img-wrap,
+.cv-card-img{
+  aspect-ratio: 2 / 3 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  background-color: #1a1a1a !important;
+  display: block !important;
+  overflow: hidden;
+}
+#cv-grid .cv-card img,
+.cv-card img,
+.cv-card-img img{
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  vertical-align: middle;
+}
+#cv-grid .cv-card-info{
+  min-height: 44px;
+  flex: 0 0 auto !important;
+}
+
+/* Skeleton = same size as real card (biggest CLS fix) */
+.cv-skel{
+  contain: layout style;
+  overflow: hidden;
+}
+.cv-skel-img{
+  aspect-ratio: 2 / 3 !important;
+  width: 100% !important;
+  height: auto !important;
+  background-color: #1f1f1f;
+  display: block;
+}
+.cv-skel-bar{
+  min-height: 12px;
+  max-height: 14px;
+}
+
+/* Now Showing hero — already has min-height; lock stack size */
+#cv-ns-hero{
+  contain: layout;
+}
+#cv-ns-stack{
+  /* fixed box stops poster load from shifting page */
+  flex-shrink: 0;
+}
+.cv-ns-poster img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #1a1a1a;
+}
+
+/* Featured / modal images */
+#cv-featured-img,
+#cv-nc-poster,
+.cv-nc-poster{
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #111;
+  display: block;
+}
+#cv-modal-img,
+#cv-lightbox-img{
+  max-width: 100%;
+  height: auto;
+  background: #111;
+}
+
+/* Horizontal rows: fixed card width */
+.tmdb-skel,
+.tmdb-card,
+.cv-tr-card{
+  flex-shrink: 0;
+}
+.tmdb-skel-img,
+.tmdb-card img,
+.cv-tr-card img{
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  background: #1a1a1a;
+}
+
+/* Font: avoid huge metric swap where possible */
+body{
+  font-synthesis: none;
+}
+
+/* Scroll: cheaper interactions (INP) */
+body.cv-scrolling #cv-grid .cv-card{
+  pointer-events: none;
+}
+body.cv-scrolling #cv-nav{
+  transition: none !important;
+}
+
+/* Mobile: less blur = less main-thread work */
+@media (max-width: 900px){
+  #cv-nav.scrolled{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(10,10,10,.97) !important;
+  }
+  #cv-cats{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .cv-skel-img,
+  .cv-skel-bar,
+  .cv-ns-skel,
+  .tmdb-skel-img{
+    animation: none !important;
+  }
+}
