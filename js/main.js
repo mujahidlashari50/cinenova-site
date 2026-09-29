@@ -3475,26 +3475,43 @@ function cvBuildFilteredList() {
       return ((b.addedAt || 0) - (a.addedAt || 0));
     });
   } else if (selCat === 'all') {
-    // HOME MIX: last bulk import ek category ki ho to pehle page usi se
-    // nahi bharta — categories ko round-robin interleave karo (har group
-    // andar newest pehle). Category pages / search pe yeh apply nahi.
+    // HOME MIX: har category se 1-1 post (round-robin) — HDFun-style mixed feed.
+    // Bulk import ke baad bhi pehla page ek hi category se nahi bharega.
     cvFilteredList = cvInterleaveByCategory(cvFilteredList);
   }
 }
 
-// Home feed diversity — group by category, sort each by addedAt, then
-// round-robin so Hollywood/Bollywood/Animation/WebSeries mixed dikhein.
+// Home feed MIX — har panel category ka newest pehle, phir round-robin
+// taake Home pe Bollywood / South / Hollywood Hindi / Dual / Series mix dikhe
+// (HDFun-style mixed latest, adult Home pe nahi).
 function cvInterleaveByCategory(list) {
   if (!list || list.length < 3) return list || [];
-  // Normalize related categories into families so home doesn't fill with one region
+  var ADULT = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1,
+    short_films:1, philippines:1, hot_short_hindi:1};
+  function normCat(m) {
+    var c = '';
+    try {
+      c = (typeof cvNormalizeCategory === 'function')
+        ? cvNormalizeCategory(m && m.category)
+        : String((m && m.category) || '').toLowerCase();
+    } catch (e) {
+      c = String((m && m.category) || '').toLowerCase();
+    }
+    c = (c || 'other').replace(/\s+/g, '_');
+    return c;
+  }
+  // Panel slugs ko mix families mein (related merge, lekin Hindi Dubbed ≠ Bollywood)
   function family(cat) {
-    var c = ((cat || 'other') + '').toLowerCase().replace(/\s+/g, '_');
-    if (/adult|vivamax|hot_series|short_films|philippines|hot_short/.test(c)) return 'adult';
-    if (/tollywood|south|tamil|telugu|malayalam|kannada|guntur|kollywood/.test(c)) return 'south';
-    if (/bollywood|hindi_movies|hindi$/.test(c)) return 'bollywood';
-    if (/hollywood|english/.test(c)) return 'hollywood';
-    if (/webseries|web_series|series|kdrama|drama/.test(c)) return 'series';
-    if (/animat/.test(c)) return 'animation';
+    var c = (cat || 'other').toLowerCase();
+    if (ADULT[c]) return 'adult';
+    if (c === 'hindi_dubbed' || c === 'hollywood_dubbed') return 'hindi_dubbed';
+    if (c === 'english_movies' || c === 'hollywood') return 'english_movies';
+    if (c === 'dual_audio') return 'dual_audio';
+    if (c === 'south_hindi' || c === 'tamil_telugu' || /south|tollywood|tamil|telugu/.test(c)) return 'south_hindi';
+    if (c === 'bollywood_hindi' || c === 'bollywood') return 'bollywood_hindi';
+    if (c === 'webseries_hindi' || c === 'webseries' || c === 'web_series') return 'webseries_hindi';
+    if (c === 'kdrama_hindi' || /kdrama|k_drama/.test(c)) return 'kdrama_hindi';
+    if (c === 'anime_hindi' || c === 'animation_hindi_dubbed' || /animat|anime/.test(c)) return 'animation';
     if (/punjabi/.test(c)) return 'punjabi';
     return c || 'other';
   }
@@ -3502,22 +3519,34 @@ function cvInterleaveByCategory(list) {
   var order = [];
   for (var i = 0; i < list.length; i++) {
     var m = list[i];
-    var c = family(m.category);
-    if (c === 'adult') continue; // home never mixes adult
+    var c = family(normCat(m));
+    if (c === 'adult') continue;
     if (!groups[c]) { groups[c] = []; order.push(c); }
     groups[c].push(m);
   }
-  var flat = [];
+  if (!order.length) {
+    return list.filter(function(m) { return family(normCat(m)) !== 'adult'; })
+      .sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+  }
   order.forEach(function(c) {
-    groups[c].sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    groups[c].sort(function(a, b) {
+      var ta = a.addedAt || 0, tb = b.addedAt || 0;
+      if (tb !== ta) return tb - ta;
+      return String(b._key || '') < String(a._key || '') ? 1 : -1;
+    });
+  });
+  // Preferred home order (HDFun-like variety on first screen)
+  var prefer = ['hindi_dubbed','bollywood_hindi','south_hindi','dual_audio','english_movies','webseries_hindi','kdrama_hindi','animation','punjabi','other'];
+  order.sort(function(a, b) {
+    var ia = prefer.indexOf(a); if (ia < 0) ia = 99;
+    var ib = prefer.indexOf(b); if (ib < 0) ib = 99;
+    if (ia !== ib) return ia - ib;
+    return a < b ? -1 : 1;
   });
   if (order.length < 2) {
-    // single family — still shuffle lightly by year buckets
-    flat = list.filter(function(m) { return family(m.category) !== 'adult'; });
-    flat.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
-    return flat;
+    return groups[order[0]].slice();
   }
-  // Round-robin across families
+  // Round-robin: 1 post per category, cycle — first page multi-category
   var idxs = {};
   order.forEach(function(c) { idxs[c] = 0; });
   var out = [];
@@ -3526,12 +3555,8 @@ function cvInterleaveByCategory(list) {
   var lastFam = '';
   while (remaining > 0) {
     var progressed = false;
-    // Prefer a family different from last
-    var tryOrder = order.slice();
-    if (lastFam) {
-      tryOrder = order.filter(function(c) { return c !== lastFam && idxs[c] < groups[c].length; })
-        .concat(order.filter(function(c) { return c === lastFam; }));
-    }
+    var tryOrder = order.filter(function(c) { return idxs[c] < groups[c].length && c !== lastFam; })
+      .concat(order.filter(function(c) { return idxs[c] < groups[c].length && c === lastFam; }));
     for (var k = 0; k < tryOrder.length; k++) {
       var cat = tryOrder[k];
       var g = groups[cat];
@@ -3542,7 +3567,7 @@ function cvInterleaveByCategory(list) {
         lastFam = cat;
         remaining--;
         progressed = true;
-        break; // one item then re-evaluate lastFam
+        break;
       }
     }
     if (!progressed) break;
@@ -4509,6 +4534,229 @@ window.addEventListener('popstate', function(e) {
   }
 });
 
+
+// ══════════════════════════════════
+// 💎 SUBSCRIPTION GATE
+// settings/subscription + users/{uid}/subscription
+// ══════════════════════════════════
+var _cvSubSettings = null;
+var _cvSubCache = null; // { uid, sub, checkedAt }
+var _cvSubSettingsAt = 0;
+
+function cvLoadSubSettings(cb) {
+  if (_cvSubSettings && (Date.now() - _cvSubSettingsAt) < 60000) {
+    if (cb) cb(_cvSubSettings);
+    return;
+  }
+  if (typeof db === 'undefined' || !db) {
+    _cvSubSettings = { enabled: false };
+    if (cb) cb(_cvSubSettings);
+    return;
+  }
+  db.ref('settings/subscription').once('value').then(function(snap) {
+    _cvSubSettings = snap.val() || { enabled: false };
+    _cvSubSettingsAt = Date.now();
+    if (cb) cb(_cvSubSettings);
+  }).catch(function() {
+    _cvSubSettings = { enabled: false };
+    if (cb) cb(_cvSubSettings);
+  });
+}
+
+function cvIsSubActive(sub) {
+  if (!sub || sub.status !== 'active') return false;
+  var exp = Number(sub.expiresAt || 0);
+  return exp > Date.now();
+}
+
+function cvGetCurrentUser(cb) {
+  try {
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      var u = firebase.auth().currentUser;
+      if (u) { cb(u); return; }
+      // auth may not be loaded
+      if (typeof cvEnsureFirebaseAuth === 'function') {
+        cvEnsureFirebaseAuth(function() {
+          cb(firebase.auth().currentUser || null);
+        });
+        return;
+      }
+    }
+  } catch (e) {}
+  cb(null);
+}
+
+function cvFetchUserSub(uid, cb) {
+  if (!uid || typeof db === 'undefined' || !db) { cb(null); return; }
+  if (_cvSubCache && _cvSubCache.uid === uid && (Date.now() - _cvSubCache.checkedAt) < 30000) {
+    cb(_cvSubCache.sub);
+    return;
+  }
+  db.ref('users/' + uid + '/subscription').once('value').then(function(snap) {
+    var sub = snap.val() || null;
+    _cvSubCache = { uid: uid, sub: sub, checkedAt: Date.now() };
+    cb(sub);
+  }).catch(function(){ cb(null); });
+}
+
+/** action: 'download' | 'watch' — if allowed runs onOk, else shows paywall */
+function cnGatedPlayVideo(url, title) {
+  cnRequireSub('watch', function() {
+    if (typeof playVideo === 'function') playVideo(url, title);
+  });
+}
+
+function cnRequireSub(action, onOk) {
+  cvLoadSubSettings(function(cfg) {
+    if (!cfg || !cfg.enabled) {
+      if (onOk) onOk();
+      return;
+    }
+    var need = (action === 'watch') ? (cfg.requireForWatch !== false) : (cfg.requireForDownload !== false);
+    if (!need) {
+      if (onOk) onOk();
+      return;
+    }
+    // Need auth SDK
+    function afterAuthReady() {
+      cvGetCurrentUser(function(user) {
+        if (!user) {
+          cvShowSubModal(cfg, null, 'login');
+          return;
+        }
+        cvFetchUserSub(user.uid, function(sub) {
+          if (cvIsSubActive(sub)) {
+            if (onOk) onOk();
+          } else {
+            cvShowSubModal(cfg, user, 'subscribe');
+          }
+        });
+      });
+    }
+    if (typeof cvEnsureFirebaseAuth === 'function') {
+      cvEnsureFirebaseAuth(function(err) {
+        afterAuthReady();
+      });
+    } else {
+      afterAuthReady();
+    }
+  });
+}
+
+function cvEnsureFirebaseAuth(cb) {
+  try {
+    if (typeof firebase !== 'undefined' && firebase.auth) { cb(); return; }
+  } catch (e) {}
+  // reuse adult-gate loader if present
+  if (typeof _cvFirebaseAuthLoaded !== 'undefined' && _cvFirebaseAuthLoaded) {
+    try { cb(); } catch(e){}
+    return;
+  }
+  var s = document.createElement('script');
+  s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
+  s.onload = function() {
+    try {
+      if (!firebase.apps.length && typeof firebaseConfig !== 'undefined') firebase.initializeApp(firebaseConfig);
+    } catch (e) {}
+    if (cb) cb();
+  };
+  s.onerror = function() { if (cb) cb('load fail'); };
+  document.head.appendChild(s);
+}
+
+function cvShowSubModal(cfg, user, mode) {
+  var old = document.getElementById('cv-sub-modal');
+  if (old) old.remove();
+  var plans = (cfg && cfg.plans) || {};
+  var planHtml = '';
+  ['weekly','monthly','yearly'].forEach(function(k) {
+    var p = plans[k];
+    if (!p) return;
+    planHtml += '<button type="button" class="cv-sub-plan" data-plan="'+k+'" style="display:block;width:100%;text-align:left;padding:12px 14px;margin:0 0 8px;background:#1a1a1a;border:1px solid #333;border-radius:10px;color:#fff;cursor:pointer;">'
+      + '<b style="font-size:1rem;">' + (p.label||k) + '</b>'
+      + '<span style="float:right;color:#fbbf24;font-weight:800;">Rs ' + (p.price||0) + '</span>'
+      + '<div style="font-size:0.75rem;color:#888;margin-top:4px;">' + (p.days||0) + ' days access</div></button>';
+  });
+  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : 'Admin se contact karke payment confirm karein.';
+  var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
+  var modal = document.createElement('div');
+  modal.id = 'cv-sub-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
+  modal.innerHTML = '<div style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;padding:20px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+    + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
+    + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
+    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">Movies dekhne / download karne ke liye active subscription zaroori hai.</p>'
+    + (user ? '<div style="font-size:0.78rem;color:#4ade80;margin-bottom:10px;">Logged in: '+ (user.email||user.uid) +'</div>'
+            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Google se Login</button></div>')
+    + (user ? ('<div style="margin-bottom:12px;">' + planHtml + '</div>'
+      + '<div style="background:#141414;border:1px solid #222;border-radius:10px;padding:12px;font-size:0.8rem;color:#ccc;line-height:1.55;margin-bottom:12px;"><b style="color:#fbbf24;">Payment</b><br>' + note + '<br>' + support + '</div>'
+      + '<textarea id="cv-sub-note" rows="2" placeholder="Payment reference / JazzCash number / note…" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
+      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Payment Request bhejo</button>'
+      + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:8px;"></div>')
+      : '')
+    + '</div>';
+  document.body.appendChild(modal);
+  document.getElementById('cv-sub-close').onclick = function(){ modal.remove(); };
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  var selectedPlan = 'monthly';
+  modal.querySelectorAll('.cv-sub-plan').forEach(function(btn) {
+    btn.onclick = function() {
+      selectedPlan = btn.getAttribute('data-plan') || 'monthly';
+      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){ b.style.borderColor = '#333'; });
+      btn.style.borderColor = '#a78bfa';
+    };
+  });
+  var loginBtn = document.getElementById('cv-sub-login');
+  if (loginBtn) {
+    loginBtn.onclick = function() {
+      cvEnsureFirebaseAuth(function() {
+        try {
+          var provider = new firebase.auth.GoogleAuthProvider();
+          firebase.auth().signInWithPopup(provider).then(function(result) {
+            var u = result.user;
+            if (u && db) {
+              db.ref('users/' + u.uid).update({
+                email: u.email || '',
+                name: u.displayName || '',
+                photo: u.photoURL || '',
+                lastLogin: Date.now()
+              }).catch(function(){});
+            }
+            modal.remove();
+            cvShowSubModal(cfg, u, 'subscribe');
+          }).catch(function(err) {
+            alert('Login fail: ' + (err.message || err));
+          });
+        } catch (e) { alert('Auth error'); }
+      });
+    };
+  }
+  var reqBtn = document.getElementById('cv-sub-request');
+  if (reqBtn && user) {
+    reqBtn.onclick = function() {
+      var noteEl = document.getElementById('cv-sub-note');
+      var msg = document.getElementById('cv-sub-msg');
+      if (!db) { if (msg) msg.textContent = 'DB not ready'; return; }
+      var payload = {
+        uid: user.uid,
+        email: user.email || '',
+        plan: selectedPlan,
+        note: (noteEl && noteEl.value) ? noteEl.value.trim() : '',
+        status: 'pending',
+        createdAt: Date.now()
+      };
+      db.ref('subRequests').push(payload).then(function() {
+        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request bhej di — admin approve karega. Payment instructions follow karein.'; }
+        reqBtn.disabled = true;
+      }).catch(function(e) {
+        if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Error: ' + e.message; }
+      });
+    };
+  }
+}
+
+
 // Download — ab Cloudflare Worker timer page pe navigate karta hai
 function dlLink(url, quality) {
   if (!url) return;
@@ -4674,15 +4922,16 @@ function cnOpenInVlc(httpsUrl, title) {
 // player bana ke deta hai.
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
-  // Hamesha worker /watch (timer + resolved-link HTML5 player)
-  // Seedha Playmate/VLC mat kholo — worker resolve karke play karega
-  window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
+  cnRequireSub('watch', function() {
+    window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
+  });
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
   if (!movieKey) return;
-  // Hamesha worker /watch — timer + resolved-link HTML5 player
-  window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
+  cnRequireSub('watch', function() {
+    window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
+  });
 }
 
 
