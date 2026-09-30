@@ -961,3 +961,296 @@ body.cv-scrolling #cv-nav{
     animation: none !important;
   }
 }
+/* ═══════════════════════════════════════════════════
+   CineNova × MovieBox Style Theme
+   Dense poster grid · clean detail · quality downloads
+   Upload as /css/theme-advance.css
+   Add in HTML head after main.css:
+   <link rel="stylesheet" href="/css/theme-advance.css"/>
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  --mb-bg: #0b0b0f;
+  --mb-card: #14141a;
+  --mb-line: #252530;
+  --mb-text: #f2f2f5;
+  --mb-muted: #9a9aaa;
+  --mb-accent: #e50914;
+  --mb-accent2: #ff4d40;
+  --mb-radius: 12px;
+}
+
+body {
+  background: var(--mb-bg) !important;
+}
+
+/* ─── MovieBox-style poster grid (3 columns mobile) ─── */
+#cv-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px 6px !important;
+  padding: 8px 8px 20px !important;
+}
+@media (min-width: 600px) {
+  #cv-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px 10px !important;
+    padding: 12px 14px 24px !important;
+  }
+}
+@media (min-width: 900px) {
+  #cv-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 14px 12px !important;
+  }
+}
+@media (min-width: 1200px) {
+  #cv-grid {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+}
+
+/* ─── Card = pure poster box (MovieBox) ─── */
+#cv-grid .cv-card,
+#cv-grid > a.cv-card,
+.cv-card {
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--mb-card) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--mb-radius) !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  max-width: none !important;
+  flex: none !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35) !important;
+  transition: transform .18s ease, border-color .18s ease !important;
+}
+.cv-card:active {
+  transform: scale(.97) !important;
+}
+@media (hover: hover) {
+  .cv-card:hover {
+    transform: translateY(-3px) !important;
+    border-color: rgba(229,9,20,.45) !important;
+  }
+}
+
+.cv-card-img-wrap,
+.cv-card-no-img {
+  width: 100% !important;
+  aspect-ratio: 2 / 3 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: #1a1a22 !important;
+}
+.cv-card-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* Title under poster — compact like MovieBox */
+.cv-card-info {
+  padding: 6px 6px 8px !important;
+  background: transparent !important;
+}
+.cv-card-title {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  color: var(--mb-text) !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+.cv-card-meta {
+  font-size: 0.58rem !important;
+  color: var(--mb-muted) !important;
+  margin-top: 2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Quality / rating pills on poster */
+.cv-q-pill,
+.cv-badge {
+  position: absolute !important;
+  z-index: 3 !important;
+  font-size: 0.58rem !important;
+  font-weight: 800 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  pointer-events: none !important;
+}
+.cv-q-pill {
+  top: 6px !important;
+  left: 6px !important;
+  background: rgba(0,0,0,.78) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+}
+.cv-badge {
+  top: 6px !important;
+  right: 6px !important;
+  background: rgba(0,0,0,.78) !important;
+  color: #f5c518 !important;
+}
+
+/* Hide bulky category badge on grid cards for cleaner MovieBox look */
+#cv-grid .cv-cat-badge {
+  display: none !important;
+}
+
+/* ─── Category pills ─── */
+#cv-cats .cv-pill,
+.cv-pill {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  border: 1px solid var(--mb-line) !important;
+  background: #121218 !important;
+}
+#cv-cats .cv-pill.active,
+.cv-pill.active {
+  background: var(--mb-accent) !important;
+  border-color: var(--mb-accent) !important;
+  color: #fff !important;
+}
+
+/* ─── Filters (MovieBox explore style) ─── */
+.cv-adv-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px 4px;
+  background: var(--mb-bg);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.cv-adv-select {
+  flex: 1;
+  min-width: 0;
+  background: #121218;
+  color: var(--mb-text);
+  border: 1px solid var(--mb-line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.cv-adv-reset {
+  background: #121218;
+  border: 1px solid var(--mb-line);
+  color: var(--mb-muted);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ─── Modal = MovieBox detail sheet ─── */
+#cv-modal.open {
+  background: rgba(0,0,0,.72) !important;
+}
+@media (max-width: 768px) {
+  #cv-modal-box {
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 94dvh !important;
+    margin-top: auto !important;
+  }
+}
+#cv-modal-title {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em !important;
+}
+.cv-mbadge {
+  background: #1a1a22 !important;
+  border: 1px solid var(--mb-line) !important;
+  border-radius: 6px !important;
+  font-size: 0.7rem !important;
+}
+
+/* Download / Watch buttons — MovieBox style */
+.cv-dl-btn,
+.cv-dl-action-watch {
+  border-radius: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  padding: 12px 16px !important;
+}
+.cv-dl-action-watch,
+.cv-dl-btn:not(.secondary) {
+  background: linear-gradient(135deg, var(--mb-accent2), var(--mb-accent)) !important;
+  box-shadow: 0 6px 18px rgba(229,9,20,.35) !important;
+}
+.cv-dl-btn.secondary {
+  background: #1a1a22 !important;
+  border: 1px solid var(--mb-line) !important;
+}
+
+/* Quality popup list */
+.cv-dl-quality-btn {
+  border-radius: 10px !important;
+  border: 1px solid var(--mb-line) !important;
+  background: #14141a !important;
+  font-weight: 700 !important;
+  padding: 14px 16px !important;
+  margin-bottom: 8px !important;
+}
+.cv-dl-quality-btn:active {
+  border-color: var(--mb-accent) !important;
+  background: #1c1c28 !important;
+}
+
+/* Share row */
+.cv-modal-share {
+  margin: 12px 0 6px;
+}
+.cv-share-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--mb-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 6px;
+}
+.cv-share-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cv-share-btn {
+  flex: 1;
+  min-width: 90px;
+  text-align: center;
+  padding: 10px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+.cv-share-wa { background: #128C7E; }
+.cv-share-tg { background: #229ED9; }
+.cv-share-copy { background: #252530; color: #ddd; }
+
+/* Bottom nav already exists — reinforce MovieBox feel */
+#cv-bottom-nav {
+  background: rgba(11,11,15,.94) !important;
+  border-top: 1px solid var(--mb-line) !important;
+  backdrop-filter: blur(14px) !important;
+}
+
+/* Horizontal rows (trending etc.) */
+.cv-card {
+  scroll-snap-align: start;
+}
