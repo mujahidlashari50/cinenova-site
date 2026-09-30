@@ -7,7 +7,44 @@ try{document.body.classList.add('cv-booting');}catch(e){}
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-N67Y5B8T2Z');
+  gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true });
+
+function cvTrackEvent(name, params) {
+  try {
+    params = params || {};
+    if (typeof gtag === 'function') gtag('event', name, params);
+    if (typeof db !== 'undefined' && db) {
+      var day = new Date().toISOString().slice(0, 10);
+      db.ref('analytics/events/' + day + '/' + name).transaction(function(c){ return (c||0)+1; });
+    }
+  } catch (e) {}
+}
+function cvTrackVirtualPage(path, title) {
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'page_view', {
+        page_path: path || location.pathname,
+        page_title: title || document.title
+      });
+    }
+  } catch (e) {}
+}
+function cvCopyShareLink(url, movieId) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        if (typeof showStatus === 'function') showStatus('Link copied', '#46d369');
+        else alert('Link copied');
+      });
+    } else {
+      var i = document.createElement('input');
+      i.value = url; document.body.appendChild(i); i.select();
+      document.execCommand('copy'); i.remove();
+      if (typeof showStatus === 'function') showStatus('Link copied', '#46d369');
+    }
+    cvTrackEvent('share', { method: 'copy', movie_id: movieId || '' });
+  } catch (e) {}
+}
 
 /* === script === */
 (function() {
@@ -344,6 +381,92 @@ var searchQ = '';
 // response nahi aata (ya category ki saari pages load nahi ho jatin),
 // error ki jagah skeleton (loading) dikhega.
 var cvFirstResponseReceived = false;
+
+// ══════════════════════════════════
+// MovieBox-style Year / Quality filter bar
+// ══════════════════════════════════
+var _cvAdvQuality = '';
+function cvInitAdvanceFilters() {
+  if (document.getElementById('cv-adv-filters')) return;
+  var host = document.getElementById('cv-grid');
+  if (!host || !host.parentNode) return;
+  var bar = document.createElement('div');
+  bar.id = 'cv-adv-filters';
+  bar.className = 'cv-adv-filters';
+  bar.innerHTML =
+    '<select id="cv-filter-year" class="cv-adv-select" aria-label="Year"><option value="">Year — All</option></select>' +
+    '<select id="cv-filter-quality" class="cv-adv-select" aria-label="Quality">' +
+    '<option value="">Quality — All</option>' +
+    '<option value="480p">480p</option><option value="720p">720p</option>' +
+    '<option value="1080p">1080p</option><option value="4k">4K</option></select>' +
+    '<button type="button" class="cv-adv-reset" id="cv-filter-reset">Reset</button>';
+  host.parentNode.insertBefore(bar, host);
+  var ySel = document.getElementById('cv-filter-year');
+  var years = {};
+  (typeof allData !== 'undefined' ? allData : []).forEach(function(m) {
+    var y = String(m.year || '').replace(/\D/g, '').substring(0, 4);
+    if (y && y.length === 4) years[y] = 1;
+  });
+  Object.keys(years).sort().reverse().slice(0, 30).forEach(function(y) {
+    var o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    ySel.appendChild(o);
+  });
+  ySel.onchange = function() {
+    if (typeof selYear !== 'undefined') selYear = ySel.value || '';
+    cvApplyAdvanceFilters();
+  };
+  document.getElementById('cv-filter-quality').onchange = function() {
+    _cvAdvQuality = this.value || '';
+    cvApplyAdvanceFilters();
+  };
+  document.getElementById('cv-filter-reset').onclick = function() {
+    if (typeof selYear !== 'undefined') selYear = '';
+    _cvAdvQuality = '';
+    ySel.value = '';
+    document.getElementById('cv-filter-quality').value = '';
+    cvApplyAdvanceFilters();
+  };
+}
+function cvApplyAdvanceFilters() {
+  try {
+    if (typeof cvTrackEvent === 'function') {
+      cvTrackEvent('filter_use', { year: (typeof selYear!=='undefined'?selYear:'') || 'all', quality: _cvAdvQuality || 'all' });
+    }
+    if (typeof renderGrid === 'function') renderGrid();
+    else if (typeof applyFilters === 'function') applyFilters();
+    else if (typeof filterMovies === 'function') filterMovies();
+    else if (typeof showMovies === 'function') showMovies();
+    // visual fallback
+    var grid = document.getElementById('cv-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.cv-card').forEach(function(card) {
+      var key = card.getAttribute('data-key');
+      if (!key) return;
+      var m = (allData || []).find(function(x){ return x._key === key; });
+      if (!m) return;
+      var show = true;
+      if (typeof selYear !== 'undefined' && selYear) {
+        var y = String(m.year || '').replace(/\D/g,'').substring(0,4);
+        if (y !== selYear) show = false;
+      }
+      if (show && _cvAdvQuality) {
+        var blob = (String(m.quality||'') + ' ' + String(m.title||'')).toLowerCase();
+        if (_cvAdvQuality === '4k') { if (!/4k|2160/.test(blob)) show = false; }
+        else if (blob.indexOf(_cvAdvQuality) < 0) show = false;
+      }
+      card.style.display = show ? '' : 'none';
+    });
+  } catch (e) {}
+}
+try {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(cvInitAdvanceFilters, 2000);
+    setTimeout(cvInitAdvanceFilters, 5000);
+  });
+} catch (e) {}
+
+
 
 // ══════════════════════════════════
 // ADULT 18+ AGE-GATE
@@ -3812,6 +3935,9 @@ function makeCard(m) {
   var key = m._key;
   var slug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key);
   div.href = '/movie/' + slug;
+  div.setAttribute('data-key', key);
+  if (m.year) div.setAttribute('data-year', String(m.year).replace(/\D/g,'').substring(0,4));
+  if (m.quality) div.setAttribute('data-quality', String(m.quality).toLowerCase());
   div.onclick = function(e) {
     e.preventDefault();
     openModal(key);
@@ -3827,6 +3953,10 @@ function makeCard(m) {
   }
   if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
   if (cat) inner += '<a class="cv-cat-badge cv-new" href="?cat=' + encodeURIComponent(cat) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
+  if (m.quality) {
+    var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
+    inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
+  }
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
            '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
 
@@ -3984,6 +4114,29 @@ function openModal(key) {
     + '<button onclick="cvOpenReportModal()" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.25);border-radius:4px;color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:inherit" onmouseover="this.style.background=\'rgba(239,68,68,0.08)\'" onmouseout="this.style.background=\'transparent\'">⚠ Report Broken Link / Issue</button>';
 
   document.getElementById('cv-modal-btns').innerHTML = btns;
+  try {
+    var _shareWrap = document.getElementById('cv-modal-share');
+    if (!_shareWrap) {
+      _shareWrap = document.createElement('div');
+      _shareWrap.id = 'cv-modal-share';
+      _shareWrap.className = 'cv-modal-share';
+      var _btnsParent = document.getElementById('cv-modal-btns');
+      if (_btnsParent && _btnsParent.parentNode) {
+        _btnsParent.parentNode.insertBefore(_shareWrap, _btnsParent.nextSibling);
+      }
+    }
+    var _shareUrl = location.origin + '/movie/' + (m.seoSlug || (typeof cvSlug==='function'?cvSlug(m.title):'') || key);
+    var _shareText = encodeURIComponent((m.title || 'Movie') + ' — Watch/Download on CineNova');
+    var _shareEnc = encodeURIComponent(_shareUrl);
+    var _safeKey = String(key).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    _shareWrap.innerHTML =
+      '<div class="cv-share-label">Share</div>' +
+      '<div class="cv-share-row">' +
+      '<a class="cv-share-btn cv-share-wa" href="https://wa.me/?text=' + _shareText + '%20' + _shareEnc + '" target="_blank" rel="noopener">WhatsApp</a>' +
+      '<a class="cv-share-btn cv-share-tg" href="https://t.me/share/url?url=' + _shareEnc + '&text=' + _shareText + '" target="_blank" rel="noopener">Telegram</a>' +
+      '<button type="button" class="cv-share-btn cv-share-copy" onclick="cvCopyShareLink(\'' + _shareUrl.replace(/'/g, "\\'") + '\',\'' + _safeKey + '\')">Copy Link</button>' +
+      '</div>';
+  } catch (eShare) {}
 
   // Episodes (webseries)
   var epEl = document.getElementById('cv-episodes');
@@ -4106,6 +4259,16 @@ function openModal(key) {
     loadRating(key);
     loadComments(key);
     loadRelatedMovies(key, m);
+    try {
+      var _slugPv = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || key;
+      cvTrackEvent('movie_open', {
+        movie_id: key,
+        movie_title: (m.title || '').substring(0, 80),
+        category: m.category || '',
+        year: m.year || ''
+      });
+      cvTrackVirtualPage('/movie/' + _slugPv, (m.title || 'Movie') + ' | CineNova');
+    } catch (eTrk) {}
   }
 
   document.getElementById('cv-modal').classList.add('open');
@@ -4775,6 +4938,12 @@ function cnBumpDownloadCount(movieKey) {
     db.ref('downloadCounts/' + movieKey).transaction(function(cur) {
       return (typeof cur === 'number' ? cur : 0) + 1;
     }).catch(function(){});
+    if (typeof cvTrackEvent === 'function') {
+      cvTrackEvent('download_click', {
+        movie_id: movieKey,
+        movie_title: (window._cvCurrentTitle || '').substring(0, 80)
+      });
+    }
   } catch (e) {}
 }
 
