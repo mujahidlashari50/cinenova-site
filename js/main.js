@@ -2429,7 +2429,7 @@ function buildTsSlider() {
     function makeTsCard(m, idx) {
       var thumb = m.thumbnail || m.poster || '';
       var imgHtml = thumb
-        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display='none'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
+        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
         : '<div class="cv-card-no-img">🎬</div>';
       var dateBadge = (m.releaseDate || m.year)
         ? '<div class="cv-badge cv-cs-date">' + escHtml(String(m.releaseDate || m.year)) + '</div>'
@@ -5886,7 +5886,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
     var thumbHtml = thumb
-      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display='none'">'
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
       : '<div class="cv-sug-thumb-placeholder">🎬</div>';
     html += '<div class="cv-sug-item" data-key="' + escHtml(m._key) + '">'
       + thumbHtml
