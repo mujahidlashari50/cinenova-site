@@ -9,6 +9,26 @@ window.dataLayer = window.dataLayer || [];
   gtag('js', new Date());
   gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true });
 
+
+// ── PERF: debounce heavy rebuilds (scroll lag fix) ──
+function cvDebounce(fn, ms) {
+  var t = null;
+  return function() {
+    var ctx = this, args = arguments;
+    if (t) clearTimeout(t);
+    t = setTimeout(function(){ t = null; fn.apply(ctx, args); }, ms || 300);
+  };
+}
+var _cvBuildTrendRaw = null;
+var _cvBuildTsRaw = null;
+function cvSafeBuildTrending() {
+  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') return;
+  if (typeof buildTrending === 'function') buildTrending();
+}
+function cvSafeBuildTs() {
+  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') return;
+  if (typeof buildTsSlider === 'function') buildTsSlider();
+}
 function cvTrackEvent(name, params) {
   try {
     params = params || {};
@@ -1097,8 +1117,8 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 100;        // pehli paint ke liye
-var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
+var PAGE_SIZE = 80;         // pehli paint ke liye (lighter)
+var PAGE_SIZE_BULK = 4000;  // full library — ONLY after idle, not on every trending build
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 30 * 60 * 1000; // 30 min — deleted/merged posts jaldi site se hatain
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -1353,6 +1373,16 @@ function loadMoviesFirstPage() {
 var _cvBulkStarted = false;
 function cvBulkLoadAllMovies() {
   if (_cvBulkStarted || allLoaded || !db) return;
+  // PERF: pehli paint + scroll ke baad hi bulk — turant mat chalao
+  if (!window._cvBulkDelayDone) {
+    window._cvBulkDelayDone = true;
+    var startBulk = function() {
+      setTimeout(function(){ cvBulkLoadAllMovies(); }, 2500);
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(startBulk, { timeout: 6000 });
+    else setTimeout(startBulk, 4000);
+    return;
+  }
   _cvBulkStarted = true;
   var n = typeof PAGE_SIZE_BULK !== 'undefined' ? PAGE_SIZE_BULK : 4000;
   try {
@@ -1388,22 +1418,29 @@ function cvBulkLoadAllMovies() {
       if (typeof renderGrid === 'function') renderGrid(false, true);
     } catch (e) {}
     try {
-      if (typeof buildTrending === 'function') buildTrending();
-      if (typeof buildTsSlider === 'function') buildTsSlider();
       if (typeof buildFeatured === 'function') buildFeatured();
       if (typeof buildNsHero === 'function') buildNsHero();
+      // trending/ts ek hi baar, idle pe — scroll jank kam
+      var _rebuildSoft = function() {
+        try {
+          if (typeof selCat === 'undefined' || !selCat || selCat === 'all') {
+            if (typeof buildTsSlider === 'function') buildTsSlider();
+            if (typeof buildTrending === 'function') buildTrending();
+          }
+        } catch (eR) {}
+      };
+      if ('requestIdleCallback' in window) requestIdleCallback(_rebuildSoft, { timeout: 2000 });
+      else setTimeout(_rebuildSoft, 600);
     } catch (e2) {}
     try {
       if (typeof idbSaveAll === 'function') {
         if ('requestIdleCallback' in window) requestIdleCallback(function(){ idbSaveAll(allData); });
-        else setTimeout(function(){ idbSaveAll(allData); }, 500);
+        else setTimeout(function(){ idbSaveAll(allData); }, 800);
       }
     } catch (e3) {}
     try {
       if (typeof watchNewMovies === 'function') watchNewMovies();
     } catch (e4) {}
-    try { if (typeof buildTrending === 'function') buildTrending(); } catch (e5) {}
-    try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e6) {}
     // Search open ho to puri library se results turant dikhao
     try {
       if (typeof searchQ === 'string' && searchQ.trim() && typeof cvRefreshSearchUI === 'function') {
@@ -2687,19 +2724,15 @@ function buildTrending() {
   var local = dedupe((allData || []).filter(isTrendFlag));
   if (local.length) renderTrendList(local);
 
-  // Ensure bulk load then rebuild (index-free — 30 trending mil jayein)
-  if (!allLoaded && typeof cvBulkLoadAllMovies === 'function') {
-    try { cvBulkLoadAllMovies(); } catch (e) {}
-  }
-  // Retry after bulk / more data
+  // PERF: bulk load yahan se mat chalao — scroll freeze hota tha.
+  // Sirf 1 soft retry agar trending kam ho.
   if (!window._cvTrendRetryN) window._cvTrendRetryN = 0;
-  if (window._cvTrendRetryN < 8 && (local.length < 5 || !allLoaded)) {
+  if (window._cvTrendRetryN < 2 && local.length < 5) {
     window._cvTrendRetryN++;
     setTimeout(function() {
       var again = dedupe((allData || []).filter(isTrendFlag));
-      if (again.length > local.length) renderTrendList(again);
-      else if (again.length) renderTrendList(again);
-    }, 1200 + window._cvTrendRetryN * 400);
+      if (again.length) renderTrendList(again);
+    }, 2000);
   }
 
   // Optional indexed query (if rules allow)
@@ -7491,10 +7524,13 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 /* === cv-perf-scroll === */
 (function(){
   var t = null;
+  var ticking = false;
   window.addEventListener('scroll', function(){
-    document.body.classList.add('cv-scrolling');
+    if (!document.body.classList.contains('cv-scrolling')) {
+      document.body.classList.add('cv-scrolling');
+    }
     if (t) clearTimeout(t);
-    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 120);
+    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 180);
   }, { passive: true });
 })();
 
