@@ -9,26 +9,6 @@ window.dataLayer = window.dataLayer || [];
   gtag('js', new Date());
   gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true });
 
-
-// ── PERF: debounce heavy rebuilds (scroll lag fix) ──
-function cvDebounce(fn, ms) {
-  var t = null;
-  return function() {
-    var ctx = this, args = arguments;
-    if (t) clearTimeout(t);
-    t = setTimeout(function(){ t = null; fn.apply(ctx, args); }, ms || 300);
-  };
-}
-var _cvBuildTrendRaw = null;
-var _cvBuildTsRaw = null;
-function cvSafeBuildTrending() {
-  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') return;
-  if (typeof buildTrending === 'function') buildTrending();
-}
-function cvSafeBuildTs() {
-  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') return;
-  if (typeof buildTsSlider === 'function') buildTsSlider();
-}
 function cvTrackEvent(name, params) {
   try {
     params = params || {};
@@ -154,8 +134,10 @@ function cvOpenInBrowser() {
 (function(){try{
     var p=new URLSearchParams(location.search);
     if(p.get('cat')||p.get('genre')){
-      var _hideIds=['cv-featured-wrap','cv-motd-outer','cv-ts-wrap','cv-trending-wrap','cv-ns-hero','cv-trailers-wrap','tmdb-slider-wrap'];
-      _hideIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+      ['cv-featured-wrap','cv-motd-outer','cv-ts-wrap','cv-trending-wrap','cv-ns-hero','cv-trailers-wrap','tmdb-slider-wrap'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.style.display='none';
+      });
+      try{document.body.classList.add('cv-cat-view');document.body.classList.remove('cv-on-home');}catch(e2){}
       return;
     }
     if(localStorage.getItem('cv_fb_off')==='1'){document.getElementById('cv-featured-wrap').style.display='none';}
@@ -1117,8 +1099,8 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 80;         // pehli paint ke liye (lighter)
-var PAGE_SIZE_BULK = 4000;  // full library — ONLY after idle, not on every trending build
+var PAGE_SIZE = 100;        // pehli paint ke liye
+var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 30 * 60 * 1000; // 30 min — deleted/merged posts jaldi site se hatain
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -1373,16 +1355,6 @@ function loadMoviesFirstPage() {
 var _cvBulkStarted = false;
 function cvBulkLoadAllMovies() {
   if (_cvBulkStarted || allLoaded || !db) return;
-  // PERF: pehli paint + scroll ke baad hi bulk — turant mat chalao
-  if (!window._cvBulkDelayDone) {
-    window._cvBulkDelayDone = true;
-    var startBulk = function() {
-      setTimeout(function(){ cvBulkLoadAllMovies(); }, 2500);
-    };
-    if ('requestIdleCallback' in window) requestIdleCallback(startBulk, { timeout: 6000 });
-    else setTimeout(startBulk, 4000);
-    return;
-  }
   _cvBulkStarted = true;
   var n = typeof PAGE_SIZE_BULK !== 'undefined' ? PAGE_SIZE_BULK : 4000;
   try {
@@ -1418,29 +1390,22 @@ function cvBulkLoadAllMovies() {
       if (typeof renderGrid === 'function') renderGrid(false, true);
     } catch (e) {}
     try {
+      if (typeof buildTrending === 'function') buildTrending();
+      if (typeof buildTsSlider === 'function') buildTsSlider();
       if (typeof buildFeatured === 'function') buildFeatured();
       if (typeof buildNsHero === 'function') buildNsHero();
-      // trending/ts ek hi baar, idle pe — scroll jank kam
-      var _rebuildSoft = function() {
-        try {
-          if (typeof selCat === 'undefined' || !selCat || selCat === 'all') {
-            if (typeof buildTsSlider === 'function') buildTsSlider();
-            if (typeof buildTrending === 'function') buildTrending();
-          }
-        } catch (eR) {}
-      };
-      if ('requestIdleCallback' in window) requestIdleCallback(_rebuildSoft, { timeout: 2000 });
-      else setTimeout(_rebuildSoft, 600);
     } catch (e2) {}
     try {
       if (typeof idbSaveAll === 'function') {
         if ('requestIdleCallback' in window) requestIdleCallback(function(){ idbSaveAll(allData); });
-        else setTimeout(function(){ idbSaveAll(allData); }, 800);
+        else setTimeout(function(){ idbSaveAll(allData); }, 500);
       }
     } catch (e3) {}
     try {
       if (typeof watchNewMovies === 'function') watchNewMovies();
     } catch (e4) {}
+    try { if (typeof buildTrending === 'function') buildTrending(); } catch (e5) {}
+    try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e6) {}
     // Search open ho to puri library se results turant dikhao
     try {
       if (typeof searchQ === 'string' && searchQ.trim() && typeof cvRefreshSearchUI === 'function') {
@@ -2239,7 +2204,7 @@ function featuredShowSlide(idx) {
 // SLIDER & TMDB VISIBILITY (category based)
 // ══════════════════════════════════
 function updateSlidersVisibility(cat) {
-  var isHome = (cat === 'all' || !cat);
+  var isHome = (cat === 'all' || !cat) && !(typeof selGenre !== 'undefined' && selGenre);
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
   var nsHero = document.getElementById('cv-ns-hero');
@@ -2248,26 +2213,28 @@ function updateSlidersVisibility(cat) {
   var trendWrap = document.getElementById('cv-trending-wrap');
   var tmdbWrap = document.getElementById('tmdb-slider-wrap');
 
+  try {
+    document.body.classList.toggle('cv-on-home', !!isHome);
+    document.body.classList.toggle('cv-cat-view', !isHome);
+  } catch (eCls) {}
+
   if (isHome) {
-    // Home — hero/featured/trailers/motd/trending
+    // Home — Motd + Trending + hero/featured
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (featuredWrap) {
       buildFeatured();
     }
     if (motdOuter) motdOuter.style.display = '';
-    if (tsWrap && tsWrap.querySelector('#cv-ts-track') && tsWrap.querySelector('#cv-ts-track').children.length) {
-      tsWrap.style.display = 'block';
-    }
+    if (tsWrap) tsWrap.style.display = '';
     if (trendWrap) trendWrap.style.display = '';
     if (tmdbWrap) tmdbWrap.style.display = '';
     try {
-      if (typeof buildTsSlider === 'function') buildTsSlider();
-      if (typeof buildTrending === 'function') buildTrending();
       if (typeof cvBuildMotd === 'function') cvBuildMotd();
-    } catch (eHome) {}
+      if (typeof buildTsSlider === 'function') buildTsSlider();
+    } catch (eH) {}
   } else {
-    // Category / genre — ONLY grid (no Pick of Day, no Trending)
+    // Category — Motd + Trending hide (sirf grid)
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
     if (featuredWrap) {
@@ -2278,6 +2245,7 @@ function updateSlidersVisibility(cat) {
     if (tsWrap) tsWrap.style.display = 'none';
     if (trendWrap) trendWrap.style.display = 'none';
     if (tmdbWrap) tmdbWrap.style.display = 'none';
+    try { if (typeof cvMotdHide === 'function') cvMotdHide(); } catch (eM) {}
   }
 
   // Category heading update
@@ -2321,62 +2289,230 @@ var cvTsClones = 0;
 var cvTsTotal = 0;
 var cvTsInterval = null;
 
+function cvComingSoonTrailerUrl(m) {
+  if (!m) return '';
+  var u = m.trailerUrl || m.trailer || m.youtube || m.trailerKey || '';
+  if (!u) return '';
+  u = String(u).trim();
+  if (/^[a-zA-Z0-9_-]{6,20}$/.test(u)) return 'https://www.youtube.com/embed/' + u + '?autoplay=1&rel=0';
+  if (u.indexOf('youtube.com/watch') > -1) {
+    var m1 = u.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+    if (m1) return 'https://www.youtube.com/embed/' + m1[1] + '?autoplay=1&rel=0';
+  }
+  if (u.indexOf('youtu.be/') > -1) {
+    var m2 = u.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (m2) return 'https://www.youtube.com/embed/' + m2[1] + '?autoplay=1&rel=0';
+  }
+  if (u.indexOf('youtube.com/embed') > -1) return u.indexOf('autoplay') > -1 ? u : (u + (u.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1');
+  return u;
+}
+
+function cvPlayComingSoon(m) {
+  if (!m) return;
+  try { if (typeof cvTrackEvent === 'function') cvTrackEvent('coming_soon_trailer', { title: m.title || '' }); } catch (e) {}
+
+  // 1) Saved trailer URL → sirf trailer
+  var url = cvComingSoonTrailerUrl(m);
+  if (url) {
+    if (typeof playVideo === 'function') playVideo(url, (m.title || 'Movie') + ' — Trailer');
+    return;
+  }
+
+  // 2) TMDB id already on item
+  var tid = m.tmdbId || m.tmdb_id || m.tmdb || '';
+  if (tid && typeof tmdbPlayTrailer === 'function') {
+    tmdbPlayTrailer(tid, m.mediaType === 'tv' ? 'tv' : 'movie', m.title || 'Trailer');
+    return;
+  }
+
+  // 3) TMDB se title search → trailer auto play (sirf trailer, modal nahi)
+  var title = (m.title || '').replace(/\s*\(\d{4}\)\s*$/, '').trim();
+  if (!title) {
+    if (typeof showStatus === 'function') showStatus('Trailer not available', '#f5c518');
+    return;
+  }
+  var key = (typeof TMDB_KEY !== 'undefined' && TMDB_KEY) ? TMDB_KEY : 'b28ca4fbe7f15cd17c1df4869ac2d236';
+  if (typeof showStatus === 'function') showStatus('Loading trailer...', '#aaa');
+
+  // Player shell open with loading
+  try {
+    var inner = document.getElementById('cv-player-inner');
+    var loading = document.getElementById('cv-player-loading');
+    var titleEl = document.getElementById('cv-player-title');
+    if (inner) inner.innerHTML = '';
+    if (titleEl) titleEl.textContent = 'Trailer: ' + title;
+    if (loading) loading.classList.add('show');
+    var player = document.getElementById('cv-player');
+    if (player) player.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (typeof cvPushState === 'function') cvPushState('player');
+  } catch (e0) {}
+
+  var year = m.year || (m.releaseDate ? String(m.releaseDate).substring(0, 4) : '');
+  var searchUrl = 'https://api.themoviedb.org/3/search/movie?api_key=' + key +
+    '&query=' + encodeURIComponent(title) + (year ? '&year=' + encodeURIComponent(year) : '') + '&language=en-US';
+
+  fetch(searchUrl)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var results = (data && data.results) || [];
+      var hit = results[0];
+      if (!hit && results.length) hit = results[0];
+      if (!hit || !hit.id) {
+        // try without year
+        return fetch('https://api.themoviedb.org/3/search/movie?api_key=' + key + '&query=' + encodeURIComponent(title) + '&language=en-US')
+          .then(function(r2) { return r2.json(); })
+          .then(function(d2) {
+            var r2s = (d2 && d2.results) || [];
+            return r2s[0] || null;
+          });
+      }
+      return hit;
+    })
+    .then(function(hit) {
+      if (!hit || !hit.id) {
+        var loading = document.getElementById('cv-player-loading');
+        if (loading) loading.classList.remove('show');
+        var inner = document.getElementById('cv-player-inner');
+        if (inner) {
+          inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:12px;padding:20px;text-align:center">'
+            + '<div style="font-size:2.5rem">🎬</div>'
+            + '<div style="color:#fff;font-weight:700">' + (typeof escHtml === 'function' ? escHtml(title) : title) + '</div>'
+            + '<div>Trailer not found on TMDB</div>'
+            + '<button onclick="cvGoBack()" style="padding:10px 22px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Back</button></div>';
+        }
+        return;
+      }
+      // cache tmdbId on item for next click
+      try { m.tmdbId = hit.id; } catch (e1) {}
+      if (typeof tmdbPlayTrailer === 'function') {
+        // tmdbPlayTrailer opens player again — fine
+        tmdbPlayTrailer(hit.id, 'movie', m.title || title);
+      }
+    })
+    .catch(function() {
+      var loading = document.getElementById('cv-player-loading');
+      if (loading) loading.classList.remove('show');
+      if (typeof showStatus === 'function') showStatus('Trailer load failed', '#f66');
+      try { if (typeof cvGoBack === 'function') cvGoBack(); } catch (e2) {}
+    });
+}
+
 function buildTsSlider() {
   var wrap = document.getElementById('cv-ts-wrap');
   var track = document.getElementById('cv-ts-track');
-  // Sirf Home pe Trending — category pe hide
-  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') {
+  // Sirf Home — Coming Soon
+  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
     if (wrap) wrap.style.display = 'none';
     return;
   }
-  if (typeof selGenre !== 'undefined' && selGenre) {
-    if (wrap) wrap.style.display = 'none';
-    return;
+  if (!wrap || !track) return;
+
+  // Title: Trending → Coming Soon
+  try {
+    var titleSpan = wrap.querySelector('span[style*="font-weight:800"], span[style*="font-weight: 800"]');
+    if (titleSpan) titleSpan.textContent = '🎬 Coming Soon';
+    var badge = wrap.querySelector('span[style*="border-radius:10px"]');
+    if (badge) { badge.textContent = 'NEW'; badge.style.background = '#0071eb'; }
+  } catch (eT) {}
+
+  function renderCsItems(tsItems) {
+    if (!tsItems.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    var gap = 10;
+    cvTsCardW = window.innerWidth >= 900 ? 150 : (window.innerWidth <= 480 ? 110 : 130);
+    var cardStep = cvTsCardW + gap;
+    cvTsTotal = Math.min(tsItems.length, 24);
+    var items = tsItems.slice(0, cvTsTotal);
+    cvTsClones = Math.min(4, items.length);
+
+    function makeTsCard(m, idx) {
+      var thumb = m.thumbnail || m.poster || '';
+      var imgHtml = thumb
+        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display='none'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
+        : '<div class="cv-card-no-img">🎬</div>';
+      var dateBadge = (m.releaseDate || m.year)
+        ? '<div class="cv-badge cv-cs-date">' + escHtml(String(m.releaseDate || m.year)) + '</div>'
+        : '<div class="cv-badge">SOON</div>';
+      return '<div class="cv-card cv-cs-card" style="flex-shrink:0;width:' + cvTsCardW + 'px;cursor:pointer" data-cs-idx="' + idx + '">'
+        + imgHtml + dateBadge
+        + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
+        + '<div class="cv-card-meta">' + escHtml(m.category || 'Coming Soon') + '</div></div>'
+        + '</div>';
+    }
+
+    var html = '';
+    for (var i = items.length - cvTsClones; i < items.length; i++) html += makeTsCard(items[i], i);
+    items.forEach(function(m, i) { html += makeTsCard(m, i); });
+    for (var j = 0; j < cvTsClones; j++) html += makeTsCard(items[j], j);
+
+    track.innerHTML = html;
+    window._cvComingSoonItems = items;
+    track.querySelectorAll('.cv-cs-card[data-cs-idx]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        var ix = parseInt(el.getAttribute('data-cs-idx'), 10);
+        var item = (window._cvComingSoonItems || [])[ix];
+        if (item) cvPlayComingSoon(item);
+      });
+    });
+    cvTsIndex = cvTsClones;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(-' + (cvTsIndex * cardStep) + 'px)';
+    cvTsSetupDrag(track, cardStep);
+    cvTsAutoPlay(track, cardStep);
   }
-  var tsItems = allData.filter(function(m) { var _t=m.trending; return (_t===true||_t===1||_t==='1'||_t==='true') && !cvIsAdultItem(m); });
-  if (!tsItems.length || !wrap || !track) { if (wrap) wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
 
-  var gap = 10;
-  cvTsCardW = window.innerWidth >= 900 ? 150 : (window.innerWidth <= 480 ? 110 : 130);
-  var cardStep = cvTsCardW + gap;
-  cvTsTotal = Math.min(tsItems.length, 20);
-  var items = tsItems.slice(0, cvTsTotal);
-  cvTsClones = Math.min(4, items.length);
-
-  function makeTsCard(m) {
-    var cat = (m.category || '').toLowerCase();
-    var thumb = m.thumbnail || '';
-    var imgHtml = thumb
-      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
-      : '<div class="cv-card-no-img">🎬</div>';
-    var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
-    var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
-    var tsSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
-    return '<a class="cv-card" href="/movie/' + escHtml(tsSlug) + '" style="flex-shrink:0;width:' + cvTsCardW + 'px;" data-key="' + escHtml(m._key) + '">'
-      + imgHtml + ratingBadge + catBadge
-      + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
-      + '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + escHtml(m.quality) : '') + '</div></div>'
-      + '</a>';
+  // 1) Panel-selected list from Firebase comingSoon
+  if (db) {
+    db.ref('comingSoon').once('value').then(function(snap) {
+      var items = [];
+      if (snap && snap.exists()) {
+        snap.forEach(function(ch) {
+          var v = ch.val();
+          if (!v) return;
+          if (v.enabled === false || v.enabled === 'false' || v.hidden === true) return;
+          v._key = ch.key;
+          if (!v.movieKey) v.movieKey = ch.key;
+          items.push(v);
+        });
+      }
+      items.sort(function(a, b) {
+        var oa = parseInt(a.order, 10); if (isNaN(oa)) oa = 9999;
+        var ob = parseInt(b.order, 10); if (isNaN(ob)) ob = 9999;
+        if (oa !== ob) return oa - ob;
+        return String(b.releaseDate || '').localeCompare(String(a.releaseDate || ''));
+      });
+      if (items.length) {
+        renderCsItems(items);
+        return;
+      }
+      // 2) Fallback: movies flagged comingSoon in library
+      var local = (allData || []).filter(function(m) {
+        var c = m.comingSoon;
+        return (c === true || c === 1 || c === '1' || c === 'true') && !cvIsAdultItem(m);
+      });
+      if (local.length) {
+        renderCsItems(local.map(function(m) {
+          return {
+            title: m.title,
+            thumbnail: m.thumbnail,
+            category: m.category,
+            year: m.year,
+            releaseDate: m.releaseDate || m.year,
+            trailerUrl: m.trailerUrl || m.trailer || m.youtube,
+            movieKey: m._key
+          };
+        }));
+      } else {
+        wrap.style.display = 'none';
+      }
+    }).catch(function() {
+      wrap.style.display = 'none';
+    });
+  } else {
+    wrap.style.display = 'none';
   }
-
-  var html = '';
-  for (var i = items.length - cvTsClones; i < items.length; i++) html += makeTsCard(items[i]);
-  items.forEach(function(m) { html += makeTsCard(m); });
-  for (var j = 0; j < cvTsClones; j++) html += makeTsCard(items[j]);
-
-  track.innerHTML = html;
-  // Attach click handlers via data-key (avoids inline onclick escaping)
-  track.querySelectorAll('.cv-card[data-key]').forEach(function(el) {
-    var key = el.getAttribute('data-key');
-    el.addEventListener('click', function(e) { e.preventDefault(); openModal(key); });
-  });
-  cvTsIndex = cvTsClones;
-  track.style.transition = 'none';
-  track.style.transform = 'translateX(-' + (cvTsIndex * cardStep) + 'px)';
-
-  cvTsSetupDrag(track, cardStep);
-  cvTsAutoPlay(track, cardStep);
 }
 
 function cvTsSnap(track, cardStep) {
@@ -2476,31 +2612,26 @@ function cvMotdRenderMovie(m) {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !m) return;
   // Sirf Home
-  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') {
+  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
     var oHide = document.getElementById('cv-motd-outer');
     if (oHide) oHide.style.display = 'none';
     return;
   }
-  if (typeof selGenre !== 'undefined' && selGenre) {
-    var oHide2 = document.getElementById('cv-motd-outer');
-    if (oHide2) oHide2.style.display = 'none';
-    return;
-  }
   var outerEl = document.getElementById('cv-motd-outer');
-  if (outerEl) outerEl.style.display = 'block';
-  // Title "Pick of the Day" hatao — clean modern card
+  var navBtnEl = document.getElementById('cv-nav-motd-btn');
+  // "Pick of the Day" title hatao
   var labelEl = document.getElementById('cv-motd-label');
   if (labelEl) labelEl.style.display = 'none';
   var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
-  var meta = [m.year, m.quality || m.category].filter(Boolean).map(function(x){ return escHtml(String(x)); }).join(' · ');
+  var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(String(x)); }).join(' · ');
   var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
   wrap.innerHTML =
-    '<a id="cv-motd-card" class="cv-motd-card-v2" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
+    '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
       (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
       '<div id="cv-motd-overlay"></div>' +
       '<div id="cv-motd-content">' +
         (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
-        '<div class="cv-motd-info">' +
+        '<div style="flex:1;min-width:0">' +
           '<div id="cv-motd-badge">★ Featured</div>' +
           '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
           (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
@@ -2508,6 +2639,9 @@ function cvMotdRenderMovie(m) {
         '<div id="cv-motd-btn">▶ Watch</div>' +
       '</div>' +
     '</a>';
+  wrap.style.display = 'block';
+  if (outerEl) outerEl.style.display = 'block';
+  if (navBtnEl) navBtnEl.style.display = 'none';
 }
 
 function cvMotdShowKeys(keys, rotateSec) {
@@ -2576,12 +2710,20 @@ function cvMotdAutoPickAndShow() {
 function cvBuildMotd() {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !db) return;
+  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
+    cvMotdHide();
+    return;
+  }
   if (window._cvMotdEnabled === false) {
     cvMotdHide();
     return;
   }
 
   function applySnap(snap) {
+    if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
+      cvMotdHide();
+      return;
+    }
     if (window._cvMotdEnabled === false) { cvMotdHide(); return; }
     var d = snap.val() || {};
     // Panel can disable MOTD entirely
@@ -2652,11 +2794,7 @@ function buildTrending() {
   var wrap = document.getElementById('cv-trending-wrap');
   var track = document.getElementById('cv-trending-track');
   if (!wrap || !track) return;
-  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') {
-    wrap.style.display = 'none';
-    return;
-  }
-  if (typeof selGenre !== 'undefined' && selGenre) {
+  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
     wrap.style.display = 'none';
     return;
   }
@@ -2724,15 +2862,19 @@ function buildTrending() {
   var local = dedupe((allData || []).filter(isTrendFlag));
   if (local.length) renderTrendList(local);
 
-  // PERF: bulk load yahan se mat chalao — scroll freeze hota tha.
-  // Sirf 1 soft retry agar trending kam ho.
+  // Ensure bulk load then rebuild (index-free — 30 trending mil jayein)
+  if (!allLoaded && typeof cvBulkLoadAllMovies === 'function') {
+    try { cvBulkLoadAllMovies(); } catch (e) {}
+  }
+  // Retry after bulk / more data
   if (!window._cvTrendRetryN) window._cvTrendRetryN = 0;
-  if (window._cvTrendRetryN < 2 && local.length < 5) {
+  if (window._cvTrendRetryN < 8 && (local.length < 5 || !allLoaded)) {
     window._cvTrendRetryN++;
     setTimeout(function() {
       var again = dedupe((allData || []).filter(isTrendFlag));
-      if (again.length) renderTrendList(again);
-    }, 2000);
+      if (again.length > local.length) renderTrendList(again);
+      else if (again.length) renderTrendList(again);
+    }, 1200 + window._cvTrendRetryN * 400);
   }
 
   // Optional indexed query (if rules allow)
@@ -5744,7 +5886,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
     var thumbHtml = thumb
-      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+      ? '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-sug-thumb" src="' + escHtml(thumb) + '" loading="lazy" onerror="this.style.display='none'">'
       : '<div class="cv-sug-thumb-placeholder">🎬</div>';
     html += '<div class="cv-sug-item" data-key="' + escHtml(m._key) + '">'
       + thumbHtml
@@ -7524,13 +7666,10 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 /* === cv-perf-scroll === */
 (function(){
   var t = null;
-  var ticking = false;
   window.addEventListener('scroll', function(){
-    if (!document.body.classList.contains('cv-scrolling')) {
-      document.body.classList.add('cv-scrolling');
-    }
+    document.body.classList.add('cv-scrolling');
     if (t) clearTimeout(t);
-    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 180);
+    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 120);
   }, { passive: true });
 })();
 
