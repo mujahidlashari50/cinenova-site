@@ -962,55 +962,117 @@ body.cv-scrolling #cv-nav{
   }
 }
 /* ═══════════════════════════════════════════════════
-   CineNova MovieBox polish — SAFE (grid only)
-   Does NOT touch hero / trending / featured / player
+   CineNova Modern Theme 2026
+   Clean streaming look — not old download-site style
+   Safe: hero/trending/player untouched in size
    ═══════════════════════════════════════════════════ */
 
 :root {
-  --mb-radius: 10px;
+  --m-bg: #0a0a0c;
+  --m-surface: #121216;
+  --m-elevated: #1a1a22;
+  --m-line: rgba(255,255,255,.08);
+  --m-text: #f4f4f5;
+  --m-muted: #a1a1aa;
+  --m-accent: #e50914;
+  --m-accent-soft: rgba(229,9,20,.18);
+  --m-radius: 14px;
+  --m-radius-sm: 10px;
 }
 
-/* ── ONLY main movie grid — 3 cols mobile, not huge ── */
+body {
+  background: var(--m-bg) !important;
+  color: var(--m-text) !important;
+}
+
+/* ── Nav: glass modern ── */
+#cv-nav.scrolled {
+  background: rgba(10,10,12,.88) !important;
+  backdrop-filter: blur(16px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.2) !important;
+  border-bottom: 1px solid var(--m-line) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4) !important;
+}
+
+/* ── Category pills: modern chips ── */
+#cv-cats {
+  background: rgba(10,10,12,.92) !important;
+  border-bottom: 1px solid var(--m-line) !important;
+  gap: 8px !important;
+  padding: 10px 4% !important;
+}
+#cv-cats .cv-pill,
+.cv-pill {
+  border-radius: 999px !important;
+  padding: 8px 16px !important;
+  font-size: 0.78rem !important;
+  font-weight: 650 !important;
+  background: var(--m-elevated) !important;
+  border: 1px solid var(--m-line) !important;
+  color: var(--m-muted) !important;
+  letter-spacing: 0.01em !important;
+  transition: background .2s, color .2s, border-color .2s, box-shadow .2s !important;
+}
+#cv-cats .cv-pill:hover,
+.cv-pill:hover {
+  color: #fff !important;
+  border-color: rgba(255,255,255,.18) !important;
+  background: #22222c !important;
+}
+#cv-cats .cv-pill.active,
+.cv-pill.active {
+  background: var(--m-accent) !important;
+  border-color: var(--m-accent) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(229,9,20,.35) !important;
+}
+.cv-cat-parent {
+  border-radius: 999px !important;
+  background: var(--m-elevated) !important;
+  border: 1px solid var(--m-line) !important;
+  color: var(--m-muted) !important;
+}
+
+/* ── Main grid: modern poster cards ── */
 #cv-grid {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 8px 6px !important;
-  padding: 8px 10px 20px !important;
+  gap: 10px 8px !important;
+  padding: 10px 12px 28px !important;
   align-items: start !important;
 }
 @media (min-width: 700px) {
   #cv-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 12px 10px !important;
-    padding: 12px 4% 28px !important;
+    gap: 16px 14px !important;
+    padding: 16px 4% 40px !important;
   }
 }
 @media (min-width: 1100px) {
   #cv-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 18px 16px !important;
   }
 }
 
-/* Cards inside grid only — never global .cv-card */
 #cv-grid .cv-card,
 #cv-grid > a.cv-card {
   width: 100% !important;
-  max-width: none !important;
-  border-radius: var(--mb-radius) !important;
+  border-radius: var(--m-radius) !important;
   overflow: hidden !important;
-  background: #14141a !important;
-  border: 1px solid rgba(255,255,255,.06) !important;
-  box-shadow: none !important;
-  transform: none !important;
-  height: auto !important;
+  background: var(--m-surface) !important;
+  border: 1px solid var(--m-line) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25) !important;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease !important;
 }
 #cv-grid .cv-card:active {
-  transform: scale(.98) !important;
+  transform: scale(.97) !important;
 }
 @media (hover: hover) {
   #cv-grid .cv-card:hover {
+    transform: translateY(-4px) !important;
     border-color: rgba(229,9,20,.4) !important;
-    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,.45), 0 0 0 1px rgba(229,9,20,.15) !important;
   }
 }
 
@@ -1018,109 +1080,153 @@ body.cv-scrolling #cv-nav{
 #cv-grid .cv-card-no-img {
   aspect-ratio: 2 / 3 !important;
   width: 100% !important;
-  height: auto !important;
-  border-radius: 0 !important;
+  background: #15151c !important;
+  position: relative !important;
 }
 #cv-grid .cv-card-img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
+  transition: transform .35s ease !important;
+}
+@media (hover: hover) {
+  #cv-grid .cv-card:hover .cv-card-img {
+    transform: scale(1.05) !important;
+  }
 }
 
 #cv-grid .cv-card-info {
-  padding: 5px 5px 7px !important;
+  padding: 8px 8px 10px !important;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.15)) !important;
 }
 #cv-grid .cv-card-title {
-  font-size: 0.65rem !important;
+  font-size: 0.72rem !important;
   font-weight: 700 !important;
-  line-height: 1.25 !important;
-  -webkit-line-clamp: 2 !important;
+  line-height: 1.3 !important;
+  color: var(--m-text) !important;
   display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
   -webkit-box-orient: vertical !important;
   overflow: hidden !important;
 }
 #cv-grid .cv-card-meta {
-  font-size: 0.55rem !important;
-  color: #888 !important;
-  margin-top: 2px !important;
+  font-size: 0.6rem !important;
+  color: var(--m-muted) !important;
+  margin-top: 3px !important;
 }
 
-/* Quality pill — grid only */
+/* Soft badges on poster */
 #cv-grid .cv-q-pill {
   position: absolute;
-  top: 5px;
-  left: 5px;
+  top: 6px;
+  left: 6px;
   z-index: 3;
-  background: rgba(0,0,0,.78);
+  background: rgba(10,10,12,.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #fff;
-  font-size: 0.55rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.1);
   pointer-events: none;
-  border: 1px solid rgba(255,255,255,.12);
 }
-
-/* Hide heavy category badge on grid cards only */
+#cv-grid .cv-badge {
+  top: 6px !important;
+  right: 6px !important;
+  background: rgba(10,10,12,.82) !important;
+  backdrop-filter: blur(8px);
+  border-radius: 6px !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  font-size: 0.58rem !important;
+}
 #cv-grid .cv-cat-badge {
   display: none !important;
 }
 
-/* ── Filter bar — compact ── */
+/* ── Filters ── */
 .cv-adv-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 6px 10px 4px;
-  background: transparent;
+  gap: 8px;
+  padding: 8px 12px 6px;
 }
-.cv-adv-select {
-  flex: 1;
-  min-width: 0;
-  background: #161616;
-  color: #eee;
-  border: 1px solid #2a2a2a;
+.cv-adv-select,
+.cv-adv-reset {
+  background: var(--m-elevated);
+  color: var(--m-text);
+  border: 1px solid var(--m-line);
   border-radius: 999px;
-  padding: 7px 11px;
-  font-size: 0.7rem;
-  font-weight: 600;
+  padding: 8px 14px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  outline: none;
+}
+.cv-adv-select { flex: 1; min-width: 0; }
+.cv-adv-select:focus {
+  border-color: rgba(229,9,20,.5);
 }
 .cv-adv-reset {
-  background: #161616;
-  border: 1px solid #2a2a2a;
-  color: #999;
-  border-radius: 999px;
-  padding: 7px 11px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  color: var(--m-muted);
   cursor: pointer;
 }
+.cv-adv-reset:hover {
+  color: #fff;
+  border-color: var(--m-accent);
+}
 
-/* ── Share row in modal — small ── */
-.cv-modal-share {
-  margin: 10px 0 4px;
+/* ── Modal content polish ── */
+#cv-modal-title {
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
 }
+.cv-mbadge {
+  background: var(--m-elevated) !important;
+  border: 1px solid var(--m-line) !important;
+  border-radius: 8px !important;
+  font-size: 0.72rem !important;
+  font-weight: 650 !important;
+}
+.cv-dl-btn,
+.cv-dl-action-watch {
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  padding: 13px 18px !important;
+  letter-spacing: 0.02em !important;
+}
+.cv-dl-action-watch {
+  background: linear-gradient(135deg, #ff4d40, #e50914) !important;
+  box-shadow: 0 8px 24px rgba(229,9,20,.35) !important;
+  border: none !important;
+}
+.cv-dl-quality-btn {
+  border-radius: 12px !important;
+  background: var(--m-elevated) !important;
+  border: 1px solid var(--m-line) !important;
+  padding: 14px 16px !important;
+  font-weight: 700 !important;
+}
+
+/* Share */
+.cv-modal-share { margin: 12px 0 6px; }
 .cv-share-label {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: #777;
-  margin-bottom: 5px;
+  color: var(--m-muted);
   text-transform: uppercase;
-  letter-spacing: .05em;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
 }
-.cv-share-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+.cv-share-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .cv-share-btn {
   flex: 1;
-  min-width: 80px;
+  min-width: 88px;
   text-align: center;
-  padding: 8px 6px;
-  border-radius: 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  padding: 10px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
   border: 0;
   color: #fff;
   cursor: pointer;
@@ -1128,8 +1234,150 @@ body.cv-scrolling #cv-nav{
 }
 .cv-share-wa { background: #128C7E; }
 .cv-share-tg { background: #229ED9; }
-.cv-share-copy { background: #2a2a2a; color: #ddd; }
+.cv-share-copy { background: var(--m-elevated); color: #ddd; border: 1px solid var(--m-line); }
 
-/* ── DO NOT touch: hero, trending, featured, player, modal size ── */
-/* deliberately no rules for #cv-featured*, #cv-upcoming*, #cv-ns-*,
-   #cv-player*, .tmdb-*, .cv-tr-*, .cv-uh-*, #cv-modal-box sizing */
+/* Search wrap modern */
+#cv-search-wrap {
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid var(--m-line) !important;
+}
+#cv-search-btn {
+  border-radius: 50% !important;
+  background: var(--m-elevated) !important;
+  border: 1px solid var(--m-line) !important;
+}
+
+/* Footer slightly cleaner */
+#cv-footer {
+  background: #070709 !important;
+  border-top: 1px solid var(--m-line) !important;
+}
+
+/* ══ Featured (MOTD) — no Pick of the Day title, modern card ══ */
+#cv-motd-label { display: none !important; }
+#cv-motd-outer {
+  padding: 12px 12px 6px !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+#cv-motd-wrap {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+#cv-motd-card,
+.cv-motd-card-v2 {
+  display: block !important;
+  position: relative !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  min-height: 140px !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.35) !important;
+}
+#cv-motd-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  background-size: cover !important;
+  background-position: center !important;
+  filter: brightness(.45) saturate(1.1) !important;
+  transform: scale(1.04) !important;
+}
+#cv-motd-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(90deg, rgba(10,10,12,.92) 0%, rgba(10,10,12,.55) 55%, rgba(10,10,12,.25) 100%) !important;
+}
+#cv-motd-content {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px 14px !important;
+}
+#cv-motd-poster {
+  width: 72px !important;
+  height: 108px !important;
+  object-fit: cover !important;
+  border-radius: 10px !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.45) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+}
+.cv-motd-info { flex: 1; min-width: 0; }
+#cv-motd-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: linear-gradient(135deg, #f5c518, #e8a317) !important;
+  color: #111 !important;
+  font-size: 0.62rem !important;
+  font-weight: 800 !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  margin-bottom: 6px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+#cv-motd-title {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  line-height: 1.25 !important;
+  margin-bottom: 4px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+#cv-motd-meta {
+  font-size: 0.72rem !important;
+  color: #a1a1aa !important;
+}
+#cv-motd-btn {
+  flex-shrink: 0 !important;
+  background: linear-gradient(135deg, #ff4d40, #e50914) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  font-size: 0.82rem !important;
+  padding: 10px 16px !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 18px rgba(229,9,20,.4) !important;
+  white-space: nowrap !important;
+}
+
+/* ══ Trending Now — upgraded header + row ══ */
+#cv-ts-wrap {
+  padding: 14px 0 12px !important;
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  background: linear-gradient(180deg, rgba(229,9,20,.04) 0%, transparent 100%) !important;
+}
+#cv-ts-wrap > div:first-child {
+  padding: 0 14px 12px !important;
+}
+#cv-ts-wrap span[style*="font-weight:800"],
+#cv-ts-wrap span[style*="font-weight: 800"] {
+  font-size: 1.05rem !important;
+  letter-spacing: -0.02em !important;
+}
+#cv-ts-track .cv-card {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  background: #121216 !important;
+}
+#cv-ts-track .cv-card-title {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+}
+#cv-ts-track .cv-badge {
+  background: rgba(0,0,0,.75) !important;
+  border-radius: 6px !important;
+  font-size: 0.58rem !important;
+}
+
+@media (max-width: 480px) {
+  #cv-motd-poster { width: 64px !important; height: 96px !important; }
+  #cv-motd-title { font-size: 0.9rem !important; }
+  #cv-motd-btn { padding: 9px 12px !important; font-size: 0.75rem !important; }
+}
