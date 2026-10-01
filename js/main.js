@@ -2311,90 +2311,137 @@ function cvPlayComingSoon(m) {
   if (!m) return;
   try { if (typeof cvTrackEvent === 'function') cvTrackEvent('coming_soon_trailer', { title: m.title || '' }); } catch (e) {}
 
-  // 1) Saved trailer URL → sirf trailer
-  var url = cvComingSoonTrailerUrl(m);
-  if (url) {
-    if (typeof playVideo === 'function') playVideo(url, (m.title || 'Movie') + ' — Trailer');
-    return;
-  }
-
-  // 2) TMDB id already on item
+  // Sirf trailer — movie modal KABHI nahi
   var tid = m.tmdbId || m.tmdb_id || m.tmdb || '';
-  if (tid && typeof tmdbPlayTrailer === 'function') {
-    tmdbPlayTrailer(tid, m.mediaType === 'tv' ? 'tv' : 'movie', m.title || 'Trailer');
+  if (!tid && m._key && String(m._key).indexOf('tmdb_') === 0) tid = String(m._key).replace(/^tmdb_/, '');
+  if (!tid && m.movieKey && String(m.movieKey).indexOf('tmdb_') === 0) tid = String(m.movieKey).replace(/^tmdb_/, '');
+  tid = tid ? String(tid).replace(/\D/g, '') : '';
+  var key = (typeof TMDB_KEY !== 'undefined' && TMDB_KEY) ? TMDB_KEY : 'b28ca4fbe7f15cd17c1df4869ac2d236';
+
+  function playYtKey(ytKey, title) {
+    if (!ytKey) return false;
+    var embed = 'https://www.youtube.com/embed/' + ytKey + '?autoplay=1&rel=0&modestbranding=1';
+    if (typeof playVideo === 'function') {
+      playVideo(embed, (title || 'Movie') + ' — Trailer');
+      return true;
+    }
+    // fallback player shell
+    try {
+      var inner = document.getElementById('cv-player-inner');
+      var loading = document.getElementById('cv-player-loading');
+      var titleEl = document.getElementById('cv-player-title');
+      if (titleEl) titleEl.textContent = 'Trailer: ' + (title || '');
+      if (loading) loading.classList.remove('show');
+      if (inner) {
+        inner.innerHTML = '<iframe src="' + embed + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;display:block;border:0"></iframe>';
+      }
+      var player = document.getElementById('cv-player');
+      if (player) player.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (typeof cvPushState === 'function') cvPushState('player');
+      return true;
+    } catch (e2) { return false; }
+  }
+
+  function fetchTrailerByTmdbId(id, title) {
+    if (typeof showStatus === 'function') showStatus('Loading trailer...', '#aaa');
+    try {
+      var inner = document.getElementById('cv-player-inner');
+      var loading = document.getElementById('cv-player-loading');
+      var titleEl = document.getElementById('cv-player-title');
+      if (inner) inner.innerHTML = '';
+      if (titleEl) titleEl.textContent = 'Trailer: ' + (title || '');
+      if (loading) loading.classList.add('show');
+      var player = document.getElementById('cv-player');
+      if (player) player.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (typeof cvPushState === 'function') cvPushState('player');
+    } catch (e0) {}
+
+    fetch('https://api.themoviedb.org/3/movie/' + id + '/videos?api_key=' + key + '&language=en-US')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var loading = document.getElementById('cv-player-loading');
+        if (loading) loading.classList.remove('show');
+        var videos = (data && data.results) || [];
+        var trailer = null;
+        for (var i = 0; i < videos.length; i++) {
+          if (videos[i].site === 'YouTube' && videos[i].type === 'Trailer') { trailer = videos[i]; break; }
+        }
+        if (!trailer) {
+          for (var j = 0; j < videos.length; j++) {
+            if (videos[j].site === 'YouTube') { trailer = videos[j]; break; }
+          }
+        }
+        if (trailer && trailer.key) {
+          playYtKey(trailer.key, title);
+        } else {
+          var inner = document.getElementById('cv-player-inner');
+          if (inner) {
+            inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:12px;padding:20px;text-align:center">'
+              + '<div style="font-size:2.5rem">🎬</div>'
+              + '<div style="color:#fff;font-weight:700">' + (title || '') + '</div>'
+              + '<div>Trailer not available</div>'
+              + '<button onclick="cvGoBack()" style="padding:10px 22px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Back</button></div>';
+          }
+        }
+      })
+      .catch(function() {
+        var loading = document.getElementById('cv-player-loading');
+        if (loading) loading.classList.remove('show');
+        if (typeof showStatus === 'function') showStatus('Trailer load failed', '#f66');
+      });
+  }
+
+  // 1) Direct YouTube already saved
+  var direct = cvComingSoonTrailerUrl(m);
+  if (direct) {
+    if (typeof playVideo === 'function') playVideo(direct, (m.title || 'Movie') + ' — Trailer');
+    else {
+      var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
+      if (mk) playYtKey(mk[1], m.title);
+    }
     return;
   }
 
-  // 3) TMDB se title search → trailer auto play (sirf trailer, modal nahi)
+  // 2) Has TMDB id → trailer
+  if (tid) {
+    fetchTrailerByTmdbId(tid, m.title || 'Trailer');
+    return;
+  }
+
+  // 3) Search TMDB by title
   var title = (m.title || '').replace(/\s*\(\d{4}\)\s*$/, '').trim();
   if (!title) {
     if (typeof showStatus === 'function') showStatus('Trailer not available', '#f5c518');
     return;
   }
-  var key = (typeof TMDB_KEY !== 'undefined' && TMDB_KEY) ? TMDB_KEY : 'b28ca4fbe7f15cd17c1df4869ac2d236';
-  if (typeof showStatus === 'function') showStatus('Loading trailer...', '#aaa');
-
-  // Player shell open with loading
-  try {
-    var inner = document.getElementById('cv-player-inner');
-    var loading = document.getElementById('cv-player-loading');
-    var titleEl = document.getElementById('cv-player-title');
-    if (inner) inner.innerHTML = '';
-    if (titleEl) titleEl.textContent = 'Trailer: ' + title;
-    if (loading) loading.classList.add('show');
-    var player = document.getElementById('cv-player');
-    if (player) player.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    if (typeof cvPushState === 'function') cvPushState('player');
-  } catch (e0) {}
-
   var year = m.year || (m.releaseDate ? String(m.releaseDate).substring(0, 4) : '');
   var searchUrl = 'https://api.themoviedb.org/3/search/movie?api_key=' + key +
     '&query=' + encodeURIComponent(title) + (year ? '&year=' + encodeURIComponent(year) : '') + '&language=en-US';
-
+  if (typeof showStatus === 'function') showStatus('Finding trailer...', '#aaa');
   fetch(searchUrl)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var results = (data && data.results) || [];
       var hit = results[0];
-      if (!hit && results.length) hit = results[0];
-      if (!hit || !hit.id) {
-        // try without year
+      if ((!hit || !hit.id) && year) {
         return fetch('https://api.themoviedb.org/3/search/movie?api_key=' + key + '&query=' + encodeURIComponent(title) + '&language=en-US')
           .then(function(r2) { return r2.json(); })
-          .then(function(d2) {
-            var r2s = (d2 && d2.results) || [];
-            return r2s[0] || null;
-          });
+          .then(function(d2) { return ((d2 && d2.results) || [])[0] || null; });
       }
       return hit;
     })
     .then(function(hit) {
       if (!hit || !hit.id) {
-        var loading = document.getElementById('cv-player-loading');
-        if (loading) loading.classList.remove('show');
-        var inner = document.getElementById('cv-player-inner');
-        if (inner) {
-          inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:12px;padding:20px;text-align:center">'
-            + '<div style="font-size:2.5rem">🎬</div>'
-            + '<div style="color:#fff;font-weight:700">' + (typeof escHtml === 'function' ? escHtml(title) : title) + '</div>'
-            + '<div>Trailer not found on TMDB</div>'
-            + '<button onclick="cvGoBack()" style="padding:10px 22px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Back</button></div>';
-        }
+        if (typeof showStatus === 'function') showStatus('Trailer not found', '#f5c518');
         return;
       }
-      // cache tmdbId on item for next click
       try { m.tmdbId = hit.id; } catch (e1) {}
-      if (typeof tmdbPlayTrailer === 'function') {
-        // tmdbPlayTrailer opens player again — fine
-        tmdbPlayTrailer(hit.id, 'movie', m.title || title);
-      }
+      fetchTrailerByTmdbId(hit.id, m.title || title);
     })
     .catch(function() {
-      var loading = document.getElementById('cv-player-loading');
-      if (loading) loading.classList.remove('show');
       if (typeof showStatus === 'function') showStatus('Trailer load failed', '#f66');
-      try { if (typeof cvGoBack === 'function') cvGoBack(); } catch (e2) {}
     });
 }
 
@@ -2474,6 +2521,7 @@ function buildTsSlider() {
           if (v.enabled === false || v.enabled === 'false' || v.hidden === true) return;
           v._key = ch.key;
           if (!v.movieKey) v.movieKey = ch.key;
+          if (!v.tmdbId && String(ch.key).indexOf('tmdb_') === 0) v.tmdbId = String(ch.key).replace('tmdb_', '');
           items.push(v);
         });
       }
