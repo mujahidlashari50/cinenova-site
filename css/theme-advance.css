@@ -418,3 +418,34 @@ body {
   #cv-motd-title { font-size: 0.9rem !important; }
   #cv-motd-btn { padding: 9px 12px !important; font-size: 0.75rem !important; }
 }
+
+/* ══ PERF: scroll jank kam ══ */
+body.cv-scrolling #cv-grid .cv-card,
+body.cv-scrolling #cv-ts-track .cv-card {
+  pointer-events: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+body.cv-scrolling #cv-grid .cv-card-img,
+body.cv-scrolling #cv-motd-bg {
+  transition: none !important;
+}
+@media (max-width: 900px) {
+  #cv-grid .cv-card:hover {
+    transform: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,.25) !important;
+  }
+  #cv-grid .cv-card:hover .cv-card-img {
+    transform: none !important;
+  }
+  #cv-nav.scrolled {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+/* Reduce paint cost on grid */
+#cv-grid .cv-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+  contain: layout style;
+}
