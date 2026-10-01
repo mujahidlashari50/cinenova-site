@@ -133,11 +133,11 @@ function cvOpenInBrowser() {
 /* === script === */
 (function(){try{
     var p=new URLSearchParams(location.search);
-    if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';return;}
-    // Pichli baar ka pata hua state turant apply karo (Firebase ka wait
-    // nahi karna) — taake na CLS ho (banner ON case) na flash ho (OFF case).
-    // Firebase settings load hone ke baad, agar zarurat pade to silently
-    // correct + cache update ho jata hai.
+    if(p.get('cat')||p.get('genre')){
+      var _hideIds=['cv-featured-wrap','cv-motd-outer','cv-ts-wrap','cv-trending-wrap','cv-ns-hero','cv-trailers-wrap','tmdb-slider-wrap'];
+      _hideIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+      return;
+    }
     if(localStorage.getItem('cv_fb_off')==='1'){document.getElementById('cv-featured-wrap').style.display='none';}
   }catch(e){}})();
 
@@ -2202,31 +2202,45 @@ function featuredShowSlide(idx) {
 // SLIDER & TMDB VISIBILITY (category based)
 // ══════════════════════════════════
 function updateSlidersVisibility(cat) {
-  var isHome = (cat === 'all');
+  var isHome = (cat === 'all' || !cat);
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
   var nsHero = document.getElementById('cv-ns-hero');
+  var motdOuter = document.getElementById('cv-motd-outer');
+  var tsWrap = document.getElementById('cv-ts-wrap');
+  var trendWrap = document.getElementById('cv-trending-wrap');
+  var tmdbWrap = document.getElementById('tmdb-slider-wrap');
 
   if (isHome) {
-    // Home — custom images hain to hamesha show, warna admin toggle respect karo
+    // Home — hero/featured/trailers/motd/trending
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (featuredWrap) {
-      // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
-      // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
-      // yahan sirf ek purani/stale "_adminEnabled" flag pe depend karte the
-      // jo kabhi kabhi galat set ho jati thi, isliye category se Home wapis
-      // aane par banner show nahi hota tha jab tak refresh na karo.
       buildFeatured();
     }
+    if (motdOuter) motdOuter.style.display = '';
+    if (tsWrap && tsWrap.querySelector('#cv-ts-track') && tsWrap.querySelector('#cv-ts-track').children.length) {
+      tsWrap.style.display = 'block';
+    }
+    if (trendWrap) trendWrap.style.display = '';
+    if (tmdbWrap) tmdbWrap.style.display = '';
+    try {
+      if (typeof buildTsSlider === 'function') buildTsSlider();
+      if (typeof buildTrending === 'function') buildTrending();
+      if (typeof cvBuildMotd === 'function') cvBuildMotd();
+    } catch (eHome) {}
   } else {
-    // Category pe sirf grid — sab hide
+    // Category / genre — ONLY grid (no Pick of Day, no Trending)
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
     if (featuredWrap) {
       if (featuredWrap._adminEnabled === undefined) featuredWrap._adminEnabled = featuredWrap.style.display !== 'none';
       featuredWrap.style.display = 'none';
     }
+    if (motdOuter) motdOuter.style.display = 'none';
+    if (tsWrap) tsWrap.style.display = 'none';
+    if (trendWrap) trendWrap.style.display = 'none';
+    if (tmdbWrap) tmdbWrap.style.display = 'none';
   }
 
   // Category heading update
@@ -2271,9 +2285,18 @@ var cvTsTotal = 0;
 var cvTsInterval = null;
 
 function buildTsSlider() {
-  var tsItems = allData.filter(function(m) { var _t=m.trending; return (_t===true||_t===1||_t==='1'||_t==='true') && !cvIsAdultItem(m); });
   var wrap = document.getElementById('cv-ts-wrap');
   var track = document.getElementById('cv-ts-track');
+  // Sirf Home pe Trending — category pe hide
+  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') {
+    if (wrap) wrap.style.display = 'none';
+    return;
+  }
+  if (typeof selGenre !== 'undefined' && selGenre) {
+    if (wrap) wrap.style.display = 'none';
+    return;
+  }
+  var tsItems = allData.filter(function(m) { var _t=m.trending; return (_t===true||_t===1||_t==='1'||_t==='true') && !cvIsAdultItem(m); });
   if (!tsItems.length || !wrap || !track) { if (wrap) wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
@@ -2415,28 +2438,39 @@ function cvMotdFetchKey(key, cb) {
 function cvMotdRenderMovie(m) {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !m) return;
+  // Sirf Home
+  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') {
+    var oHide = document.getElementById('cv-motd-outer');
+    if (oHide) oHide.style.display = 'none';
+    return;
+  }
+  if (typeof selGenre !== 'undefined' && selGenre) {
+    var oHide2 = document.getElementById('cv-motd-outer');
+    if (oHide2) oHide2.style.display = 'none';
+    return;
+  }
   var outerEl = document.getElementById('cv-motd-outer');
-  var navBtnEl = document.getElementById('cv-nav-motd-btn');
+  if (outerEl) outerEl.style.display = 'block';
+  // Title "Pick of the Day" hatao — clean modern card
+  var labelEl = document.getElementById('cv-motd-label');
+  if (labelEl) labelEl.style.display = 'none';
   var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
-  var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(String(x)); }).join(' · ');
+  var meta = [m.year, m.quality || m.category].filter(Boolean).map(function(x){ return escHtml(String(x)); }).join(' · ');
   var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
   wrap.innerHTML =
-    '<a id="cv-motd-card" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
+    '<a id="cv-motd-card" class="cv-motd-card-v2" href="/movie/' + escHtml(motdSlug) + '" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
       (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
       '<div id="cv-motd-overlay"></div>' +
       '<div id="cv-motd-content">' +
         (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
-        '<div style="flex:1;min-width:0">' +
-          '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY</div>' +
+        '<div class="cv-motd-info">' +
+          '<div id="cv-motd-badge">★ Featured</div>' +
           '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
           (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
         '</div>' +
         '<div id="cv-motd-btn">▶ Watch</div>' +
       '</div>' +
     '</a>';
-  wrap.style.display = 'block';
-  if (outerEl) outerEl.style.display = 'block';
-  if (navBtnEl) navBtnEl.style.display = 'none';
 }
 
 function cvMotdShowKeys(keys, rotateSec) {
@@ -2581,6 +2615,14 @@ function buildTrending() {
   var wrap = document.getElementById('cv-trending-wrap');
   var track = document.getElementById('cv-trending-track');
   if (!wrap || !track) return;
+  if (typeof selCat !== 'undefined' && selCat && selCat !== 'all') {
+    wrap.style.display = 'none';
+    return;
+  }
+  if (typeof selGenre !== 'undefined' && selGenre) {
+    wrap.style.display = 'none';
+    return;
+  }
 
   function isTrendFlag(m) {
     var t = m && m.trending;
