@@ -2393,18 +2393,19 @@ function cvPlayComingSoon(m) {
       });
   }
 
-  // 1) Direct YouTube already saved
+  // 1) INSTANT — cached trailerKey / trailerUrl (panel already saved)
+  if (m.trailerKey && playYtKey(m.trailerKey, m.title)) return;
   var direct = cvComingSoonTrailerUrl(m);
   if (direct) {
-    if (typeof playVideo === 'function') playVideo(direct, (m.title || 'Movie') + ' — Trailer');
-    else {
-      var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
-      if (mk) playYtKey(mk[1], m.title);
+    if (typeof playVideo === 'function') {
+      playVideo(direct, (m.title || 'Movie') + ' — Trailer');
+      return;
     }
-    return;
+    var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
+    if (mk && playYtKey(mk[1], m.title)) return;
   }
 
-  // 2) Has TMDB id → trailer
+  // 2) TMDB id → fetch (slower path)
   if (tid) {
     fetchTrailerByTmdbId(tid, m.title || 'Trailer');
     return;
