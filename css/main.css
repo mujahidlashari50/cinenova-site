@@ -1152,3 +1152,6 @@ body.cv-cat-view #tmdb-slider-wrap {
 .cv-cs-card .cv-card-img-wrap{position:relative}
 .cv-cs-date{background:rgba(0,113,235,.9)!important}
 
+
+/* Adult verified header badge — hidden (nav clutter on mobile) */
+#cv-adult-verified-badge{display:none!important;visibility:hidden!important;width:0!important;height:0!important;overflow:hidden!important;pointer-events:none!important;margin:0!important;padding:0!important;}
