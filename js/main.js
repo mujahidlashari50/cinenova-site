@@ -5105,6 +5105,33 @@ function cvEnsureFirebaseAuth(cb) {
   document.head.appendChild(s);
 }
 
+
+/** EasyPaisa / JazzCash TID format check */
+function cvValidateTxnId(tid, method) {
+  var raw = String(tid || '').trim();
+  if (!raw) return { ok: false, reason: 'Transaction ID is required' };
+  var clean = raw.replace(/[\s\-]/g, '');
+  if (/^(.)\1{7,}$/.test(clean)) return { ok: false, reason: 'Invalid or fake-looking TID' };
+  if (/^(123456|000000|111111|999999)/.test(clean)) return { ok: false, reason: 'Invalid or fake-looking TID' };
+  if (!/^[A-Za-z0-9]+$/.test(clean)) return { ok: false, reason: 'Only letters and numbers allowed' };
+  var digits = clean.replace(/\D/g, '');
+  var m = (method || '').toLowerCase();
+  if (m === 'jazzcash') {
+    if (digits.length >= 10 && digits.length <= 14 && digits.length === clean.length) {
+      return { ok: true, reason: 'JazzCash format looks OK' };
+    }
+    if (/^JC/i.test(clean) && digits.length >= 8) return { ok: true, reason: 'JazzCash format looks OK' };
+    return { ok: false, reason: 'JazzCash TID is usually 10–14 digits' };
+  }
+  if (m === 'easypaisa') {
+    if (digits.length >= 10 && digits.length <= 14) return { ok: true, reason: 'EasyPaisa format looks OK' };
+    if (/^(EP|TID)/i.test(clean) && digits.length >= 8) return { ok: true, reason: 'EasyPaisa format looks OK' };
+    return { ok: false, reason: 'EasyPaisa TID is usually 10–14 digits' };
+  }
+  if (digits.length >= 10 && digits.length <= 14) return { ok: true, reason: 'Format looks OK' };
+  return { ok: false, reason: 'TID should be 10–14 digits' };
+}
+
 function cvShowSubModal(cfg, user, mode) {
   var old = document.getElementById('cv-sub-modal');
   if (old) old.remove();
@@ -5145,19 +5172,19 @@ function cvShowSubModal(cfg, user, mode) {
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
     + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
     + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
-    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">Movies dekhne / download karne ke liye active subscription zaroori hai.</p>'
+    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">An active subscription is required to watch or download movies.</p>'
     + (user ? '<div style="font-size:0.78rem;color:#4ade80;margin-bottom:10px;">Logged in: '+ (user.email||user.uid) +'</div>'
-            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Google se Login</button></div>')
+            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Continue with Google</button></div>')
     + (user ? ('<div style="margin-bottom:12px;">' + planHtml + '</div>'
       + payCards
       + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Payment method</label>'
       + '<select id="cv-sub-method" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;">'
       + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option></select></div>'
       + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Transaction ID / TID</label>'
-      + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Payment ke baad mila Transaction ID" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
-      + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
-      + '<textarea id="cv-sub-note" rows="2" placeholder="Optional note…" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
-      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Payment Request bhejo</button>'
+      + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Enter Transaction ID from your payment" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
+      + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">Enter 10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
+      + '<textarea id="cv-sub-note" rows="2" placeholder="Optional note (optional)" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
+      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Submit Payment Request</button>'
       + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:8px;"></div>')
       : '')
     + '</div>';
@@ -5207,7 +5234,7 @@ function cvShowSubModal(cfg, user, mode) {
     var v = cvValidateTxnId(txnInput.value, method);
     if (!String(txnInput.value || '').trim()) {
       txnHint.style.color = '#666';
-      txnHint.textContent = '10–14 digit TID (JazzCash / EasyPaisa)';
+      txnHint.textContent = 'Enter 10–14 digit TID (JazzCash / EasyPaisa)';
       txnInput.style.borderColor = '#333';
       return;
     }
@@ -5217,7 +5244,7 @@ function cvShowSubModal(cfg, user, mode) {
       txnInput.style.borderColor = '#16a34a';
     } else {
       txnHint.style.color = '#f87171';
-      txnHint.textContent = '✗ ' + v.reason + ' — sahi TID dalein';
+      txnHint.textContent = '✗ ' + v.reason + ' — enter a valid TID';
       txnInput.style.borderColor = '#dc2626';
     }
   }
@@ -5227,13 +5254,13 @@ function cvShowSubModal(cfg, user, mode) {
     reqBtn.onclick = function() {
       var noteEl = document.getElementById('cv-sub-note');
       var msg = document.getElementById('cv-sub-msg');
-      if (!db) { if (msg) msg.textContent = 'DB not ready'; return; }
+      if (!db) { if (msg) msg.textContent = 'Database not ready. Please refresh and try again.'; return; }
       var method = methodSel ? methodSel.value : 'easypaisa';
       var txnId = txnInput ? String(txnInput.value || '').trim() : '';
       var check = cvValidateTxnId(txnId, method);
       refreshTxnHint();
       if (!check.ok) {
-        if (msg) { msg.style.color = '#f87171'; msg.textContent = '❌ ' + check.reason + ' — request nahi bheji.'; }
+        if (msg) { msg.style.color = '#f87171'; msg.textContent = '❌ ' + check.reason + ' — request not sent.'; }
         return;
       }
       var payload = {
@@ -5248,7 +5275,7 @@ function cvShowSubModal(cfg, user, mode) {
         createdAt: Date.now()
       };
       db.ref('subRequests').push(payload).then(function() {
-        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request bhej di. Payment verify hone ke baad plan active hoga.'; }
+        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request submitted. Your plan will activate after payment verification.'; }
         reqBtn.disabled = true;
       }).catch(function(e) {
         if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Error: ' + e.message; }
