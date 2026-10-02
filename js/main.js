@@ -2393,18 +2393,19 @@ function cvPlayComingSoon(m) {
       });
   }
 
-  // 1) Direct YouTube already saved
+  // 1) INSTANT — cached trailerKey / trailerUrl (panel already saved)
+  if (m.trailerKey && playYtKey(m.trailerKey, m.title)) return;
   var direct = cvComingSoonTrailerUrl(m);
   if (direct) {
-    if (typeof playVideo === 'function') playVideo(direct, (m.title || 'Movie') + ' — Trailer');
-    else {
-      var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
-      if (mk) playYtKey(mk[1], m.title);
+    if (typeof playVideo === 'function') {
+      playVideo(direct, (m.title || 'Movie') + ' — Trailer');
+      return;
     }
-    return;
+    var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
+    if (mk && playYtKey(mk[1], m.title)) return;
   }
 
-  // 2) Has TMDB id → trailer
+  // 2) TMDB id → fetch (slower path)
   if (tid) {
     fetchTrailerByTmdbId(tid, m.title || 'Trailer');
     return;
@@ -4343,7 +4344,7 @@ function openModal(key) {
     btns += '<button type="button" class="cv-dl-btn cv-dl-action-watch" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\',\'720p\')">▶ Watch Now</button>';
   } else if (_pmEmbed) {
     btns += '<div class="cv-section-title">▶ Watch Online</div>';
-    btns += '<button type="button" class="cv-dl-btn cv-dl-action-watch" onclick="playVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+    btns += '<button type="button" class="cv-dl-btn cv-dl-action-watch" onclick="cnGatedPlayVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -5215,13 +5216,15 @@ function cnBumpDownloadCount(movieKey) {
 function cnGoToDownloadWorker(movieKey, quality, season, episode) {
   var WORKER_DL_BASE = 'https://www.cinenova.site/dl';
   if (!movieKey) return;
-  cnBumpDownloadCount(movieKey);
-  var params = new URLSearchParams();
-  params.set('id', movieKey);
-  params.set('q', quality || '480p');
-  if (season) params.set('s', String(season));
-  if (episode) params.set('e', String(episode));
-  window.location.href = WORKER_DL_BASE + '?' + params.toString();
+  cnRequireSub('download', function() {
+    cnBumpDownloadCount(movieKey);
+    var params = new URLSearchParams();
+    params.set('id', movieKey);
+    params.set('q', quality || '480p');
+    if (season) params.set('s', String(season));
+    if (episode) params.set('e', String(episode));
+    window.location.href = WORKER_DL_BASE + '?' + params.toString();
+  });
 }
 
 // Movie open / download popup se pehle worker warm — /get pe cache hit
@@ -5376,6 +5379,7 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
 // DOWNLOAD QUALITY POPUP — sirf Download (Watch yahan nahi)
 // ══════════════════════════════════
 function openDlPopup() {
+  cnRequireSub('download', function() {
   var items = window._cvDlData || [];
   if (!items.length) return;
   var html = '';
@@ -5391,6 +5395,7 @@ function openDlPopup() {
   });
   document.getElementById('cv-dl-popup-options').innerHTML = html;
   document.getElementById('cv-dl-popup').classList.add('open');
+  });
 }
 
 
@@ -5417,7 +5422,7 @@ function closeDlPopup() {
 function cvPlayEp(idx) {
   var url   = (window._cvEpUrls   || [])[idx] || '';
   var label = (window._cvEpLabels || [])[idx] || 'Now Playing';
-  if (url) playVideo(url, label);
+  if (url) cnGatedPlayVideo(url, label);
 }
 
 // Episode download popup helper (uses stored dl registry — no inline JSON)
@@ -7732,4 +7737,135 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   }
   setTimeout(hide, 12000);
   setTimeout(hide, 20000);
+})();
+
+
+/* === cv-account-dashboard === */
+(function(){
+  function ensureNavBtn() {
+    var wrap = document.getElementById('cv-nav-icons-wrap') || document.getElementById('cv-nav');
+    if (!wrap || document.getElementById('cv-account-btn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'cv-account-btn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Account');
+    btn.style.cssText = 'width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#1a1a1a;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;flex-shrink:0;margin-left:6px;';
+    btn.innerHTML = '<span style="font-size:1.1rem;">👤</span>';
+    btn.onclick = function(){ cvOpenAccountPanel(); };
+    // place near search icons
+    var icons = document.getElementById('cv-nav-icons-wrap');
+    if (icons) icons.appendChild(btn);
+    else {
+      var nav = document.getElementById('cv-nav');
+      if (nav) nav.appendChild(btn);
+    }
+  }
+
+  function setBtnUser(user) {
+    var btn = document.getElementById('cv-account-btn');
+    if (!btn) return;
+    if (user && user.photoURL) {
+      btn.innerHTML = '<img src="'+user.photoURL.replace(/"/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+      btn.title = user.displayName || user.email || 'Account';
+    } else if (user) {
+      var ch = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+      btn.innerHTML = '<span style="font-weight:800;font-size:0.95rem;">'+ch+'</span>';
+      btn.title = user.displayName || user.email || 'Account';
+    } else {
+      btn.innerHTML = '<span style="font-size:1.1rem;">👤</span>';
+      btn.title = 'Login';
+    }
+  }
+
+  window.cvOpenAccountPanel = function() {
+    var old = document.getElementById('cv-account-panel');
+    if (old) old.remove();
+    cvEnsureFirebaseAuth(function() {
+      var user = null;
+      try { user = firebase.auth().currentUser; } catch(e) {}
+      var panel = document.createElement('div');
+      panel.id = 'cv-account-panel';
+      panel.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;padding:12px;';
+      var box = document.createElement('div');
+      box.style.cssText = 'width:100%;max-width:420px;background:#141414;border:1px solid #2a2a2a;border-radius:16px 16px 12px 12px;padding:18px;max-height:85vh;overflow:auto;';
+      if (!user) {
+        box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><b style="font-size:1.05rem;">Account</b><button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:32px;height:32px;border-radius:8px;cursor:pointer;">✕</button></div>'
+          + '<p style="color:#aaa;font-size:0.85rem;line-height:1.5;margin:0 0 14px;">Login karke subscription manage karein. Panel se subscription ON ho to Watch/Download ke liye plan chahiye.</p>'
+          + '<button type="button" id="cv-acc-google" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Continue with Google</button>';
+        panel.appendChild(box);
+        document.body.appendChild(panel);
+        document.getElementById('cv-acc-x').onclick = function(){ panel.remove(); };
+        panel.onclick = function(e){ if (e.target === panel) panel.remove(); };
+        document.getElementById('cv-acc-google').onclick = function() {
+          var provider = new firebase.auth.GoogleAuthProvider();
+          firebase.auth().signInWithPopup(provider).then(function(res) {
+            var u = res.user;
+            if (u && db) {
+              db.ref('users/' + u.uid).update({
+                email: u.email || '', name: u.displayName || '', photo: u.photoURL || '', lastLogin: Date.now()
+              }).catch(function(){});
+            }
+            setBtnUser(u);
+            panel.remove();
+            cvOpenAccountPanel();
+          }).catch(function(err){ alert('Login fail: ' + (err.message||err)); });
+        };
+        return;
+      }
+      // Logged in — dashboard
+      box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><b style="font-size:1.05rem;">My Dashboard</b><button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:32px;height:32px;border-radius:8px;cursor:pointer;">✕</button></div>'
+        + '<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">'
+        + (user.photoURL ? '<img src="'+user.photoURL+'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-weight:800;">'+(user.displayName||'U').charAt(0)+'</div>')
+        + '<div style="min-width:0;"><div style="font-weight:700;font-size:0.95rem;">'+(user.displayName||'User')+'</div><div style="font-size:0.75rem;color:#888;word-break:break-all;">'+(user.email||'')+'</div></div></div>'
+        + '<div id="cv-acc-subbox" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-bottom:12px;font-size:0.82rem;color:#ccc;">Loading subscription…</div>'
+        + '<button type="button" id="cv-acc-plans" style="width:100%;padding:11px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;margin-bottom:8px;">💎 Plans / Subscribe</button>'
+        + '<button type="button" id="cv-acc-logout" style="width:100%;padding:11px;background:#222;color:#eee;border:1px solid #333;border-radius:10px;font-weight:600;cursor:pointer;">Logout</button>';
+      panel.appendChild(box);
+      document.body.appendChild(panel);
+      document.getElementById('cv-acc-x').onclick = function(){ panel.remove(); };
+      panel.onclick = function(e){ if (e.target === panel) panel.remove(); };
+      document.getElementById('cv-acc-logout').onclick = function() {
+        firebase.auth().signOut().then(function(){ setBtnUser(null); panel.remove(); });
+      };
+      document.getElementById('cv-acc-plans').onclick = function() {
+        panel.remove();
+        cvLoadSubSettings(function(cfg){ cvShowSubModal(cfg || {enabled:true, plans:{}}, user, 'subscribe'); });
+      };
+      cvFetchUserSub(user.uid, function(sub) {
+        var el = document.getElementById('cv-acc-subbox');
+        if (!el) return;
+        cvLoadSubSettings(function(cfg) {
+          var subOn = cfg && cfg.enabled;
+          if (!subOn) {
+            el.innerHTML = '<div style="color:#86efac;">Subscription system <b>OFF</b> (panel se). Abhi free access.</div>';
+            return;
+          }
+          if (cvIsSubActive(sub)) {
+            var exp = sub.expiresAt ? new Date(Number(sub.expiresAt)).toLocaleString() : '—';
+            el.innerHTML = '<div style="color:#4ade80;font-weight:800;margin-bottom:6px;">✅ ACTIVE</div>'
+              + '<div>Plan: <b>'+(sub.planLabel || sub.plan || '—')+'</b></div>'
+              + '<div style="margin-top:4px;color:#aaa;">Expires: '+exp+'</div>';
+          } else {
+            el.innerHTML = '<div style="color:#fbbf24;font-weight:800;margin-bottom:6px;">⚠ No active plan</div>'
+              + '<div style="color:#aaa;">Watch / Download ke liye plan activate karein. Payment request panel se approve hogi.</div>';
+          }
+        });
+      });
+    });
+  };
+
+  function boot() {
+    ensureNavBtn();
+    cvEnsureFirebaseAuth(function() {
+      try {
+        firebase.auth().onAuthStateChanged(function(user) {
+          ensureNavBtn();
+          setBtnUser(user || null);
+        });
+      } catch(e) { ensureNavBtn(); }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 1500);
 })();
