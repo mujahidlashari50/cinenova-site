@@ -559,7 +559,8 @@ function cvSetAdultVerified(uid, email) {
 function cvUpdateAdultBadge() {
   var badge = document.getElementById('cv-adult-verified-badge');
   if (!badge) return;
-  badge.style.display = cvIsAdultVerified() ? 'flex' : 'none';
+  // Always hide — keeps mobile nav clean (adult gate still works)
+  badge.style.display = 'none';
 }
 function cvAdultLogoutPrompt() {
   if (!confirm('18+ verification hata di jaye? Dobara Adult section kholne ke liye verify karna padega.')) return;
