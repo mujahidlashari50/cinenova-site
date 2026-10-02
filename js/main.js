@@ -695,7 +695,7 @@ function cvAdultGoogleVerify() {
       renderGrid();
       updateSlidersVisibility('group:adult');
       cvLoadCategoryData('group:adult', false);
-      try { history.replaceState(null, '', location.pathname + '?cat=group:adult'); } catch (e) {}
+      try { history.replaceState(null, '', (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl('group:adult', false) : '/category/adult-all'); } catch (e) {}
 
       if (typeof _cvAdultGateOnSuccess === 'function') {
         var fn = _cvAdultGateOnSuccess;
@@ -1147,6 +1147,71 @@ function cvFetchByIndex(field, value, cb) {
 // user ko poora dataset load hone ka wait nahi karna padta.
 // Panel display-name variants jo Firebase mein save ho sakte hain
 // (slug ke alawa). Indexed query in par bhi chalao taake jaldi mile.
+
+// ═══ Pretty category URLs: /category/south-hindi  (not ?cat=south_hindi)
+var CV_CAT_URL_SLUG = {
+  english_movies: 'english-movies',
+  hindi_dubbed: 'hindi-dubbed',
+  dual_audio: 'dual-audio',
+  south_hindi: 'south-hindi',
+  bollywood_hindi: 'bollywood',
+  anime_hindi: 'anime-hindi',
+  animation_hindi_dubbed: 'animation',
+  webseries_hindi: 'web-series',
+  kdrama_hindi: 'k-drama',
+  philippines: 'philippines',
+  hot_short_hindi: 'hot-short',
+  adult: 'adult',
+  short_films: 'short-films',
+  'group:hollywood': 'hollywood',
+  'group:tollywood': 'tollywood',
+  'group:bollywood': 'bollywood-all',
+  'group:animation': 'animation-all',
+  'group:webseries': 'web-series-all',
+  'group:kdrama': 'k-drama-all',
+  'group:adult': 'adult-all',
+  hollywood: 'hollywood',
+  bollywood: 'bollywood',
+  tollywood: 'tollywood',
+  animation: 'animation',
+  webseries: 'web-series',
+  kdrama: 'k-drama',
+  punjabi: 'punjabi',
+  bengali: 'bengali',
+  tamil_telugu: 'tamil-telugu'
+};
+var CV_URL_SLUG_TO_CAT = {};
+(function() {
+  Object.keys(CV_CAT_URL_SLUG).forEach(function(k) {
+    CV_URL_SLUG_TO_CAT[CV_CAT_URL_SLUG[k]] = k;
+    CV_URL_SLUG_TO_CAT[String(k).replace(/_/g, '-')] = k;
+  });
+})();
+function cvCatToUrlSlug(cat) {
+  if (!cat || cat === 'all' || cat === 'watchlist') return '';
+  if (CV_CAT_URL_SLUG[cat]) return CV_CAT_URL_SLUG[cat];
+  return String(cat).toLowerCase().replace(/^group:/, '').replace(/_/g, '-').replace(/:/g, '-');
+}
+function cvUrlSlugToCat(slug) {
+  if (!slug) return 'all';
+  slug = decodeURIComponent(String(slug)).toLowerCase().replace(/^\/+|\/+$/g, '');
+  if (CV_URL_SLUG_TO_CAT[slug]) return CV_URL_SLUG_TO_CAT[slug];
+  var gmap = { hollywood: 'group:hollywood', tollywood: 'group:tollywood', bollywood: 'group:bollywood',
+    animation: 'group:animation', 'web-series': 'group:webseries', 'k-drama': 'group:kdrama', adult: 'group:adult',
+    'bollywood-all': 'group:bollywood', 'animation-all': 'group:animation', 'web-series-all': 'group:webseries',
+    'k-drama-all': 'group:kdrama', 'adult-all': 'group:adult' };
+  if (gmap[slug]) return gmap[slug];
+  return slug.replace(/-/g, '_');
+}
+function cvBuildFilterUrl(cat, isGenre) {
+  if (isGenre && cat) {
+    return '/genre/' + encodeURIComponent(String(cat).toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-'));
+  }
+  if (!cat || cat === 'all') return '/';
+  if (cat === 'watchlist') return '/?cat=watchlist';
+  return '/category/' + encodeURIComponent(cvCatToUrlSlug(cat));
+}
+
 var CV_CAT_ALIASES = {
   /* SYNC with Admin Panel category slugs — v2026.09.14 */
   english_movies: ['English Movies', 'English-Movies', 'english movies', 'english', 'hollywood'],
@@ -3100,8 +3165,18 @@ function cvRestoreFromUrl() {
     // ✅ Pretty URL support: /movie/slug-name (naya format)
     var pathMatch = location.pathname.match(/^\/movie\/([^\/]+)\/?$/);
     var movieKey = pathMatch ? decodeURIComponent(pathMatch[1]) : params.get('m');
+    var catPath = location.pathname.match(/^\/category\/([^\/]+)\/?$/i);
+    var genrePath = location.pathname.match(/^\/genre\/([^\/]+)\/?$/i);
     var cat = params.get('cat');
     var genre = params.get('genre');
+    if (!movieKey && catPath) {
+      cat = (typeof cvUrlSlugToCat === 'function') ? cvUrlSlugToCat(catPath[1]) : String(catPath[1]).replace(/-/g, '_');
+      genre = '';
+    }
+    if (!movieKey && genrePath) {
+      genre = decodeURIComponent(genrePath[1]).replace(/-/g, '_');
+      cat = '';
+    }
     var langParam = params.get('lang');
 
     // ✅ BACK BUTTON FIX — jab user seedha (Facebook/Google/WhatsApp se) kisi
@@ -4219,7 +4294,7 @@ function makeCard(m) {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
   if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
-  if (cat) inner += '<a class="cv-cat-badge cv-new" href="?cat=' + encodeURIComponent(cat) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
+  if (cat) inner += '<a class="cv-cat-badge cv-new" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g,'-'))) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
   if (m.quality) {
     var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
     inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
@@ -4310,8 +4385,8 @@ function openModal(key) {
   var badges = '';
   if (m.year) badges += '<span class="cv-mbadge">📅 ' + m.year + '</span>';
   if (m.rating) badges += '<span class="cv-mbadge">⭐ ' + m.rating + '</span>';
-  if (m.category) badges += '<a class="cv-mbadge" href="?cat=' + encodeURIComponent((m.category||'').toLowerCase()) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
-  if (m.genre) badges += '<a class="cv-mbadge" href="?genre=' + encodeURIComponent((m.genre||'').toLowerCase()) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
+  if (m.category) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.category||'').toLowerCase(), false) : ('/category/' + String(m.category||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
+  if (m.genre) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.genre||'').toLowerCase(), true) : ('/genre/' + String(m.genre||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
   if (m.quality) badges += '<span class="cv-mbadge">' + m.quality + '</span>';
   if (m.size) badges += '<span class="cv-mbadge">💾 ' + m.size + '</span>';
@@ -5827,8 +5902,9 @@ function cvApplyFilter(cat, isGenre, pillEl) {
     if (!window._cvRestoringFromUrl) {
       try {
         cvPushHistoryCushionIfNeeded();
-        var catParam = (isGenre ? 'genre=' : 'cat=') + encodeURIComponent(cat);
-        var newUrl = cat === 'all' ? location.pathname : location.pathname + '?' + catParam;
+        var newUrl = (typeof cvBuildFilterUrl === 'function')
+          ? cvBuildFilterUrl(cat, isGenre)
+          : (cat === 'all' ? '/' : ((isGenre ? '/genre/' : '/category/') + encodeURIComponent(String(cat).replace(/_/g,'-'))));
         var curUrl = location.pathname + location.search;
         if (newUrl !== curUrl) {
           history.pushState({cv: 'filter', cat: cat, isGenre: isGenre}, '', newUrl);
@@ -5858,11 +5934,15 @@ function cvSyncFilterUrl() {
   if (window._cvRestoringFromUrl) return;
   try {
     cvPushHistoryCushionIfNeeded();
-    var parts = [];
-    if (selGenre !== '') parts.push('genre=' + encodeURIComponent(selGenre));
-    else if (selCat !== 'all') parts.push('cat=' + encodeURIComponent(selCat));
-    if (selLang !== '') parts.push('lang=' + encodeURIComponent(selLang));
-    var newUrl = parts.length ? (location.pathname + '?' + parts.join('&')) : location.pathname;
+    var newUrl = '/';
+    if (selGenre !== '') {
+      newUrl = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(selGenre, true) : ('/genre/' + encodeURIComponent(String(selGenre).replace(/_/g,'-')));
+    } else if (selCat && selCat !== 'all') {
+      newUrl = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(selCat, false) : ('/category/' + encodeURIComponent(String(selCat).replace(/_/g,'-')));
+    }
+    if (selLang !== '') {
+      newUrl += (newUrl.indexOf('?') >= 0 ? '&' : '?') + 'lang=' + encodeURIComponent(selLang);
+    }
     var curUrl = location.pathname + location.search;
     if (newUrl !== curUrl) {
       history.pushState({cv: 'filter', cat: selCat, genre: selGenre, lang: selLang}, '', newUrl);
@@ -5897,9 +5977,9 @@ function cvQuickFilter(cat, lang, btnEl) {
   if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(selCat);
   if (typeof cvSyncFilterUrl === 'function') cvSyncFilterUrl();
   try {
-    var q = '?cat=' + encodeURIComponent(selCat);
-    if (selLang) q += '&lang=' + encodeURIComponent(selLang);
-    history.replaceState(null, '', location.pathname + q);
+    var q = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(selCat, false) : ('/category/' + encodeURIComponent(String(selCat).replace(/_/g,'-')));
+    if (selLang) q += (q.indexOf('?') >= 0 ? '&' : '?') + 'lang=' + encodeURIComponent(selLang);
+    history.replaceState(null, '', q);
   } catch(e) {}
   var grid = document.getElementById('cv-grid');
   if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -7671,7 +7751,7 @@ function cvUpdateSEO(m, slug) {
       '@type': 'ListItem',
       'position': 2,
       'name': m.category.charAt(0).toUpperCase() + m.category.slice(1),
-      'item': 'https://www.cinenova.site/?cat=' + encodeURIComponent(m.category)
+      'item': (typeof cvBuildFilterUrl === 'function' ? ('https://www.cinenova.site' + cvBuildFilterUrl(String(m.category||'').toLowerCase(), false)) : ('https://www.cinenova.site/category/' + encodeURIComponent(String(m.category||'').toLowerCase().replace(/_/g,'-'))))
     });
   }
   bcItems.push({
@@ -7697,7 +7777,7 @@ var CV_CAT_SEO = { hollywood: 'Hollywood', hollywood_dubbed: 'Hollywood Hindi', 
 function cvUpdateCategorySEO(cat, isGenre) {
   if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
   var label = CV_CAT_SEO[cat];
-  var pageUrl = 'https://www.cinenova.site/?cat=' + cat;
+  var pageUrl = 'https://www.cinenova.site' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + encodeURIComponent(String(cat).replace(/_/g,'-'))));
   var richTitle = label + ' Movies - Free HD Download | CineNova';
   var desc = 'Watch and download the latest ' + label + ' movies in HD for free on CineNova. New releases added daily, no login or subscription required.';
   document.title = richTitle;
