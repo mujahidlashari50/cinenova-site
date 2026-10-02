@@ -7742,23 +7742,46 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 
 /* === cv-account-dashboard === */
 (function(){
+
+  function injectAccCss() {
+    if (document.getElementById('cv-acc-css')) return;
+    var s = document.createElement('style');
+    s.id = 'cv-acc-css';
+    s.textContent = '#cv-nav{display:flex;align-items:center;gap:8px;}'
+      + '#cv-logo{flex:1 1 auto;min-width:0;max-width:calc(100% - 140px);}'
+      + '#cv-nav-icons-wrap{display:flex!important;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;}'
+      + '#cv-account-btn{width:34px!important;height:34px!important;min-width:34px!important;}'
+      + '@media(max-width:380px){#cv-account-btn{width:32px!important;height:32px!important;min-width:32px!important;}}';
+    document.head.appendChild(s);
+  }
+
   function ensureNavBtn() {
-    var wrap = document.getElementById('cv-nav-icons-wrap') || document.getElementById('cv-nav');
-    if (!wrap || document.getElementById('cv-account-btn')) return;
+    if (document.getElementById('cv-account-btn')) return;
     var btn = document.createElement('button');
     btn.id = 'cv-account-btn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Account');
-    btn.style.cssText = 'width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#1a1a1a;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;flex-shrink:0;margin-left:6px;';
-    btn.innerHTML = '<span style="font-size:1.1rem;">👤</span>';
+    btn.className = 'cv-icon-btn';
+    btn.style.cssText = 'width:36px;height:36px;min-width:36px;min-height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);background:rgba(20,20,20,0.9);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;padding:0;flex-shrink:0;margin:0;';
+    btn.innerHTML = '<span style="font-size:0.95rem;line-height:1;">👤</span>';
     btn.onclick = function(){ cvOpenAccountPanel(); };
-    // place near search icons
+    // Prefer right-side icon cluster (search/bookmark) — never over logo
     var icons = document.getElementById('cv-nav-icons-wrap');
-    if (icons) icons.appendChild(btn);
-    else {
-      var nav = document.getElementById('cv-nav');
-      if (nav) nav.appendChild(btn);
+    if (icons) {
+      icons.style.display = 'flex';
+      icons.style.alignItems = 'center';
+      icons.style.gap = '6px';
+      icons.style.flexShrink = '0';
+      icons.appendChild(btn);
+      return;
     }
+    // fallback: after last button in nav
+    var nav = document.getElementById('cv-nav');
+    if (!nav) return;
+    nav.style.gap = nav.style.gap || '8px';
+    var kids = nav.querySelectorAll('button.cv-icon-btn, #cv-search-btn, [aria-label="Search"]');
+    if (kids.length) kids[kids.length - 1].after(btn);
+    else nav.appendChild(btn);
   }
 
   function setBtnUser(user) {
@@ -7837,7 +7860,10 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
         cvLoadSubSettings(function(cfg) {
           var subOn = cfg && cfg.enabled;
           if (!subOn) {
-            el.innerHTML = '<div style="color:#86efac;">Subscription system <b>OFF</b> (panel se). Abhi free access.</div>';
+            el.innerHTML = '<div style="color:#aaa;line-height:1.45;">Account connected. Browse movies from Home. Watchlist sync with this login.</div>';
+            // Hide subscribe CTA when system off
+            var plansBtn = document.getElementById('cv-acc-plans');
+            if (plansBtn) plansBtn.style.display = 'none';
             return;
           }
           if (cvIsSubActive(sub)) {
@@ -7855,6 +7881,7 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   };
 
   function boot() {
+    injectAccCss();
     ensureNavBtn();
     cvEnsureFirebaseAuth(function() {
       try {
