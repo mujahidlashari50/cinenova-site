@@ -5118,8 +5118,26 @@ function cvShowSubModal(cfg, user, mode) {
       + '<span style="float:right;color:#fbbf24;font-weight:800;">Rs ' + (p.price||0) + '</span>'
       + '<div style="font-size:0.75rem;color:#888;margin-top:4px;">' + (p.days||0) + ' days access</div></button>';
   });
-  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : 'Admin se contact karke payment confirm karein.';
+  var epName = (cfg && cfg.easypaisaName) ? cfg.easypaisaName : 'MUJAHID';
+  var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
+  var jcName = (cfg && cfg.jazzcashName) ? cfg.jazzcashName : 'MUJAHID';
+  var jcNum = (cfg && cfg.jazzcashNumber) ? cfg.jazzcashNumber : '03353613905';
+  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : '';
   var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
+  var payCards = ''
+    + '<div style="display:grid;gap:10px;margin-bottom:12px;">'
+    + '<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);border:1px solid #334155;border-radius:12px;padding:12px 14px;">'
+    + '<div style="font-size:0.72rem;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">EasyPaisa</div>'
+    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(epName).replace(/</g,'') + '</div>'
+    + '<div style="font-size:1.05rem;font-weight:900;color:#4ade80;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
+    + '</div>'
+    + '<div style="background:linear-gradient(135deg,#1a0a0a,#2a1010);border:1px solid #5c1a1a;border-radius:12px;padding:12px 14px;">'
+    + '<div style="font-size:0.72rem;color:#fca5a5;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">JazzCash</div>'
+    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(jcName).replace(/</g,'') + '</div>'
+    + '<div style="font-size:1.05rem;font-weight:900;color:#fbbf24;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
+    + '</div></div>'
+    + (note ? '<div style="font-size:0.78rem;color:#aaa;margin-bottom:10px;line-height:1.45;">' + note + '</div>' : '')
+    + (support ? '<div style="margin-bottom:10px;">' + support + '</div>' : '');
   var modal = document.createElement('div');
   modal.id = 'cv-sub-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -5131,8 +5149,14 @@ function cvShowSubModal(cfg, user, mode) {
     + (user ? '<div style="font-size:0.78rem;color:#4ade80;margin-bottom:10px;">Logged in: '+ (user.email||user.uid) +'</div>'
             : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Google se Login</button></div>')
     + (user ? ('<div style="margin-bottom:12px;">' + planHtml + '</div>'
-      + '<div style="background:#141414;border:1px solid #222;border-radius:10px;padding:12px;font-size:0.8rem;color:#ccc;line-height:1.55;margin-bottom:12px;"><b style="color:#fbbf24;">Payment</b><br>' + note + '<br>' + support + '</div>'
-      + '<textarea id="cv-sub-note" rows="2" placeholder="Payment reference / JazzCash number / note…" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
+      + payCards
+      + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Payment method</label>'
+      + '<select id="cv-sub-method" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;">'
+      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option></select></div>'
+      + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Transaction ID / TID</label>'
+      + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Payment ke baad mila Transaction ID" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
+      + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
+      + '<textarea id="cv-sub-note" rows="2" placeholder="Optional note…" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
       + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Payment Request bhejo</button>'
       + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:8px;"></div>')
       : '')
@@ -5174,21 +5198,57 @@ function cvShowSubModal(cfg, user, mode) {
     };
   }
   var reqBtn = document.getElementById('cv-sub-request');
+  var txnInput = document.getElementById('cv-sub-txn');
+  var methodSel = document.getElementById('cv-sub-method');
+  var txnHint = document.getElementById('cv-sub-txn-hint');
+  function refreshTxnHint() {
+    if (!txnInput || !txnHint) return;
+    var method = methodSel ? methodSel.value : 'easypaisa';
+    var v = cvValidateTxnId(txnInput.value, method);
+    if (!String(txnInput.value || '').trim()) {
+      txnHint.style.color = '#666';
+      txnHint.textContent = '10–14 digit TID (JazzCash / EasyPaisa)';
+      txnInput.style.borderColor = '#333';
+      return;
+    }
+    if (v.ok) {
+      txnHint.style.color = '#4ade80';
+      txnHint.textContent = '✓ ' + v.reason;
+      txnInput.style.borderColor = '#16a34a';
+    } else {
+      txnHint.style.color = '#f87171';
+      txnHint.textContent = '✗ ' + v.reason + ' — sahi TID dalein';
+      txnInput.style.borderColor = '#dc2626';
+    }
+  }
+  if (txnInput) txnInput.addEventListener('input', refreshTxnHint);
+  if (methodSel) methodSel.addEventListener('change', refreshTxnHint);
   if (reqBtn && user) {
     reqBtn.onclick = function() {
       var noteEl = document.getElementById('cv-sub-note');
       var msg = document.getElementById('cv-sub-msg');
       if (!db) { if (msg) msg.textContent = 'DB not ready'; return; }
+      var method = methodSel ? methodSel.value : 'easypaisa';
+      var txnId = txnInput ? String(txnInput.value || '').trim() : '';
+      var check = cvValidateTxnId(txnId, method);
+      refreshTxnHint();
+      if (!check.ok) {
+        if (msg) { msg.style.color = '#f87171'; msg.textContent = '❌ ' + check.reason + ' — request nahi bheji.'; }
+        return;
+      }
       var payload = {
         uid: user.uid,
         email: user.email || '',
         plan: selectedPlan,
+        payMethod: method,
+        txnId: txnId,
+        txnValid: true,
         note: (noteEl && noteEl.value) ? noteEl.value.trim() : '',
         status: 'pending',
         createdAt: Date.now()
       };
       db.ref('subRequests').push(payload).then(function() {
-        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request bhej di — admin approve karega. Payment instructions follow karein.'; }
+        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request bhej di. Payment verify hone ke baad plan active hoga.'; }
         reqBtn.disabled = true;
       }).catch(function(e) {
         if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Error: ' + e.message; }
