@@ -4572,11 +4572,13 @@ function openModal(key) {
 }
 
 function closeModal() {
+  // Restore list URL (home OR category) — never force blank home if user was in a category
   try {
-    if (location.pathname.indexOf('/movie/') === 0 || location.search.indexOf('?m=') === 0) {
-      history.replaceState(null, '', '/');
+    if (location.pathname.indexOf('/movie/') === 0 || /(^|[?&])m=/.test(location.search || '')) {
+      var listUrl = (typeof cvGetListUrl === 'function') ? cvGetListUrl() : '/';
+      history.replaceState({ cv: 'list' }, '', listUrl || '/');
     }
-  } catch(e){}
+  } catch (e) {}
   cvResetSEO();
   // Smooth close animation before hiding
   var modal = document.getElementById('cv-modal');
@@ -4892,33 +4894,55 @@ function cvPushState(name, urlParam) {
 
 // ✅ Pretty URL push for movie pages: /movie/slug-name
 function cvPushMovieState(slug) {
+  // Always keep a list entry under the modal so Back stays on-site
+  try {
+    cvCaptureListUrl();
+    if (!cvHistoryCushionDone) {
+      var listUrl = cvGetListUrl();
+      if (location.pathname.indexOf('/movie/') === 0) {
+        history.replaceState({ cv: 'list' }, '', listUrl);
+      } else {
+        history.replaceState({ cv: 'list' }, '', location.pathname + (location.search || '') || '/');
+        cvCaptureListUrl();
+      }
+      cvHistoryCushionDone = true;
+    } else if (location.pathname.indexOf('/movie/') !== 0) {
+      // Update list URL while still on grid
+      cvCaptureListUrl();
+      history.replaceState({ cv: 'list', cat: true }, '', location.pathname + (location.search || '') || '/');
+    }
+  } catch (e) {}
+  // Avoid stacking duplicate modal states for same URL
+  try {
+    if (location.pathname === '/movie/' + slug || location.pathname === '/movie/' + encodeURIComponent(slug)) {
+      if (cvStack[cvStack.length - 1] !== 'modal') cvStack.push('modal');
+      return;
+    }
+  } catch (e2) {}
   cvStack.push('modal');
   var newUrl = '/movie/' + slug;
-  history.pushState({cv: 'modal', urlParam: 'm=' + slug}, '', newUrl);
+  history.pushState({ cv: 'modal', urlParam: 'm=' + slug }, '', newUrl);
 }
 
 function cvGoBack() {
-  var didPop = false;
+  // Prefer history.back() so browser URL + popstate stay in sync.
+  // popstate handler closes modal/player UI. Avoid replaceState+back (double step → exit).
   if (cvStack.length > 0) {
-    var closing = cvStack.pop();
-    didPop = true;
-    var top = cvStack[cvStack.length - 1];
-    if (closing === 'player') {
-      closePlayer();
-      // If modal was open below player, reopen it
-      if (top === 'modal') {
-        document.getElementById('cv-modal').classList.add('open');
-        document.body.style.overflow = 'hidden';
+    var closing = cvStack[cvStack.length - 1];
+    if (closing === 'player' || closing === 'modal') {
+      try { history.back(); } catch (e) {
+        if (closing === 'player') closePlayer();
+        else closeModal();
+        cvStack.pop();
       }
-    } else if (closing === 'modal') {
-      closeModal();
+      return;
     }
-  } else {
-    // Stack khaali hai (kabhi pushState hua hi nahi) — phir bhi UI se close
-    // karna hai, lekin history.back() na karo warna bina wajah site exit ho sakti hai
-    closeModal();
   }
-  if (didPop) history.back();
+  // No stack entry — close UI only, never history.back() (would exit site)
+  var player = document.getElementById('cv-player');
+  var modal = document.getElementById('cv-modal');
+  if (player && player.classList.contains('open')) closePlayer();
+  else if (modal && modal.classList.contains('open')) closeModal();
 }
 
 function cvSendContact() {
@@ -4951,17 +4975,34 @@ function cvSendContact() {
 window.addEventListener('popstate', function(e) {
   var player = document.getElementById('cv-player');
   var modal = document.getElementById('cv-modal');
-  if (player.classList.contains('open')) {
+  if (player && player.classList.contains('open')) {
     closePlayer();
-    cvStack.pop();
-    // If modal was under player, keep its URL
-  } else if (modal.classList.contains('open')) {
-    closeModal();
-    cvStack.pop();
-  } else {
-    // Back/forward navigation — restore filter from URL
-    cvRestoreFromUrl();
+    if (cvStack.length) cvStack.pop();
+    return;
   }
+  if (modal && modal.classList.contains('open')) {
+    // URL already moved back by browser — only close UI, do not force '/'
+    try {
+      var modalEl = document.getElementById('cv-modal');
+      if (modalEl) {
+        modalEl.classList.remove('open');
+        modalEl.classList.remove('cv-closing');
+      }
+      document.body.style.overflow = '';
+      if (window._cvModalLiveRef && typeof window._cvModalLiveRef.off === 'function') {
+        try { window._cvModalLiveRef.off(); } catch (e0) {}
+        window._cvModalLiveRef = null;
+      }
+      window._cvModalLiveKey = null;
+      if (typeof cvResetSEO === 'function') cvResetSEO();
+    } catch (e1) {}
+    if (cvStack.length) cvStack.pop();
+    // Restore category/home from current URL (after back)
+    try { if (typeof cvRestoreFromUrl === 'function') cvRestoreFromUrl(); } catch (e2) {}
+    return;
+  }
+  // Back/forward on list — restore filter from URL
+  try { cvRestoreFromUrl(); } catch (e3) {}
 });
 
 
@@ -5462,6 +5503,12 @@ function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
   cnRequireSub('watch', function() {
     try { cvIncUserStat('watches'); } catch (e) {}
+    try {
+      cvCaptureListUrl();
+      sessionStorage.setItem('cv_return_from_player', '1');
+      sessionStorage.setItem('cv_return_movie', movieKey);
+      if (cvLastListUrl) sessionStorage.setItem('cv_list_url', cvLastListUrl);
+    } catch (e2) {}
     window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
   });
 }
@@ -5470,6 +5517,12 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
   if (!movieKey) return;
   cnRequireSub('watch', function() {
     try { cvIncUserStat('watches'); } catch (e) {}
+    try {
+      cvCaptureListUrl();
+      sessionStorage.setItem('cv_return_from_player', '1');
+      sessionStorage.setItem('cv_return_movie', movieKey);
+      if (cvLastListUrl) sessionStorage.setItem('cv_list_url', cvLastListUrl);
+    } catch (e2) {}
     window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
   });
 }
@@ -5779,6 +5832,7 @@ function cvApplyFilter(cat, isGenre, pillEl) {
         var curUrl = location.pathname + location.search;
         if (newUrl !== curUrl) {
           history.pushState({cv: 'filter', cat: cat, isGenre: isGenre}, '', newUrl);
+          try { cvLastListUrl = newUrl; sessionStorage.setItem('cv_list_url', newUrl); } catch(_e){}
         }
       } catch(e) {}
     }
@@ -5812,6 +5866,7 @@ function cvSyncFilterUrl() {
     var curUrl = location.pathname + location.search;
     if (newUrl !== curUrl) {
       history.pushState({cv: 'filter', cat: selCat, genre: selGenre, lang: selLang}, '', newUrl);
+      try { cvLastListUrl = newUrl; sessionStorage.setItem('cv_list_url', newUrl); } catch(_e){}
     }
   } catch (e) {}
 }
