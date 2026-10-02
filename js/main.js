@@ -4992,6 +4992,17 @@ function cvLoadSubSettings(cb) {
   });
 }
 
+
+function cvIncUserStat(kind) {
+  try {
+    if (typeof firebase === 'undefined' || !firebase.auth) return;
+    var u = firebase.auth().currentUser;
+    if (!u || !db) return;
+    var path = 'users/' + u.uid + '/stats/' + kind;
+    db.ref(path).transaction(function(c) { return (typeof c === 'number' ? c : 0) + 1; }).catch(function(){});
+  } catch (e) {}
+}
+
 function cvIsSubActive(sub) {
   if (!sub || sub.status !== 'active') return false;
   var exp = Number(sub.expiresAt || 0);
@@ -5031,6 +5042,7 @@ function cvFetchUserSub(uid, cb) {
 /** action: 'download' | 'watch' — if allowed runs onOk, else shows paywall */
 function cnGatedPlayVideo(url, title) {
   cnRequireSub('watch', function() {
+    try { cvIncUserStat('watches'); } catch (e) {}
     if (typeof playVideo === 'function') playVideo(url, title);
   });
 }
@@ -5217,6 +5229,7 @@ function cnGoToDownloadWorker(movieKey, quality, season, episode) {
   var WORKER_DL_BASE = 'https://www.cinenova.site/dl';
   if (!movieKey) return;
   cnRequireSub('download', function() {
+    try { cvIncUserStat('downloads'); } catch (e) {}
     cnBumpDownloadCount(movieKey);
     var params = new URLSearchParams();
     params.set('id', movieKey);
@@ -5360,6 +5373,7 @@ function cnOpenInVlc(httpsUrl, title) {
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
   cnRequireSub('watch', function() {
+    try { cvIncUserStat('watches'); } catch (e) {}
     window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
   });
 }
@@ -5367,6 +5381,7 @@ function cnGoToWatchWorker(movieKey, quality) {
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
   if (!movieKey) return;
   cnRequireSub('watch', function() {
+    try { cvIncUserStat('watches'); } catch (e) {}
     window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
   });
 }
@@ -7740,81 +7755,104 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 })();
 
 
+
+
 /* === cv-account-dashboard === */
 (function(){
-
   function injectAccCss() {
     if (document.getElementById('cv-acc-css')) return;
     var s = document.createElement('style');
     s.id = 'cv-acc-css';
-    s.textContent = '#cv-nav{display:flex;align-items:center;gap:8px;}'
-      + '#cv-logo{flex:1 1 auto;min-width:0;max-width:calc(100% - 140px);}'
+    s.textContent = ''
+      + '#cv-nav{display:flex;align-items:center;gap:6px;}'
+      + '#cv-logo{flex:1 1 auto;min-width:0;overflow:hidden;}'
       + '#cv-nav-icons-wrap{display:flex!important;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;}'
-      + '#cv-account-btn{width:34px!important;height:34px!important;min-width:34px!important;}'
-      + '@media(max-width:380px){#cv-account-btn{width:32px!important;height:32px!important;min-width:32px!important;}}';
+      + '#cv-account-btn{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;'
+      + 'border-radius:50%!important;border:1px solid rgba(255,255,255,0.14)!important;background:#1a1a1a!important;'
+      + 'color:#fff!important;cursor:pointer!important;display:inline-flex!important;align-items:center!important;'
+      + 'justify-content:center!important;overflow:hidden!important;padding:0!important;flex-shrink:0!important;'
+      + 'visibility:visible!important;opacity:1!important;z-index:5!important;}'
+      + '#cv-account-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}';
     document.head.appendChild(s);
   }
 
   function ensureNavBtn() {
-    if (document.getElementById('cv-account-btn')) return;
-    var btn = document.createElement('button');
+    injectAccCss();
+    var btn = document.getElementById('cv-account-btn');
+    if (btn) return btn;
+    btn = document.createElement('button');
     btn.id = 'cv-account-btn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Account');
-    btn.className = 'cv-icon-btn';
-    btn.style.cssText = 'width:36px;height:36px;min-width:36px;min-height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);background:rgba(20,20,20,0.9);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;padding:0;flex-shrink:0;margin:0;';
-    btn.innerHTML = '<span style="font-size:0.95rem;line-height:1;">👤</span>';
-    btn.onclick = function(){ cvOpenAccountPanel(); };
-    // Prefer right-side icon cluster (search/bookmark) — never over logo
+    btn.title = 'Account';
+    btn.innerHTML = '<span style="font-size:0.9rem;line-height:1;">👤</span>';
+    btn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      cvOpenAccountPanel();
+    };
     var icons = document.getElementById('cv-nav-icons-wrap');
     if (icons) {
-      icons.style.display = 'flex';
-      icons.style.alignItems = 'center';
-      icons.style.gap = '6px';
-      icons.style.flexShrink = '0';
       icons.appendChild(btn);
-      return;
+      return btn;
     }
-    // fallback: after last button in nav
     var nav = document.getElementById('cv-nav');
-    if (!nav) return;
-    nav.style.gap = nav.style.gap || '8px';
-    var kids = nav.querySelectorAll('button.cv-icon-btn, #cv-search-btn, [aria-label="Search"]');
-    if (kids.length) kids[kids.length - 1].after(btn);
-    else nav.appendChild(btn);
+    if (nav) nav.appendChild(btn);
+    return btn;
   }
 
   function setBtnUser(user) {
-    var btn = document.getElementById('cv-account-btn');
+    var btn = ensureNavBtn();
     if (!btn) return;
     if (user && user.photoURL) {
-      btn.innerHTML = '<img src="'+user.photoURL.replace(/"/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+      btn.innerHTML = '<img src="' + String(user.photoURL).replace(/"/g, '') + '" alt=""/>';
       btn.title = user.displayName || user.email || 'Account';
     } else if (user) {
       var ch = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-      btn.innerHTML = '<span style="font-weight:800;font-size:0.95rem;">'+ch+'</span>';
+      btn.innerHTML = '<span style="font-weight:800;font-size:0.9rem;">' + ch + '</span>';
       btn.title = user.displayName || user.email || 'Account';
     } else {
-      btn.innerHTML = '<span style="font-size:1.1rem;">👤</span>';
+      btn.innerHTML = '<span style="font-size:0.9rem;line-height:1;">👤</span>';
       btn.title = 'Login';
     }
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    try {
+      var d = new Date(Number(ts));
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+        + ' · ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return '—'; }
+  }
+
+  function daysLeft(exp) {
+    var n = Number(exp || 0) - Date.now();
+    if (n <= 0) return 0;
+    return Math.ceil(n / 86400000);
   }
 
   window.cvOpenAccountPanel = function() {
     var old = document.getElementById('cv-account-panel');
     if (old) old.remove();
+    ensureNavBtn();
     cvEnsureFirebaseAuth(function() {
       var user = null;
-      try { user = firebase.auth().currentUser; } catch(e) {}
+      try { user = firebase.auth().currentUser; } catch (e) {}
       var panel = document.createElement('div');
       panel.id = 'cv-account-panel';
-      panel.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;padding:12px;';
+      panel.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;padding:12px;';
       var box = document.createElement('div');
-      box.style.cssText = 'width:100%;max-width:420px;background:#141414;border:1px solid #2a2a2a;border-radius:16px 16px 12px 12px;padding:18px;max-height:85vh;overflow:auto;';
+      box.style.cssText = 'width:100%;max-width:440px;background:#121212;border:1px solid #2a2a2a;border-radius:18px;padding:18px;max-height:88vh;overflow:auto;';
+
       if (!user) {
-        box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><b style="font-size:1.05rem;">Account</b><button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:32px;height:32px;border-radius:8px;cursor:pointer;">✕</button></div>'
-          + '<p style="color:#aaa;font-size:0.85rem;line-height:1.5;margin:0 0 14px;">Login karke subscription manage karein. Panel se subscription ON ho to Watch/Download ke liye plan chahiye.</p>'
-          + '<button type="button" id="cv-acc-google" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Continue with Google</button>';
+        box.innerHTML = ''
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+          + '<b style="font-size:1.08rem;">Account</b>'
+          + '<button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:34px;height:34px;border-radius:10px;cursor:pointer;">✕</button></div>'
+          + '<p style="color:#9ca3af;font-size:0.86rem;line-height:1.5;margin:0 0 14px;">Google se login karein — watchlist sync aur account dashboard ke liye.</p>'
+          + '<button type="button" id="cv-acc-google" style="width:100%;padding:13px;background:#e50914;color:#fff;border:0;border-radius:12px;font-weight:800;cursor:pointer;">🔐 Continue with Google</button>';
         panel.appendChild(box);
         document.body.appendChild(panel);
         document.getElementById('cv-acc-x').onclick = function(){ panel.remove(); };
@@ -7831,18 +7869,25 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
             setBtnUser(u);
             panel.remove();
             cvOpenAccountPanel();
-          }).catch(function(err){ alert('Login fail: ' + (err.message||err)); });
+          }).catch(function(err){ alert('Login fail: ' + (err.message || err)); });
         };
         return;
       }
-      // Logged in — dashboard
-      box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><b style="font-size:1.05rem;">My Dashboard</b><button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:32px;height:32px;border-radius:8px;cursor:pointer;">✕</button></div>'
+
+      box.innerHTML = ''
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+        + '<b style="font-size:1.08rem;">My Dashboard</b>'
+        + '<button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:34px;height:34px;border-radius:10px;cursor:pointer;">✕</button></div>'
         + '<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">'
-        + (user.photoURL ? '<img src="'+user.photoURL+'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-weight:800;">'+(user.displayName||'U').charAt(0)+'</div>')
-        + '<div style="min-width:0;"><div style="font-weight:700;font-size:0.95rem;">'+(user.displayName||'User')+'</div><div style="font-size:0.75rem;color:#888;word-break:break-all;">'+(user.email||'')+'</div></div></div>'
-        + '<div id="cv-acc-subbox" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-bottom:12px;font-size:0.82rem;color:#ccc;">Loading subscription…</div>'
-        + '<button type="button" id="cv-acc-plans" style="width:100%;padding:11px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;margin-bottom:8px;">💎 Plans / Subscribe</button>'
-        + '<button type="button" id="cv-acc-logout" style="width:100%;padding:11px;background:#222;color:#eee;border:1px solid #333;border-radius:10px;font-weight:600;cursor:pointer;">Logout</button>';
+        + (user.photoURL
+            ? '<img src="' + String(user.photoURL).replace(/"/g,'') + '" style="width:52px;height:52px;border-radius:50%;object-fit:cover;"/>'
+            : '<div style="width:52px;height:52px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;">' + (user.displayName || 'U').charAt(0).toUpperCase() + '</div>')
+        + '<div style="min-width:0;"><div style="font-weight:800;font-size:0.98rem;">' + (user.displayName || 'User') + '</div>'
+        + '<div style="font-size:0.75rem;color:#888;word-break:break-all;">' + (user.email || '') + '</div></div></div>'
+        + '<div id="cv-acc-subbox" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:14px;margin-bottom:10px;font-size:0.84rem;color:#ddd;">Loading…</div>'
+        + '<div id="cv-acc-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"></div>'
+        + '<button type="button" id="cv-acc-plans" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:12px;font-weight:800;cursor:pointer;margin-bottom:8px;display:none;">💎 Get / Renew Plan</button>'
+        + '<button type="button" id="cv-acc-logout" style="width:100%;padding:12px;background:#1f1f1f;color:#eee;border:1px solid #333;border-radius:12px;font-weight:600;cursor:pointer;">Logout</button>';
       panel.appendChild(box);
       document.body.appendChild(panel);
       document.getElementById('cv-acc-x').onclick = function(){ panel.remove(); };
@@ -7850,32 +7895,62 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
       document.getElementById('cv-acc-logout').onclick = function() {
         firebase.auth().signOut().then(function(){ setBtnUser(null); panel.remove(); });
       };
-      document.getElementById('cv-acc-plans').onclick = function() {
+
+      var plansBtn = document.getElementById('cv-acc-plans');
+      plansBtn.onclick = function() {
         panel.remove();
-        cvLoadSubSettings(function(cfg){ cvShowSubModal(cfg || {enabled:true, plans:{}}, user, 'subscribe'); });
-      };
-      cvFetchUserSub(user.uid, function(sub) {
-        var el = document.getElementById('cv-acc-subbox');
-        if (!el) return;
         cvLoadSubSettings(function(cfg) {
-          var subOn = cfg && cfg.enabled;
+          cvShowSubModal(cfg || { enabled: true, plans: {} }, user, 'subscribe');
+        });
+      };
+
+      // Load sub + stats
+      cvLoadSubSettings(function(cfg) {
+        var subOn = !!(cfg && cfg.enabled);
+        cvFetchUserSub(user.uid, function(sub) {
+          var el = document.getElementById('cv-acc-subbox');
+          if (!el) return;
           if (!subOn) {
-            el.innerHTML = '<div style="color:#aaa;line-height:1.45;">Account connected. Browse movies from Home. Watchlist sync with this login.</div>';
-            // Hide subscribe CTA when system off
-            var plansBtn = document.getElementById('cv-acc-plans');
-            if (plansBtn) plansBtn.style.display = 'none';
-            return;
-          }
-          if (cvIsSubActive(sub)) {
-            var exp = sub.expiresAt ? new Date(Number(sub.expiresAt)).toLocaleString() : '—';
-            el.innerHTML = '<div style="color:#4ade80;font-weight:800;margin-bottom:6px;">✅ ACTIVE</div>'
-              + '<div>Plan: <b>'+(sub.planLabel || sub.plan || '—')+'</b></div>'
-              + '<div style="margin-top:4px;color:#aaa;">Expires: '+exp+'</div>';
+            el.innerHTML = '<div style="color:#9ca3af;line-height:1.45;">Account connected. Movies browse karein — watchlist is login se sync rehti hai.</div>';
+            plansBtn.style.display = 'none';
+          } else if (cvIsSubActive(sub)) {
+            var left = daysLeft(sub.expiresAt);
+            var planDays = sub.durationDays || sub.days || '';
+            el.innerHTML = ''
+              + '<div style="color:#4ade80;font-weight:900;margin-bottom:8px;font-size:0.95rem;">✅ PLAN ACTIVE</div>'
+              + '<div style="display:grid;gap:6px;">'
+              + '<div>Plan: <b>' + (sub.planLabel || sub.plan || '—') + '</b>' + (planDays ? ' <span style="color:#888;">(' + planDays + ' days)</span>' : '') + '</div>'
+              + '<div>Activated: <b>' + fmtDate(sub.activatedAt || sub.startedAt || sub.updatedAt) + '</b></div>'
+              + '<div>Expires: <b style="color:#fbbf24;">' + fmtDate(sub.expiresAt) + '</b></div>'
+              + '<div>Days left: <b>' + left + '</b></div>'
+              + '</div>';
+            plansBtn.style.display = 'block';
+            plansBtn.textContent = '💎 Renew Plan';
           } else {
-            el.innerHTML = '<div style="color:#fbbf24;font-weight:800;margin-bottom:6px;">⚠ No active plan</div>'
-              + '<div style="color:#aaa;">Watch / Download ke liye plan activate karein. Payment request panel se approve hogi.</div>';
+            el.innerHTML = ''
+              + '<div style="color:#fbbf24;font-weight:900;margin-bottom:8px;">⚠ No active subscription</div>'
+              + '<div style="color:#9ca3af;line-height:1.45;">Watch aur Download ke liye pehle plan purchase karein. Popup band karne se access nahi milega.</div>';
+            plansBtn.style.display = 'block';
+            plansBtn.textContent = '💎 Buy Subscription';
           }
         });
+
+        // stats
+        if (!db) return;
+        db.ref('users/' + user.uid + '/stats').once('value').then(function(snap) {
+          var st = snap.val() || {};
+          var boxS = document.getElementById('cv-acc-stats');
+          if (!boxS) return;
+          var dl = st.downloads || 0;
+          var wt = st.watches || 0;
+          boxS.innerHTML = ''
+            + '<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;text-align:center;">'
+            + '<div style="font-size:1.25rem;font-weight:900;color:#fff;">' + dl + '</div>'
+            + '<div style="font-size:0.72rem;color:#888;margin-top:4px;">Downloads</div></div>'
+            + '<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;text-align:center;">'
+            + '<div style="font-size:1.25rem;font-weight:900;color:#fff;">' + wt + '</div>'
+            + '<div style="font-size:0.72rem;color:#888;margin-top:4px;">Online watches</div></div>';
+        }).catch(function(){});
       });
     });
   };
@@ -7883,16 +7958,23 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   function boot() {
     injectAccCss();
     ensureNavBtn();
-    cvEnsureFirebaseAuth(function() {
-      try {
-        firebase.auth().onAuthStateChanged(function(user) {
+    try {
+      cvEnsureFirebaseAuth(function() {
+        try {
+          firebase.auth().onAuthStateChanged(function(user) {
+            ensureNavBtn();
+            setBtnUser(user || null);
+          });
+        } catch (e) {
           ensureNavBtn();
-          setBtnUser(user || null);
-        });
-      } catch(e) { ensureNavBtn(); }
-    });
+        }
+      });
+    } catch (e2) {
+      ensureNavBtn();
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
-  setTimeout(boot, 1500);
+  setTimeout(boot, 800);
+  setTimeout(boot, 2500);
 })();
