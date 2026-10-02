@@ -3,12 +3,25 @@ if (url.pathname === '/robots.txt') {
   const robotsTxt = `User-agent: *
 Allow: /
 
-# Search query pages — low value / duplicate content
+# Search only
 Disallow: /*?q=
 Disallow: /*&q=
 
-# Adult category (extra safety)
-Disallow: /*?cat=adult
+# OLD category/genre query URLs — permanently retired
+Disallow: /*?cat=
+Disallow: /*?genre=
+
+# Adult (pretty path)
+Disallow: /category/adult
+Disallow: /category/adult-all
+Disallow: /category/philippines
+Disallow: /category/hot-short
+Disallow: /category/short-films
+
+# Pretty public paths
+Allow: /category/
+Allow: /genre/
+Allow: /movie/
 
 Sitemap: https://www.cinenova.site/sitemap.xml
 `;
