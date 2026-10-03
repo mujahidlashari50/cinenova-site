@@ -230,3 +230,50 @@ body.cv-cat-view #tmdb-slider-wrap {
 
 /* Adult verified header badge — hidden (nav clutter on mobile) */
 #cv-adult-verified-badge{display:none!important;visibility:hidden!important;width:0!important;height:0!important;overflow:hidden!important;pointer-events:none!important;margin:0!important;padding:0!important;}
+
+
+/* Poster wrap = positioning context for all overlays */
+#cv-grid .cv-card-img-wrap {
+  position: relative !important;
+  overflow: hidden !important;
+}
+#cv-grid .cv-q-pill {
+  position: absolute !important;
+  top: 6px !important;
+  left: 6px !important;
+  bottom: auto !important;
+  z-index: 5 !important;
+}
+#cv-grid .cv-badge {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 5 !important;
+}
+#cv-grid .cv-cat-badge {
+  position: absolute !important;
+  top: auto !important;
+  left: 6px !important;
+  right: auto !important;
+  bottom: 8px !important;
+  z-index: 5 !important;
+  width: auto !important;
+  height: auto !important;
+}
+#cv-grid .cv-card-info {
+  position: relative !important;
+  z-index: 1 !important;
+  padding-top: 6px !important;
+}
+#cv-grid .cv-card-meta {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  font-size: 0.58rem !important;
+  color: #9a9a9a !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
