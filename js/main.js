@@ -1187,6 +1187,21 @@ var CV_URL_SLUG_TO_CAT = {};
     CV_URL_SLUG_TO_CAT[String(k).replace(/_/g, '-')] = k;
   });
 })();
+
+function cvCategoryLabel(c) {
+  var k = String(c || '').toLowerCase().replace(/[\s\-]+/g, '_');
+  var map = {
+    english_movies: 'Hollywood', hollywood: 'Hollywood',
+    hindi_dubbed: 'Hindi Dubbed', dual_audio: 'Dual Audio',
+    south_hindi: 'South Hindi', tollywood: 'South Hindi',
+    bollywood_hindi: 'Bollywood', bollywood: 'Bollywood',
+    anime_hindi: 'Anime', animation_hindi_dubbed: 'Animation', animation: 'Animation',
+    webseries_hindi: 'Web Series', webseries: 'Web Series',
+    kdrama_hindi: 'K-Drama', kdrama: 'K-Drama',
+    philippines: 'Philippines', hot_short_hindi: 'Hot Short', adult: 'Adult'
+  };
+  return map[k] || String(c || '').replace(/_/g, ' ');
+}
 function cvCatToUrlSlug(cat) {
   if (!cat || cat === 'all' || cat === 'watchlist') return '';
   if (CV_CAT_URL_SLUG[cat]) return CV_CAT_URL_SLUG[cat];
@@ -4294,13 +4309,17 @@ function makeCard(m) {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
   if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
-  if (cat) inner += '<a class="cv-cat-badge cv-new" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g,'-'))) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
+  if (cat) {
+    var catLab = (typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || cat);
+    var catHref = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g, '-'));
+    inner += '<a class="cv-cat-badge cv-new" href="' + catHref + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\"' + escJs(cat) + '\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(catLab) + '</a>';
+  }
   if (m.quality) {
     var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
     inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
   }
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
-           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
+           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (cat ? ' · ' + escHtml((typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || '')) : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
 
   div.innerHTML = inner;
   return div;
