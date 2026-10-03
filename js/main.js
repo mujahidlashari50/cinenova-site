@@ -8313,45 +8313,102 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   };
 
   
-// ── PWA: service worker + install prompt ──
+// ── PWA: service worker + real install flow ──
 var _cvDeferredPrompt = null;
+function cvIsStandalone() {
+  try {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true
+      || document.referrer.indexOf('android-app://') === 0;
+  } catch (e) { return false; }
+}
+function cvIsIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function cvIsAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
 function cvRegisterPWA() {
   try {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
       try { if (reg && reg.update) reg.update(); } catch (eU) {}
-    }).catch(function() {});
+      // SW ready ke baad banner (Chrome install criteria)
+      if (reg && reg.installing) {
+        reg.installing.addEventListener('statechange', function() {
+          if (reg.active) setTimeout(cvShowPwaInstallBanner, 2000);
+        });
+      } else {
+        setTimeout(cvShowPwaInstallBanner, 3000);
+      }
+    }).catch(function() {
+      setTimeout(cvShowPwaInstallBanner, 4000);
+    });
   } catch (eSw) {}
 }
 function cvShowPwaInstallBanner() {
   try {
-    if (window.matchMedia('(display-mode: standalone)').matches) return;
-    if (localStorage.getItem('cv_pwa_dismiss')) return;
+    if (cvIsStandalone()) return;
+    if (localStorage.getItem('cv_pwa_dismiss') === '1') return;
     if (document.getElementById('cv-pwa-banner')) return;
+
+    var tip = 'Home screen pe app jaisa icon';
+    if (cvIsIOS()) tip = 'Safari → Share → Add to Home Screen';
+    else if (!_cvDeferredPrompt && cvIsAndroid()) tip = 'Chrome menu ⋮ → Install app / Add to Home screen';
+    else if (!_cvDeferredPrompt) tip = 'Browser menu → Install app';
+
     var bar = document.createElement('div');
     bar.id = 'cv-pwa-banner';
     bar.setAttribute('role', 'dialog');
     bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:16px;z-index:99999;display:flex;align-items:center;gap:10px;padding:12px 14px;background:#1a1a1a;border:1px solid #333;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.45);font-family:inherit;color:#eee;';
     bar.innerHTML = '<img src="https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png" width="40" height="40" alt="" style="border-radius:8px;flex-shrink:0"/>'
-      + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.9rem">Install CineNova</div>'
-      + '<div style="font-size:0.75rem;color:#aaa;margin-top:2px">Home screen pe app jaisa open karein</div></div>'
-      + '<button type="button" id="cv-pwa-install-btn" style="background:#e50914;color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:0.8rem">Install</button>'
+      + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.9rem">Install CineNova App</div>'
+      + '<div id="cv-pwa-tip" style="font-size:0.72rem;color:#aaa;margin-top:2px;line-height:1.35">' + tip + '</div></div>'
+      + '<button type="button" id="cv-pwa-install-btn" style="background:#e50914;color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:0.82rem;white-space:nowrap">Install</button>'
       + '<button type="button" id="cv-pwa-dismiss-btn" aria-label="Close" style="background:transparent;border:0;color:#888;font-size:1.2rem;cursor:pointer;padding:4px 6px">×</button>';
     document.body.appendChild(bar);
+
     document.getElementById('cv-pwa-dismiss-btn').onclick = function() {
       try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
       bar.remove();
     };
+
     document.getElementById('cv-pwa-install-btn').onclick = function() {
+      var tipEl = document.getElementById('cv-pwa-tip');
+      var btn = document.getElementById('cv-pwa-install-btn');
       if (_cvDeferredPrompt) {
+        btn.disabled = true;
+        btn.textContent = '...';
         _cvDeferredPrompt.prompt();
-        _cvDeferredPrompt.userChoice.then(function() {
+        _cvDeferredPrompt.userChoice.then(function(choice) {
           _cvDeferredPrompt = null;
-          bar.remove();
+          if (choice && choice.outcome === 'accepted') {
+            try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e2) {}
+            bar.remove();
+          } else {
+            btn.disabled = false;
+            btn.textContent = 'Install';
+            if (tipEl) tipEl.textContent = 'Install cancel hua — Chrome menu ⋮ se "Install app" try karo';
+          }
+        }).catch(function() {
+          btn.disabled = false;
+          btn.textContent = 'Install';
         });
+        return;
+      }
+      // No native prompt — show exact steps
+      if (cvIsIOS()) {
+        if (tipEl) tipEl.innerHTML = '<b>iPhone:</b> Share (□↑) → <b>Add to Home Screen</b> → Add';
+        btn.textContent = 'OK';
+        btn.onclick = function() { bar.remove(); };
+      } else if (cvIsAndroid()) {
+        if (tipEl) tipEl.innerHTML = '<b>Android Chrome:</b> top-right <b>⋮</b> → <b>Install app</b> ya <b>Add to Home screen</b>';
+        btn.textContent = 'OK';
+        btn.onclick = function() { bar.remove(); };
       } else {
-        // iOS / no beforeinstallprompt
-        bar.querySelector('div div:last-child').textContent = 'Share → Add to Home Screen';
+        if (tipEl) tipEl.textContent = 'Desktop Chrome: address bar ke right me Install icon (⊕) pe click karo';
+        btn.textContent = 'OK';
+        btn.onclick = function() { bar.remove(); };
       }
     };
   } catch (eB) {}
@@ -8359,18 +8416,19 @@ function cvShowPwaInstallBanner() {
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   _cvDeferredPrompt = e;
-  setTimeout(cvShowPwaInstallBanner, 4000);
+  setTimeout(cvShowPwaInstallBanner, 1500);
 });
 window.addEventListener('appinstalled', function() {
   _cvDeferredPrompt = null;
   try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
   var b = document.getElementById('cv-pwa-banner');
   if (b) b.remove();
+  try { if (typeof toast === 'function') toast('✅ CineNova app install ho gaya'); } catch (eT) {}
 });
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() { setTimeout(cvRegisterPWA, 1500); });
+  document.addEventListener('DOMContentLoaded', function() { setTimeout(cvRegisterPWA, 800); });
 } else {
-  setTimeout(cvRegisterPWA, 1500);
+  setTimeout(cvRegisterPWA, 800);
 }
 
 
