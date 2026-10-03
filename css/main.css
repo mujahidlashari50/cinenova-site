@@ -1045,53 +1045,25 @@ body.cv-scrolling #cv-nav{
   margin-top: 2px !important;
 }
 
-/* Quality pill — top-left, resolution only */
+/* Quality pill — grid only */
 #cv-grid .cv-q-pill {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 5px;
+  left: 5px;
   z-index: 3;
-  background: rgba(0,0,0,.82);
+  background: rgba(0,0,0,.78);
   color: #fff;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   font-weight: 800;
-  padding: 3px 6px;
-  border-radius: 5px;
+  padding: 2px 5px;
+  border-radius: 4px;
   pointer-events: none;
-  border: 1px solid rgba(255,255,255,.14);
-  letter-spacing: 0.02em;
+  border: 1px solid rgba(255,255,255,.12);
 }
 
-/* Category short badge — bottom-left on poster */
+/* Hide heavy category badge on grid cards only */
 #cv-grid .cv-cat-badge {
-  display: inline-block !important;
-  position: absolute;
-  left: 6px;
-  bottom: 6px;
-  z-index: 3;
-  max-width: calc(100% - 12px);
-  padding: 3px 7px;
-  border-radius: 5px;
-  background: rgba(229,9,20,0.92);
-  border: none;
-  color: #fff;
-  font-size: 0.58rem;
-  font-weight: 800;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-decoration: none !important;
-  pointer-events: auto;
-}
-#cv-grid .cv-cat-badge:hover {
-  background: #ff1a24;
-  color: #fff;
-}
-#cv-grid .cv-card-img-wrap {
-  position: relative;
+  display: none !important;
 }
 
 /* ── Filter bar — compact ── */
@@ -1180,6 +1152,3 @@ body.cv-cat-view #tmdb-slider-wrap {
 .cv-cs-card .cv-card-img-wrap{position:relative}
 .cv-cs-date{background:rgba(0,113,235,.9)!important}
 
-
-/* Adult verified header badge — hidden (nav clutter on mobile) */
-#cv-adult-verified-badge{display:none!important;visibility:hidden!important;width:0!important;height:0!important;overflow:hidden!important;pointer-events:none!important;margin:0!important;padding:0!important;}
