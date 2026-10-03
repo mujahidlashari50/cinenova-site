@@ -4318,30 +4318,48 @@ function makeCard(m) {
   var isNew = m.addedAt && (NOW_TS - m.addedAt) < NEW_THRESHOLD;
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
-  if (thumb) {
-    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
-  } else {
-    inner += '<div class="cv-card-no-img">🎬</div>';
-  }
-  if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
-  // Quality — ONLY resolution (1080p / 720p), never category text
+
+  // Build overlay badges that live INSIDE poster wrap
+  var overlays = '';
+  if (m.rating) overlays += '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>';
   if (m.quality) {
     var _qm = String(m.quality).match(/\d{3,4}\s*p/i);
     var _qp = _qm ? _qm[0].replace(/\s+/g, '').toUpperCase() : String(m.quality).split(/[|/·,]/)[0].trim().substring(0, 6);
-    if (_qp) inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
+    if (_qp) overlays += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
   }
-  // Category short badge — bottom of poster
   if (cat) {
     var catShort = (typeof cvCategoryShort === 'function') ? cvCategoryShort(m.category) : '';
     var catLab = (typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || cat);
     var catShow = catShort || catLab;
     var catHref = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g, '-'));
     if (catShow) {
-      inner += '<a class="cv-cat-badge" href="' + catHref + '" title="' + escHtml(catLab) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();">' + escHtml(catShow) + '</a>';
+      overlays += '<a class="cv-cat-badge" href="' + catHref + '" title="' + escHtml(catLab) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();">' + escHtml(catShow) + '</a>';
     }
   }
+
+  if (thumb) {
+    inner += '<div class="cv-card-img-wrap">' +
+      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      '<div class="cv-card-no-img" style="display:none">🎬</div>' +
+      (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') +
+      overlays +
+      '</div>';
+  } else {
+    inner += '<div class="cv-card-img-wrap cv-card-no-img-wrap"><div class="cv-card-no-img">🎬</div>' + overlays + '</div>';
+  }
+
+  // Meta under poster — year · quality · downloads (always visible when present)
+  var metaParts = [];
+  if (m.year) metaParts.push(escHtml(String(m.year).replace(/\D/g,'').substring(0,4) || m.year));
+  if (m.quality) {
+    var _qm2 = String(m.quality).match(/\d{3,4}\s*p/i);
+    metaParts.push(escHtml(_qm2 ? _qm2[0].replace(/\s+/g,'').toUpperCase() : String(m.quality).split(/[|/]/)[0].trim()));
+  }
+  if (m.downloadCount) metaParts.push('⬇ ' + cvFormatCount(m.downloadCount));
+  else if (m.views) metaParts.push('👁 ' + cvFormatCount(m.views));
+
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
-           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + escHtml(String(m.quality).match(/\d{3,4}\s*p/i) ? String(m.quality).match(/\d{3,4}\s*p/i)[0] : String(m.quality).split(/[|/]/)[0].trim()) : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
+           '<div class="cv-card-meta">' + (metaParts.join(' · ') || '') + '</div></div>';
   div.innerHTML = inner;
   return div;
 }
