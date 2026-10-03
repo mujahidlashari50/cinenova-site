@@ -7595,19 +7595,82 @@ function cvFindBySlug(slug) {
       || allData.find(function(m) { return cvSlug(m.title) === slug; });
 }
 
+
+// ── Home SEO: WebSite SearchAction + FAQ (rich results / sitelinks)
+function cvInjectHomeJsonLd() {
+  try {
+    var webEl = document.getElementById('cv-jsonld-website');
+    if (!webEl) {
+      webEl = document.createElement('script');
+      webEl.type = 'application/ld+json';
+      webEl.id = 'cv-jsonld-website';
+      document.head.appendChild(webEl);
+    }
+    webEl.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      'name': 'CineNova',
+      'url': 'https://www.cinenova.site/',
+      'potentialAction': {
+        '@type': 'SearchAction',
+        'target': 'https://www.cinenova.site/?q={search_term_string}',
+        'query-input': 'required name=search_term_string'
+      }
+    });
+
+    var faqEl = document.getElementById('cv-jsonld-faq');
+    if (!faqEl) {
+      faqEl = document.createElement('script');
+      faqEl.type = 'application/ld+json';
+      faqEl.id = 'cv-jsonld-faq';
+      document.head.appendChild(faqEl);
+    }
+    faqEl.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': 'How to download movies from CineNova?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Open any movie page on CineNova.site, choose 480p, 720p or 1080p quality, and use the direct download links. No signup required for free downloads when subscription is off.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Does CineNova offer Bollywood and South Hindi movies?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Yes. CineNova has Bollywood, Hollywood Hindi dubbed, South Indian Hindi dubbed, dual audio, web series, animation and more — updated daily in HD.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'What video qualities are available?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Most movies are available in 480p, 720p and 1080p HD. Some titles also include dual audio or higher quality when available.'
+          }
+        }
+      ]
+    });
+  } catch (eFaq) {}
+}
+
 // ══════════════════════════════════════════════════════
 // ── SEO DYNAMIC UPDATE — Movie modal ke liye ──
 // ══════════════════════════════════════════════════════
 var _cvDefaultSEO = {
-  title:       'CineNova',
-  desc:        'Watch free HD movies, web series & latest releases on CineNova. No login, no subscription \u2014 Hollywood, Bollywood, Tollywood & more. Updated daily!',
-  ogTitle:     'CineNova',
-  ogDesc:      'Watch free HD movies, web series & latest releases. No login, no subscription!',
+  title:       'Free HD Movie Download 480p 720p 1080p | Bollywood Hollywood South | CineNova',
+  desc:        'Download latest Bollywood, Hollywood Hindi dubbed & South Indian movies free in 480p, 720p, 1080p. Web series, dual audio & new releases daily on CineNova.site — direct links, no signup.',
+  ogTitle:     'Free HD Movie Download 480p 720p 1080p | CineNova.site',
+  ogDesc:      'Latest Bollywood, Hollywood Hindi dubbed & South movies free download. 480p 720p 1080p direct links. Updated daily.',
   ogImage:     'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png',
   ogUrl:       'https://www.cinenova.site/',
   ogType:      'website',
-  twTitle:     'CineNova',
-  twDesc:      'Watch free HD movies, web series. No login, no subscription!',
+  twTitle:     'Free HD Movie Download | CineNova.site',
+  twDesc:      'Bollywood, Hollywood Hindi dubbed & South movies free in HD. Direct download links daily.',
   twImage:     'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png',
   canonical:   'https://www.cinenova.site/',
   robots:      'index, follow'
@@ -7628,14 +7691,26 @@ function cvUpdateSEO(m, slug) {
   var finalSlug = m.seoSlug || slug;
   var pageUrl   = 'https://www.cinenova.site/movie/' + finalSlug;
 
-  // ✅ Firebase seoTitle use karo agar available ho — warna auto generate
-  var richTitle = m.seoTitle || (title + year + quality + ' - CineNova');
+  // ✅ Firebase seoTitle OR high-CTR auto title (Download + quality keywords)
+  var catLab = '';
+  try {
+    if (m.category && typeof cvCategoryLabel === 'function') catLab = cvCategoryLabel(m.category) || '';
+  } catch (eCat) {}
+  var _qpSeo = '';
+  try {
+    var _qmSeo = String(m.quality || '').match(/\d{3,4}\s*p/i);
+    if (_qmSeo) _qpSeo = _qmSeo[0].replace(/\s+/g, '').toUpperCase();
+  } catch (eQ) {}
+  var richTitle = m.seoTitle || (title + year + (_qpSeo ? ' ' + _qpSeo : '') + ' Full Movie Download | CineNova');
+  if (!m.seoTitle && richTitle.length > 68) {
+    richTitle = title + year + ' Full Movie Download | CineNova';
+  }
 
-  // ✅ Firebase seoDesc use karo agar available ho — warna description ya auto
+  // ✅ Firebase seoDesc OR intent-rich description
   var desc = m.seoDesc
     || (m.description
-          ? m.description.substring(0, 155) + (m.description.length > 155 ? '...' : '')
-          : 'Watch ' + title + year + ' free on CineNova. No login, no subscription required.');
+          ? (m.description.substring(0, 140) + (m.description.length > 140 ? '...' : '') + ' Download free HD on CineNova.')
+          : ('Download ' + title + year + ' full movie in 480p, 720p & 1080p free on CineNova.site. Direct links, ' + (catLab || 'HD') + ' — no signup.'));
 
   // ✅ Firebase seoKeywords — meta keywords tag update
   var keywords = m.seoKeywords || (title + (m.year ? ', ' + m.year : '') + (m.language ? ', ' + m.language : '') + ', free movie, cinenova');
@@ -7855,6 +7930,7 @@ function cvUpdateCategorySEO(cat, isGenre) {
 function cvResetSEO() {
   document.title = _cvDefaultSEO.title;
   cvSetMeta('cv-meta-desc', 'content', _cvDefaultSEO.desc);
+  if (typeof cvInjectHomeJsonLd === 'function') cvInjectHomeJsonLd();
   cvSetMeta('cv-og-type',   'content', _cvDefaultSEO.ogType);
   cvSetMeta('cv-og-url',    'content', _cvDefaultSEO.ogUrl);
   cvSetMeta('cv-og-title',  'content', _cvDefaultSEO.ogTitle);
@@ -8236,7 +8312,69 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
     });
   };
 
-  function boot() {
+  
+// ── PWA: service worker + install prompt ──
+var _cvDeferredPrompt = null;
+function cvRegisterPWA() {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
+      try { if (reg && reg.update) reg.update(); } catch (eU) {}
+    }).catch(function() {});
+  } catch (eSw) {}
+}
+function cvShowPwaInstallBanner() {
+  try {
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    if (localStorage.getItem('cv_pwa_dismiss')) return;
+    if (document.getElementById('cv-pwa-banner')) return;
+    var bar = document.createElement('div');
+    bar.id = 'cv-pwa-banner';
+    bar.setAttribute('role', 'dialog');
+    bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:16px;z-index:99999;display:flex;align-items:center;gap:10px;padding:12px 14px;background:#1a1a1a;border:1px solid #333;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.45);font-family:inherit;color:#eee;';
+    bar.innerHTML = '<img src="https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png" width="40" height="40" alt="" style="border-radius:8px;flex-shrink:0"/>'
+      + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.9rem">Install CineNova</div>'
+      + '<div style="font-size:0.75rem;color:#aaa;margin-top:2px">Home screen pe app jaisa open karein</div></div>'
+      + '<button type="button" id="cv-pwa-install-btn" style="background:#e50914;color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:0.8rem">Install</button>'
+      + '<button type="button" id="cv-pwa-dismiss-btn" aria-label="Close" style="background:transparent;border:0;color:#888;font-size:1.2rem;cursor:pointer;padding:4px 6px">×</button>';
+    document.body.appendChild(bar);
+    document.getElementById('cv-pwa-dismiss-btn').onclick = function() {
+      try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
+      bar.remove();
+    };
+    document.getElementById('cv-pwa-install-btn').onclick = function() {
+      if (_cvDeferredPrompt) {
+        _cvDeferredPrompt.prompt();
+        _cvDeferredPrompt.userChoice.then(function() {
+          _cvDeferredPrompt = null;
+          bar.remove();
+        });
+      } else {
+        // iOS / no beforeinstallprompt
+        bar.querySelector('div div:last-child').textContent = 'Share → Add to Home Screen';
+      }
+    };
+  } catch (eB) {}
+}
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _cvDeferredPrompt = e;
+  setTimeout(cvShowPwaInstallBanner, 4000);
+});
+window.addEventListener('appinstalled', function() {
+  _cvDeferredPrompt = null;
+  try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
+  var b = document.getElementById('cv-pwa-banner');
+  if (b) b.remove();
+});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { setTimeout(cvRegisterPWA, 1500); });
+} else {
+  setTimeout(cvRegisterPWA, 1500);
+}
+
+
+function boot() {
     injectAccCss();
     ensureNavBtn();
     try {
