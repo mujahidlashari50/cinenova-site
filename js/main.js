@@ -1192,7 +1192,7 @@ function cvCategoryLabel(c) {
   var k = String(c || '').toLowerCase().replace(/[\s\-]+/g, '_');
   var map = {
     english_movies: 'Hollywood', hollywood: 'Hollywood',
-    hindi_dubbed: 'Hindi Dubbed', dual_audio: 'Dual Audio',
+    hindi_dubbed: 'Hindi Dub', dual_audio: 'Dual Audio',
     south_hindi: 'South Hindi', tollywood: 'South Hindi',
     bollywood_hindi: 'Bollywood', bollywood: 'Bollywood',
     anime_hindi: 'Anime', animation_hindi_dubbed: 'Animation', animation: 'Animation',
@@ -1201,6 +1201,21 @@ function cvCategoryLabel(c) {
     philippines: 'Philippines', hot_short_hindi: 'Hot Short', adult: 'Adult'
   };
   return map[k] || String(c || '').replace(/_/g, ' ');
+}
+/** Short badge text for poster corner */
+function cvCategoryShort(c) {
+  var k = String(c || '').toLowerCase().replace(/[\s\-]+/g, '_');
+  var map = {
+    english_movies: 'ENG', hollywood: 'ENG',
+    hindi_dubbed: 'DUB', dual_audio: 'DUAL',
+    south_hindi: 'SOUTH', tollywood: 'SOUTH',
+    bollywood_hindi: 'BOLLY', bollywood: 'BOLLY',
+    anime_hindi: 'ANIME', animation_hindi_dubbed: 'ANIM', animation: 'ANIM',
+    webseries_hindi: 'SERIES', webseries: 'SERIES',
+    kdrama_hindi: 'KDRAMA', kdrama: 'KDRAMA',
+    philippines: 'ADULT', hot_short_hindi: 'HOT', adult: 'ADULT'
+  };
+  return map[k] || '';
 }
 function cvCatToUrlSlug(cat) {
   if (!cat || cat === 'all' || cat === 'watchlist') return '';
@@ -4309,18 +4324,24 @@ function makeCard(m) {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
   if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
-  if (cat) {
-    var catLab = (typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || cat);
-    var catHref = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g, '-'));
-    inner += '<a class="cv-cat-badge cv-new" href="' + catHref + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\"' + escJs(cat) + '\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(catLab) + '</a>';
-  }
+  // Quality — ONLY resolution (1080p / 720p), never category text
   if (m.quality) {
-    var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
-    inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
+    var _qm = String(m.quality).match(/\d{3,4}\s*p/i);
+    var _qp = _qm ? _qm[0].replace(/\s+/g, '').toUpperCase() : String(m.quality).split(/[|/·,]/)[0].trim().substring(0, 6);
+    if (_qp) inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
+  }
+  // Category short badge — bottom of poster
+  if (cat) {
+    var catShort = (typeof cvCategoryShort === 'function') ? cvCategoryShort(m.category) : '';
+    var catLab = (typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || cat);
+    var catShow = catShort || catLab;
+    var catHref = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g, '-'));
+    if (catShow) {
+      inner += '<a class="cv-cat-badge" href="' + catHref + '" title="' + escHtml(catLab) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();">' + escHtml(catShow) + '</a>';
+    }
   }
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
-           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (cat ? ' · ' + escHtml((typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || '')) : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
-
+           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + escHtml(String(m.quality).match(/\d{3,4}\s*p/i) ? String(m.quality).match(/\d{3,4}\s*p/i)[0] : String(m.quality).split(/[|/]/)[0].trim()) : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
   div.innerHTML = inner;
   return div;
 }
