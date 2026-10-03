@@ -1063,7 +1063,25 @@ body.cv-scrolling #cv-nav{
 
 /* Hide heavy category badge on grid cards only */
 #cv-grid .cv-cat-badge {
-  display: none !important;
+  display: inline-block !important;
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 3;
+  max-width: calc(100% - 12px);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.78);
+  border: 1px solid rgba(229,9,20,0.45);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 /* ── Filter bar — compact ── */
