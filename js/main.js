@@ -2297,6 +2297,28 @@ function featuredShowSlide(idx) {
 }
 
 
+
+function cvIsPwaApp() {
+  try {
+    if (window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (window.navigator.standalone === true) return true;
+    if (document.referrer && document.referrer.indexOf('android-app://') === 0) return true;
+  } catch (e) {}
+  return false;
+}
+function cvApplyPwaShell() {
+  try {
+    if (cvIsPwaApp()) document.body.classList.add('cv-pwa-app');
+    else document.body.classList.remove('cv-pwa-app');
+  } catch (e) {}
+}
+cvApplyPwaShell();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', cvApplyPwaShell);
+} else {
+  setTimeout(cvApplyPwaShell, 0);
+}
+
 // ══════════════════════════════════
 // MovieBox-style HOME ROWS + BOTTOM NAV
 // ══════════════════════════════════
@@ -2368,6 +2390,12 @@ function cvMbOpenCat(cat) {
 function cvBuildMovieBoxHome() {
   var host = document.getElementById('cv-mb-home');
   if (!host) return;
+  // Normal website: never MovieBox rows — only installed PWA app
+  if (typeof cvIsPwaApp === 'function' && !cvIsPwaApp()) {
+    host.style.display = 'none';
+    host.innerHTML = '';
+    return;
+  }
   var isHome = (typeof selCat === 'undefined' || selCat === 'all' || !selCat) && !(typeof selGenre !== 'undefined' && selGenre);
   if (!isHome) {
     host.style.display = 'none';
