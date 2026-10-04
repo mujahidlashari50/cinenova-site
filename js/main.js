@@ -2296,216 +2296,6 @@ function featuredShowSlide(idx) {
   })(m._key);
 }
 
-
-
-function cvIsPwaApp() {
-  try {
-    if (window.matchMedia('(display-mode: standalone)').matches) return true;
-    if (window.navigator.standalone === true) return true;
-    if (document.referrer && document.referrer.indexOf('android-app://') === 0) return true;
-  } catch (e) {}
-  return false;
-}
-function cvApplyPwaShell() {
-  try {
-    if (cvIsPwaApp()) document.body.classList.add('cv-pwa-app');
-    else document.body.classList.remove('cv-pwa-app');
-  } catch (e) {}
-}
-cvApplyPwaShell();
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', cvApplyPwaShell);
-} else {
-  setTimeout(cvApplyPwaShell, 0);
-}
-
-// ══════════════════════════════════
-// MovieBox-style HOME ROWS + BOTTOM NAV
-// ══════════════════════════════════
-function cvMbIsAdult(m) {
-  try { return typeof cvIsAdultItem === 'function' && cvIsAdultItem(m); } catch (e) { return false; }
-}
-function cvMbMatchCat(m, catKey) {
-  if (!m || !catKey) return false;
-  var c = String(m.category || '').toLowerCase().replace(/[\s\-]+/g, '_');
-  if (c === catKey) return true;
-  if (catKey === 'bollywood_hindi' && (c === 'bollywood' || c === 'bollywood_hindi')) return true;
-  if (catKey === 'south_hindi' && (c === 'south_hindi' || c === 'tollywood' || c === 'south')) return true;
-  if (catKey === 'webseries_hindi' && (c === 'webseries' || c === 'webseries_hindi' || c === 'web_series')) return true;
-  if (catKey === 'hindi_dubbed' && (c === 'hindi_dubbed' || c === 'hollywood_hindi')) return true;
-  if (catKey === 'english_movies' && (c === 'english_movies' || c === 'hollywood' || c === 'english')) return true;
-  if (catKey === 'dual_audio' && c === 'dual_audio') return true;
-  if (catKey === 'animation_hindi_dubbed' && (c === 'animation' || c === 'animation_hindi_dubbed')) return true;
-  if (catKey === 'kdrama_hindi' && (c === 'kdrama' || c === 'kdrama_hindi')) return true;
-  return false;
-}
-function cvMbThumb(m) {
-  var t = (m && (m.thumbnail || m.poster)) || '';
-  if (!t) return '';
-  try {
-    if (typeof cvThumb === 'function') return cvThumb(t) || t;
-  } catch (e) {}
-  return t;
-}
-function cvMbCardHtml(m) {
-  var key = m._key || '';
-  var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(key);
-  var thumb = cvMbThumb(m);
-  var title = (m.title || 'Movie').substring(0, 60);
-  var img = thumb
-    ? '<img class="cv-mb-poster" src="' + escHtml(thumb) + '" alt="" loading="lazy" decoding="async" width="148" height="222"/>'
-    : '<div class="cv-mb-poster" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>';
-  return '<a class="cv-mb-card" href="/movie/' + escHtml(slug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(\'' + escJs(key) + '\')">' +
-    img + '<div class="cv-mb-card-title">' + escHtml(title) + '</div></a>';
-}
-function cvMbBuildRow(title, list, moreCat) {
-  if (!list || !list.length) return '';
-  var moreBtn = '';
-  if (moreCat) {
-    moreBtn = '<button type="button" class="cv-mb-row-more" onclick="cvMbOpenCat(\'' + escJs(moreCat) + '\')">More ›</button>';
-  }
-  var cards = list.map(cvMbCardHtml).join('');
-  return '<section class="cv-mb-row">' +
-    '<div class="cv-mb-row-head"><div class="cv-mb-row-title">' + escHtml(title) + '</div>' + moreBtn + '</div>' +
-    '<div class="cv-mb-track-wrap"><div class="cv-mb-track">' + cards + '</div></div></section>';
-}
-function cvMbOpenCat(cat) {
-  try {
-    var pill = document.querySelector('.cv-pill[data-cat="' + cat + '"]');
-    if (pill) { pill.click(); return; }
-  } catch (e) {}
-  try {
-    if (typeof filterByCat === 'function') { filterByCat(cat); return; }
-  } catch (e2) {}
-  try {
-    selCat = cat; selGenre = '';
-    if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(cat);
-    if (typeof renderGrid === 'function') renderGrid(true);
-    if (typeof history !== 'undefined' && typeof cvBuildFilterUrl === 'function') {
-      history.pushState({}, '', cvBuildFilterUrl(cat, false));
-    }
-  } catch (e3) {}
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-function cvBuildMovieBoxHome() {
-  var host = document.getElementById('cv-mb-home');
-  if (!host) return;
-  // Normal website: never MovieBox rows — only installed PWA app
-  if (typeof cvIsPwaApp === 'function' && !cvIsPwaApp()) {
-    host.style.display = 'none';
-    host.innerHTML = '';
-    return;
-  }
-  var isHome = (typeof selCat === 'undefined' || selCat === 'all' || !selCat) && !(typeof selGenre !== 'undefined' && selGenre);
-  if (!isHome) {
-    host.style.display = 'none';
-    host.innerHTML = '';
-    return;
-  }
-  var data = (typeof allData !== 'undefined' && allData) ? allData : [];
-  if (!data.length) {
-    host.innerHTML = '';
-    return;
-  }
-  function take(filterFn, n) {
-    var out = [];
-    for (var i = 0; i < data.length && out.length < n; i++) {
-      var m = data[i];
-      if (!m || cvMbIsAdult(m)) continue;
-      if (m.published === false || m.status === 'draft') continue;
-      if (filterFn && !filterFn(m)) continue;
-      out.push(m);
-    }
-    return out;
-  }
-  var recent = take(null, 16);
-  var bolly = take(function(m){ return cvMbMatchCat(m, 'bollywood_hindi'); }, 14);
-  var south = take(function(m){ return cvMbMatchCat(m, 'south_hindi'); }, 14);
-  var dubbed = take(function(m){ return cvMbMatchCat(m, 'hindi_dubbed'); }, 14);
-  var dual = take(function(m){ return cvMbMatchCat(m, 'dual_audio'); }, 12);
-  var series = take(function(m){ return cvMbMatchCat(m, 'webseries_hindi'); }, 12);
-  var english = take(function(m){ return cvMbMatchCat(m, 'english_movies'); }, 12);
-  var anim = take(function(m){ return cvMbMatchCat(m, 'animation_hindi_dubbed'); }, 10);
-  var kdrama = take(function(m){ return cvMbMatchCat(m, 'kdrama_hindi'); }, 10);
-  // Top downloads
-  var topDl = data.filter(function(m) {
-    return m && !cvMbIsAdult(m) && m.published !== false && m.status !== 'draft' && (m.downloadCount || 0) > 0;
-  }).slice().sort(function(a,b){ return (b.downloadCount||0) - (a.downloadCount||0); }).slice(0, 14);
-
-  var html = '';
-  html += cvMbBuildRow('Recently Added', recent, null);
-  if (topDl.length >= 4) html += cvMbBuildRow('🔥 Top Downloads', topDl, null);
-  if (bolly.length) html += cvMbBuildRow('Bollywood', bolly, 'bollywood_hindi');
-  if (south.length) html += cvMbBuildRow('South Hindi', south, 'south_hindi');
-  if (dubbed.length) html += cvMbBuildRow('Hindi Dubbed', dubbed, 'hindi_dubbed');
-  if (dual.length) html += cvMbBuildRow('Dual Audio', dual, 'dual_audio');
-  if (english.length) html += cvMbBuildRow('English / Hollywood', english, 'english_movies');
-  if (series.length) html += cvMbBuildRow('Web Series', series, 'webseries_hindi');
-  if (kdrama.length) html += cvMbBuildRow('K-Drama', kdrama, 'kdrama_hindi');
-  if (anim.length) html += cvMbBuildRow('Animation', anim, 'animation_hindi_dubbed');
-
-  host.innerHTML = html;
-  host.style.display = '';
-}
-function cvBottomNav(action) {
-  try {
-    document.querySelectorAll('.cv-bnav-item').forEach(function(el) {
-      el.classList.toggle('active', el.getAttribute('data-bnav') === action);
-    });
-  } catch (e) {}
-  if (action === 'home') {
-    try {
-      var homePill = document.querySelector('.cv-pill[data-cat="all"]') || document.querySelector('.cv-pill[data-cat=""]');
-      if (homePill) homePill.click();
-      else {
-        selCat = 'all'; selGenre = '';
-        if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility('all');
-        if (typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
-        if (typeof history !== 'undefined') history.pushState({}, '', '/');
-      }
-    } catch (eH) {}
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-  if (action === 'movies') {
-    // open categories strip
-    var cats = document.getElementById('cv-cats') || document.getElementById('cv-cats-wrap');
-    if (cats) cats.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    try {
-      var sub = document.getElementById('cv-subcat-toggle');
-      if (sub) sub.click();
-    } catch (eM) {}
-    return;
-  }
-  if (action === 'search') {
-    try {
-      var mob = document.getElementById('cv-search-mobile') || document.getElementById('cv-search');
-      var ov = document.getElementById('cv-search-overlay');
-      if (ov) ov.classList.add('open');
-      if (mob) { mob.focus(); }
-      else if (document.getElementById('cv-search')) document.getElementById('cv-search').focus();
-    } catch (eS) {}
-    return;
-  }
-  if (action === 'list') {
-    try {
-      var wl = document.getElementById('cv-pill-watchlist') || document.querySelector('.cv-pill[data-cat="watchlist"]');
-      if (wl) wl.click();
-      else if (typeof filterByCat === 'function') filterByCat('watchlist');
-    } catch (eL) {}
-    return;
-  }
-  if (action === 'account') {
-    try {
-      var btn = document.getElementById('cv-header-mylist-btn') || document.querySelector('[onclick*="login"], .cv-nav-user, #cv-nav-account');
-      if (typeof openAuthModal === 'function') openAuthModal();
-      else if (typeof showLogin === 'function') showLogin();
-      else if (btn) btn.click();
-      else window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (eA) {}
-  }
-}
-
 // ══════════════════════════════════
 // SLIDER & TMDB VISIBILITY (category based)
 // ══════════════════════════════════
@@ -2525,7 +2315,7 @@ function updateSlidersVisibility(cat) {
   } catch (eCls) {}
 
   if (isHome) {
-    // Home — Motd + Trending + hero/featured + MovieBox rows
+    // Home — Motd + Trending + hero/featured
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (featuredWrap) {
@@ -2539,13 +2329,8 @@ function updateSlidersVisibility(cat) {
       if (typeof cvBuildMotd === 'function') cvBuildMotd();
       if (typeof buildTsSlider === 'function') buildTsSlider();
     } catch (eH) {}
-    try { if (typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome(); } catch (eMb) {}
   } else {
     // Category — Motd + Trending hide (sirf grid)
-    try {
-      var _mbh = document.getElementById('cv-mb-home');
-      if (_mbh) { _mbh.style.display = 'none'; _mbh.innerHTML = ''; }
-    } catch (eMb2) {}
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
     if (featuredWrap) {
@@ -3654,11 +3439,6 @@ function cvGetCatBucket(cat) {
 }
 
 function renderGrid(resetPage, silent) {
-  try {
-    var _isH = (typeof selCat === 'undefined' || !selCat || selCat === 'all') && !(typeof selGenre !== 'undefined' && selGenre);
-    if (_isH && typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
-  } catch (eRgMb) {}
-
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
   cvRenderPage(silent);
