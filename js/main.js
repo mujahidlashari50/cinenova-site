@@ -444,17 +444,25 @@ function cvInitAdvanceFilters() {
   var host = document.getElementById('cv-grid');
   if (!host || !host.parentNode) return;
   var bar = document.getElementById('cv-adv-filters');
+  if (bar) {
+    // Purana "Filter" label / heavy wrapper hatao
+    try {
+      bar.querySelectorAll('.cv-adv-label').forEach(function(n){ n.remove(); });
+      var inner = bar.querySelector('.cv-adv-filters-inner');
+      if (inner) {
+        while (inner.firstChild) bar.insertBefore(inner.firstChild, inner);
+        inner.remove();
+      }
+    } catch (eClr) {}
+  }
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'cv-adv-filters';
     bar.className = 'cv-adv-filters';
     bar.innerHTML =
-      '<div class="cv-adv-filters-inner">' +
-      '<div class="cv-adv-label">Filter</div>' +
       '<select id="cv-filter-year" class="cv-adv-select" aria-label="Year"><option value="">Year — All</option></select>' +
       '<select id="cv-filter-quality" class="cv-adv-select" aria-label="Quality"><option value="">Quality — All</option></select>' +
-      '<button type="button" class="cv-adv-reset" id="cv-filter-reset">Reset</button>' +
-      '</div>';
+      '<button type="button" class="cv-adv-reset" id="cv-filter-reset">Reset</button>';
     host.parentNode.insertBefore(bar, host);
     var ySel = document.getElementById('cv-filter-year');
     var qSel = document.getElementById('cv-filter-quality');
