@@ -424,12 +424,32 @@ function cvRefreshAdvanceFilterOptions() {
   if (prevQ === '1080p') qSel.value = '1080p';
   else { qSel.value = ''; _cvAdvQuality = ''; }
 }
+function cvStyleAdvFilters(bar) {
+  if (!bar) return;
+  // Inline styles — CSS cache se layout toot-na band
+  bar.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:10px;width:100%;max-width:100%;box-sizing:border-box;padding:12px 16px 10px;margin:0;background:transparent;';
+  // Match grid horizontal padding
+  try {
+    var grid = document.getElementById('cv-grid');
+    if (grid) {
+      var cs = window.getComputedStyle(grid);
+      var pl = cs.paddingLeft || '16px';
+      var pr = cs.paddingRight || '16px';
+      bar.style.paddingLeft = pl;
+      bar.style.paddingRight = pr;
+    }
+  } catch (eP) {}
+  bar.querySelectorAll('select.cv-adv-select, button.cv-adv-reset').forEach(function(el) {
+    el.style.cssText = (el.tagName === 'SELECT'
+      ? 'min-width:130px;max-width:180px;background:#161616;color:#eee;border:1px solid #2a2a2a;border-radius:999px;padding:10px 32px 10px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;appearance:none;-webkit-appearance:none;'
+      : 'background:#161616;color:#999;border:1px solid #2a2a2a;border-radius:999px;padding:10px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;');
+  });
+}
 function cvInitAdvanceFilters() {
   var host = document.getElementById('cv-grid');
   if (!host || !host.parentNode) return;
   var bar = document.getElementById('cv-adv-filters');
   if (bar) {
-    // Purana "Filter" label / heavy wrapper hatao
     try {
       bar.querySelectorAll('.cv-adv-label').forEach(function(n){ n.remove(); });
       var inner = bar.querySelector('.cv-adv-filters-inner');
@@ -466,6 +486,13 @@ function cvInitAdvanceFilters() {
       cvApplyAdvanceFilters();
     };
   }
+  // Ensure bar is directly above grid (not stuck elsewhere)
+  try {
+    if (bar.parentNode !== host.parentNode || bar.nextElementSibling !== host) {
+      host.parentNode.insertBefore(bar, host);
+    }
+  } catch (eMove) {}
+  cvStyleAdvFilters(bar);
   cvRefreshAdvanceFilterOptions();
 }
 function cvApplyAdvanceFilters() {
