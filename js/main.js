@@ -388,24 +388,24 @@ var cvFirstResponseReceived = false;
 // Year / Quality filter bar (professional)
 // ══════════════════════════════════
 var _cvAdvQuality = '';
+function cvMovieYear(m) {
+  if (!m) return '';
+  var y = String(m.year || m.releaseYear || m.release_date || '').replace(/\D/g, '').substring(0, 4);
+  if (/^(19|20)\d{2}$/.test(y)) return y;
+  var t = String(m.title || m.name || '');
+  var tm = t.match(/\b((?:19|20)\d{2})\b/);
+  return tm ? tm[1] : '';
+}
 function cvRefreshAdvanceFilterOptions() {
   var ySel = document.getElementById('cv-filter-year');
   var qSel = document.getElementById('cv-filter-quality');
   if (!ySel || !qSel) return;
   var data = (typeof allData !== 'undefined' && allData) ? allData : [];
   var years = {};
-  var quals = {};
   data.forEach(function(m) {
     if (!m) return;
-    var y = String(m.year || '').replace(/\D/g, '').substring(0, 4);
-    if (/^(19|20)\d{2}$/.test(y)) years[y] = (years[y] || 0) + 1;
-    // quality from field + title + download labels
-    var blob = [m.quality, m.title, m.download1080p ? '1080p' : '', m.download720p ? '720p' : '',
-      m.download480p ? '480p' : '', m.download4k ? '4k' : ''].join(' ').toLowerCase();
-    if (/2160|4\s*k|\b4k\b/.test(blob)) quals['4k'] = 1;
-    if (/1080\s*p|\b1080\b/.test(blob)) quals['1080p'] = 1;
-    if (/720\s*p|\b720\b/.test(blob)) quals['720p'] = 1;
-    if (/480\s*p|\b480\b/.test(blob)) quals['480p'] = 1;
+    var y = cvMovieYear(m);
+    if (y) years[y] = (years[y] || 0) + 1;
   });
   var prevY = ySel.value || '';
   var prevQ = qSel.value || '';
@@ -416,28 +416,12 @@ function cvRefreshAdvanceFilterOptions() {
     o.textContent = y + ' (' + years[y] + ')';
     ySel.appendChild(o);
   });
-  // Quality: only options that exist in library
-  var qOrder = ['1080p', '720p', '480p', '4k'];
-  var qLabels = { '1080p': '1080p', '720p': '720p', '480p': '480p', '4k': '4K' };
-  qSel.innerHTML = '<option value="">Quality — All</option>';
-  var anyQ = false;
-  qOrder.forEach(function(q) {
-    if (!quals[q]) return;
-    anyQ = true;
-    var o = document.createElement('option');
-    o.value = q;
-    o.textContent = qLabels[q];
-    qSel.appendChild(o);
-  });
-  if (!anyQ) {
-    // fallback if detection empty — still offer 1080p
-    var o2 = document.createElement('option');
-    o2.value = '1080p'; o2.textContent = '1080p';
-    qSel.appendChild(o2);
-  }
+  // Site pe mostly 1080p — sirf 1080p option
+  qSel.innerHTML = '<option value="">Quality — All</option>'
+    + '<option value="1080p">1080p</option>';
   if (prevY && years[prevY]) ySel.value = prevY;
   else { ySel.value = ''; if (typeof selYear !== 'undefined') selYear = ''; }
-  if (prevQ && (quals[prevQ] || prevQ === '1080p')) qSel.value = prevQ;
+  if (prevQ === '1080p') qSel.value = '1080p';
   else { qSel.value = ''; _cvAdvQuality = ''; }
 }
 function cvInitAdvanceFilters() {
@@ -501,7 +485,7 @@ function cvApplyAdvanceFilters() {
       if (!m) return;
       var show = true;
       if (typeof selYear !== 'undefined' && selYear) {
-        var y = String(m.year || '').replace(/\D/g,'').substring(0,4);
+        var y = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g,'').substring(0,4);
         if (y !== selYear) show = false;
       }
       if (show && _cvAdvQuality) {
@@ -4186,11 +4170,7 @@ function cvBuildFilteredList() {
       if (!wl[m._key]) return false;
       if (cvIsAdultItem(m) && !adultUnlocked) return false;
       if (selYear) {
-        var my = String(m.year || '').replace(/\D/g, '').substring(0, 4);
-        if (!my) {
-          var tm = String(m.title || '').match(/\b((?:19|20)\d{2})\b/);
-          my = tm ? tm[1] : '';
-        }
+        var my = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g, '').substring(0, 4);
         if (my !== String(selYear)) return false;
       }
       if (typeof _cvAdvQuality !== 'undefined' && _cvAdvQuality && typeof cvMovieMatchesQuality === 'function') {
@@ -4281,11 +4261,7 @@ function cvBuildFilteredList() {
     if (selGenre !== '') {
       if (genre !== selGenre) return false;
       if (selYear) {
-        var myG = String(m.year || '').replace(/\D/g, '').substring(0, 4);
-        if (!myG) {
-          var tmG = String(m.title || '').match(/\b((?:19|20)\d{2})\b/);
-          myG = tmG ? tmG[1] : '';
-        }
+        var myG = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g, '').substring(0, 4);
         if (myG !== String(selYear)) return false;
       }
       if (!q) return true;
@@ -4297,11 +4273,7 @@ function cvBuildFilteredList() {
     if (!catMatch) return false;
     // Year filter (2026 / 2025 / 2024…)
     if (selYear) {
-      var my = String(m.year || '').replace(/\D/g, '').substring(0, 4);
-      if (!my || my.length !== 4) {
-        var tm = String(m.title || '').match(/\b((?:19|20)\d{2})\b/);
-        my = tm ? tm[1] : '';
-      }
+      var my = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g, '').substring(0, 4);
       if (my !== String(selYear)) return false;
     }
     // Quality filter (1080p / 720p / …)
@@ -4394,13 +4366,17 @@ function cvInterleaveByCategory(list) {
 
   // NEW uploads pehle (top) — user ko turant dikhe
   // Phir baaki category mix (round-robin) taake home ek category se na bhare
-  var NEW_TOP = 16; // pehle 16 newest home ke top pe
+  var NEW_TOP = 24; // pehle 24 newest home ke top pe
   var byNew = list.filter(function(m) {
     return family(normCat(m)) !== 'adult';
   }).slice().sort(function(a, b) {
     var ta = a.addedAt || 0, tb = b.addedAt || 0;
+    // Firebase push key fallback (newer key = later in time roughly)
+    if (!ta && a._key) ta = 0;
+    if (!tb && b._key) tb = 0;
     if (tb !== ta) return tb - ta;
-    return String(b._key || '') < String(a._key || '') ? 1 : -1;
+    // push ids are chronological — larger string often newer for same timestamp
+    return String(b._key || '').localeCompare(String(a._key || ''));
   });
   var pinned = byNew.slice(0, NEW_TOP);
   var pinnedKeys = {};
