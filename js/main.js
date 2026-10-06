@@ -1817,10 +1817,12 @@ function watchNewMovies() {
     if (initialKeys[item._key]) return; // Skip already-loaded items
     var exists = allData.some(function(m) { return m._key === item._key; });
     if (!exists) {
-      // Ensure newest sort key — warna interleave mein neeche dab jati thi
       if (!item.addedAt) item.addedAt = Date.now();
       allData.unshift(item);
-      // Home page 1 pe naya post dikhao (top)
+      try {
+        _cvCatIndex = null;
+        _cvCatIndexLen = -1;
+      } catch (eIx) {}
       try {
         if ((!selCat || selCat === 'all') && !selGenre && typeof cvCurrentPage !== 'undefined') {
           cvCurrentPage = 1;
@@ -4319,9 +4321,14 @@ function cvBuildFilteredList() {
       return ((b.addedAt || 0) - (a.addedAt || 0));
     });
   } else if (selCat === 'all') {
-    // HOME MIX: har category se 1-1 post (round-robin) — HDFun-style mixed feed.
-    // Bulk import ke baad bhi pehla page ek hi category se nahi bharega.
-    cvFilteredList = cvInterleaveByCategory(cvFilteredList);
+    // HOME: hamesha NEWEST pehle (addedAt). Mix interleave hata diya —
+    // warna nayi uploads top pe nahi dikhti thin.
+    cvFilteredList.sort(function(a, b) {
+      var ta = a.addedAt || 0, tb = b.addedAt || 0;
+      if (tb !== ta) return tb - ta;
+      // Firebase push key chronological fallback
+      return String(b._key || '').localeCompare(String(a._key || ''));
+    });
   }
 }
 
