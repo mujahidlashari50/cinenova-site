@@ -426,34 +426,47 @@ function cvRefreshAdvanceFilterOptions() {
 }
 function cvStyleAdvFilters(bar) {
   if (!bar) return;
-  var mobile = (typeof window !== 'undefined' && window.innerWidth < 600);
-  // Ek hi row: Year | Quality | Reset — mobile pe bhi tootna nahi
+  var w = (typeof window !== 'undefined') ? window.innerWidth : 900;
+  var mobile = w < 600;
+  var desk = w >= 900;
+  // padding = movie grid jaisa (cards ke left edge se align)
+  var padL = mobile ? '10px' : (desk ? '20px' : '14px');
+  var padR = padL;
+  try {
+    var grid = document.getElementById('cv-grid');
+    if (grid) {
+      var cs = window.getComputedStyle(grid);
+      if (cs.paddingLeft) padL = cs.paddingLeft;
+      if (cs.paddingRight) padR = cs.paddingRight;
+    }
+  } catch (eP) {}
   bar.style.cssText = [
     'display:flex',
     'flex-direction:row',
     'flex-wrap:nowrap',
     'align-items:center',
     'justify-content:flex-start',
-    'gap:' + (mobile ? '6px' : '10px'),
+    'gap:' + (mobile ? '6px' : '12px'),
     'width:100%',
     'max-width:100%',
     'box-sizing:border-box',
-    'padding:' + (mobile ? '8px 10px 6px' : '10px 16px 8px'),
+    'padding:10px ' + padR + ' 8px ' + padL,
     'margin:0',
     'background:transparent',
     'overflow-x:auto',
     '-webkit-overflow-scrolling:touch'
   ].join(';');
   var selCss = [
-    'flex:1 1 0',
-    'min-width:' + (mobile ? '90px' : '120px'),
-    'max-width:' + (mobile ? '140px' : '170px'),
+    'flex:0 0 auto',
+    'width:' + (mobile ? 'auto' : (desk ? '150px' : '130px')),
+    'min-width:' + (mobile ? '88px' : '120px'),
+    'max-width:' + (mobile ? '130px' : '160px'),
     'background:#161616',
     'color:#eee',
     'border:1px solid #2a2a2a',
     'border-radius:999px',
-    'padding:' + (mobile ? '8px 24px 8px 10px' : '9px 30px 9px 14px'),
-    'font-size:' + (mobile ? '0.72rem' : '0.82rem'),
+    'padding:' + (mobile ? '8px 24px 8px 10px' : '10px 32px 10px 14px'),
+    'font-size:' + (mobile ? '0.72rem' : '0.85rem'),
     'font-weight:600',
     'cursor:pointer',
     'appearance:none',
@@ -465,8 +478,8 @@ function cvStyleAdvFilters(bar) {
     'color:#999',
     'border:1px solid #2a2a2a',
     'border-radius:999px',
-    'padding:' + (mobile ? '8px 12px' : '9px 14px'),
-    'font-size:' + (mobile ? '0.72rem' : '0.78rem'),
+    'padding:' + (mobile ? '8px 12px' : '10px 16px'),
+    'font-size:' + (mobile ? '0.72rem' : '0.82rem'),
     'font-weight:700',
     'cursor:pointer',
     'white-space:nowrap'
