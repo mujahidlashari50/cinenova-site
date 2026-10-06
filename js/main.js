@@ -426,23 +426,56 @@ function cvRefreshAdvanceFilterOptions() {
 }
 function cvStyleAdvFilters(bar) {
   if (!bar) return;
-  // Inline styles — CSS cache se layout toot-na band
-  bar.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:10px;width:100%;max-width:100%;box-sizing:border-box;padding:12px 16px 10px;margin:0;background:transparent;';
-  // Match grid horizontal padding
-  try {
-    var grid = document.getElementById('cv-grid');
-    if (grid) {
-      var cs = window.getComputedStyle(grid);
-      var pl = cs.paddingLeft || '16px';
-      var pr = cs.paddingRight || '16px';
-      bar.style.paddingLeft = pl;
-      bar.style.paddingRight = pr;
-    }
-  } catch (eP) {}
-  bar.querySelectorAll('select.cv-adv-select, button.cv-adv-reset').forEach(function(el) {
-    el.style.cssText = (el.tagName === 'SELECT'
-      ? 'min-width:130px;max-width:180px;background:#161616;color:#eee;border:1px solid #2a2a2a;border-radius:999px;padding:10px 32px 10px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;appearance:none;-webkit-appearance:none;'
-      : 'background:#161616;color:#999;border:1px solid #2a2a2a;border-radius:999px;padding:10px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;');
+  var mobile = (typeof window !== 'undefined' && window.innerWidth < 600);
+  // Ek hi row: Year | Quality | Reset — mobile pe bhi tootna nahi
+  bar.style.cssText = [
+    'display:flex',
+    'flex-direction:row',
+    'flex-wrap:nowrap',
+    'align-items:center',
+    'justify-content:flex-start',
+    'gap:' + (mobile ? '6px' : '10px'),
+    'width:100%',
+    'max-width:100%',
+    'box-sizing:border-box',
+    'padding:' + (mobile ? '8px 10px 6px' : '10px 16px 8px'),
+    'margin:0',
+    'background:transparent',
+    'overflow-x:auto',
+    '-webkit-overflow-scrolling:touch'
+  ].join(';');
+  var selCss = [
+    'flex:1 1 0',
+    'min-width:' + (mobile ? '90px' : '120px'),
+    'max-width:' + (mobile ? '140px' : '170px'),
+    'background:#161616',
+    'color:#eee',
+    'border:1px solid #2a2a2a',
+    'border-radius:999px',
+    'padding:' + (mobile ? '8px 24px 8px 10px' : '9px 30px 9px 14px'),
+    'font-size:' + (mobile ? '0.72rem' : '0.82rem'),
+    'font-weight:600',
+    'cursor:pointer',
+    'appearance:none',
+    '-webkit-appearance:none'
+  ].join(';');
+  var btnCss = [
+    'flex:0 0 auto',
+    'background:#161616',
+    'color:#999',
+    'border:1px solid #2a2a2a',
+    'border-radius:999px',
+    'padding:' + (mobile ? '8px 12px' : '9px 14px'),
+    'font-size:' + (mobile ? '0.72rem' : '0.78rem'),
+    'font-weight:700',
+    'cursor:pointer',
+    'white-space:nowrap'
+  ].join(';');
+  bar.querySelectorAll('select.cv-adv-select').forEach(function(el) {
+    el.style.cssText = selCss;
+  });
+  bar.querySelectorAll('button.cv-adv-reset').forEach(function(el) {
+    el.style.cssText = btnCss;
   });
 }
 function cvInitAdvanceFilters() {
