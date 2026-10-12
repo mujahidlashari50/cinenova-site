@@ -370,6 +370,26 @@ function showStatus(msg, color) {
 // STATE
 // ══════════════════════════════════
 var allData = [];
+
+// Category pretty-URL: body class ASAP (featured/coming-soon hide before paint)
+(function(){
+  try {
+    var p = (location.pathname || '/').toLowerCase();
+    if (p.indexOf('/category/') === 0 || p.indexOf('/genre/') === 0) {
+      document.documentElement.classList.add('cv-cat-view');
+      if (document.body) {
+        document.body.classList.add('cv-cat-view');
+        document.body.classList.remove('cv-on-home');
+      } else {
+        document.addEventListener('DOMContentLoaded', function(){
+          document.body.classList.add('cv-cat-view');
+          document.body.classList.remove('cv-on-home');
+        });
+      }
+    }
+  } catch (e) {}
+})();
+
 var selCat = 'all';
 var selGenre = ''; // genre filter: '' means no genre filter
 var selLang = '';  // language badge filter: '' = off, 'english' ya 'hindi' — sirf badge-grid se set hota hai, koi alag UI nahi
@@ -3742,6 +3762,7 @@ function cvRestoreFromUrl() {
       var allPill = document.querySelector('.cv-pill[data-cat="all"]');
       if (allPill) allPill.classList.add('active');
       cvApplyLangFromUrl();
+      try { if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility('genre'); } catch (eVisG) {}
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
       cvLoadCategoryData(decoded, true);
@@ -3754,13 +3775,22 @@ function cvRestoreFromUrl() {
       // Category filter link
       var decoded = decodeURIComponent(cat);
       var pill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
-      if (pill) { pill.click(); cvApplyLangFromUrl(); renderGrid(); cvRestorePageFromUrl(); window._cvRestoringFromUrl = false; return; }
+      if (pill) {
+        pill.click();
+        cvApplyLangFromUrl();
+        try { if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(decoded); } catch (eVisP) {}
+        renderGrid();
+        cvRestorePageFromUrl();
+        window._cvRestoringFromUrl = false;
+        return;
+      }
       // Manual set
       selCat = decoded; selGenre = '';
       document.querySelectorAll('.cv-pill').forEach(function(p){ p.classList.remove('active'); });
       var targetPill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
       if (targetPill) targetPill.classList.add('active');
       cvApplyLangFromUrl();
+      try { if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(decoded); } catch (eVisC) {}
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
       cvLoadCategoryData(decoded, false);
