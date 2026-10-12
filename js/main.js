@@ -92,14 +92,14 @@ function cvOpenInBrowser() {
     var o=document.getElementById('cv-subcat-overlay');
     if(d){d.classList.add('open');d.setAttribute('aria-hidden','false');}
     if(o) o.classList.add('open');
-    try{document.body.style.overflow='hidden';}catch(e){}
+    try{cvScrollLock();}catch(e){}
   }
   function closeSubcatDrawer(){
     var d=document.getElementById('cv-subcat-drawer');
     var o=document.getElementById('cv-subcat-overlay');
     if(d){d.classList.remove('open');d.setAttribute('aria-hidden','true');}
     if(o) o.classList.remove('open');
-    try{document.body.style.overflow='';}catch(e){}
+    try{cvScrollUnlock();}catch(e){}
   }
   function bind(){
     var tog=document.getElementById('cv-subcat-toggle');
@@ -388,6 +388,48 @@ var allData = [];
       }
     }
   } catch (e) {}
+})();
+
+
+// ══ Mobile scroll lock helpers (modal/player only) ══
+function cvScrollLock() {
+  try {
+    document.documentElement.classList.add('cv-scroll-lock');
+    try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  } catch (e) {}
+}
+function cvScrollUnlock() {
+  try {
+    // Sirf tab unlock jab koi modal/player open na ho
+    var modal = document.getElementById('cv-modal');
+    var player = document.getElementById('cv-player');
+    var dl = document.getElementById('cv-dl-popup');
+    var search = document.getElementById('cv-search-overlay');
+    var still =
+      (modal && modal.classList.contains('open')) ||
+      (player && player.classList.contains('open')) ||
+      (dl && dl.classList.contains('open')) ||
+      (search && search.classList.contains('open') && getComputedStyle(search).display !== 'none');
+    if (still) return;
+    document.documentElement.classList.remove('cv-scroll-lock');
+    try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+  } catch (e) {}
+}
+// Safety: page load + har 3s soft check (stuck lock hatao)
+(function(){
+  function safeUnlock(){ try { cvScrollUnlock(); } catch(e){} }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', safeUnlock);
+  else safeUnlock();
+  setTimeout(safeUnlock, 800);
+  setTimeout(safeUnlock, 2500);
+  try {
+    document.addEventListener('visibilitychange', function(){
+      if (!document.hidden) safeUnlock();
+    });
+  } catch(e){}
 })();
 
 var selCat = 'all';
@@ -724,13 +766,13 @@ function showAdultGate(onSuccess) {
   var checkrow = document.getElementById('cv-adult-gate-checkrow');
   if (checkrow) checkrow.classList.remove('checked');
   gate.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
 }
 
 function hideAdultGate() {
   var gate = document.getElementById('cv-adult-gate');
   if (gate) gate.classList.remove('open');
-  document.body.style.overflow = '';
+  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
   _cvAdultGateOnSuccess = null;
 
   // Agar user gate cancel kar de aur wo Adult section se aaya tha, wapis
@@ -2811,7 +2853,7 @@ function cvPlayComingSoon(m) {
       }
       var player = document.getElementById('cv-player');
       if (player) player.classList.add('open');
-      document.body.style.overflow = 'hidden';
+      try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
       if (typeof cvPushState === 'function') cvPushState('player');
       return true;
     } catch (e2) { return false; }
@@ -2828,7 +2870,7 @@ function cvPlayComingSoon(m) {
       if (loading) loading.classList.add('show');
       var player = document.getElementById('cv-player');
       if (player) player.classList.add('open');
-      document.body.style.overflow = 'hidden';
+      try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
       if (typeof cvPushState === 'function') cvPushState('player');
     } catch (e0) {}
 
@@ -4181,7 +4223,7 @@ function openMyListModal() {
   if (errEl) errEl.textContent = '';
   cvRefreshMyListModalUI();
   modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
 }
 
 function cvMyListModalLogout() {
@@ -4198,7 +4240,7 @@ function cvMyListModalLogout() {
 function closeMyListModal() {
   var modal = document.getElementById('cv-mylist-modal');
   if (modal) modal.classList.remove('open');
-  document.body.style.overflow = '';
+  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
 }
 
 function cvMyListModalContinueGuest() {
@@ -4232,13 +4274,13 @@ function cvOpenReportModal() {
   if (reasons) reasons.style.display = 'flex';
   if (success) success.style.display = 'none';
   modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
 }
 
 function closeReportModal() {
   var modal = document.getElementById('cv-report-modal');
   if (modal) modal.classList.remove('open');
-  document.body.style.overflow = '';
+  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
 }
 
 function cvSubmitReport(reason) {
@@ -5166,8 +5208,8 @@ function openModal(key) {
   }
 
   document.getElementById('cv-modal').classList.add('open');
-  if (window.innerWidth < 769) document.body.style.overflow = 'hidden';
-  else document.getElementById('cv-modal-box').scrollTop = 0;
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  try { document.getElementById('cv-modal-box').scrollTop = 0; } catch (eScr) {}
   if (!isRerender) { var _mSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key); cvPushMovieState(_mSlug); cvUpdateSEO(m, _mSlug); }
 
   // ── REALTIME: Admin edit → auto update (sirf fresh open pe listener lagao) ──
@@ -5215,11 +5257,11 @@ function closeModal() {
     setTimeout(function() {
       modal.classList.remove('open');
       modal.classList.remove('closing');
-      document.body.style.overflow = '';
+      try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
     }, 210);
   } else {
     if (modal) modal.classList.remove('open');
-    document.body.style.overflow = '';
+    try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
   }
   // Reset lightbox screenshots ref so stale data doesn't persist
   window._cvCurrentSsUrls = [];
@@ -5471,7 +5513,7 @@ function playVideo(url, title) {
 
   document.getElementById('cv-modal').classList.remove('open');
   document.getElementById('cv-player').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
   cvPushState('player');
 }
 
@@ -5485,7 +5527,7 @@ function closePlayer() {
   var loading = document.getElementById('cv-player-loading');
   if (loading) loading.classList.remove('show');
   document.getElementById('cv-player').classList.remove('open');
-  document.body.style.overflow = '';
+  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
 }
 
 // Player close button
@@ -5615,7 +5657,7 @@ window.addEventListener('popstate', function(e) {
         modalEl.classList.remove('open');
         modalEl.classList.remove('cv-closing');
       }
-      document.body.style.overflow = '';
+      try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
       if (window._cvModalLiveRef && typeof window._cvModalLiveRef.off === 'function') {
         try { window._cvModalLiveRef.off(); } catch (e0) {}
         window._cvModalLiveRef = null;
@@ -6999,7 +7041,7 @@ function tmdbPlayTrailer(tmdbId, mediaType, title) {
   if (loading) loading.classList.add('show');
 
   document.getElementById('cv-player').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
   cvPushState('player');
 
   fetch('https://api.themoviedb.org/3/' + mediaType + '/' + tmdbId + '/videos?api_key=' + TMDB_KEY + '&language=en-US')
@@ -7385,7 +7427,7 @@ function openLightbox(url, allUrls) {
   var lb = document.getElementById('cv-lightbox');
   if (!lb) return;
   lb.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
   cvLbShow(false);
 }
 
@@ -7459,7 +7501,7 @@ function cvLbGoto(i) {
 function closeLightbox() {
   var lb = document.getElementById('cv-lightbox');
   if (lb) lb.classList.remove('open');
-  document.body.style.overflow = '';
+  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
 }
 
 // Click background to close
