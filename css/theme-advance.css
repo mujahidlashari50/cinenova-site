@@ -455,3 +455,108 @@ body.cv-cat-view #cv-mb-home { display: none !important; }
     padding: 9px 30px 9px 14px !important;
   }
 }
+
+
+/* ══ PERFORMANCE — smooth all devices ══ */
+.cv-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 150px 280px;
+  contain: layout style paint;
+}
+.cv-card-img {
+  content-visibility: auto;
+  background: #1a1a1a;
+}
+#cv-grid {
+  contain: layout;
+}
+/* Mobile: kam effects = smooth scroll */
+@media (max-width: 768px) {
+  .cv-card:hover,
+  .cv-card:active {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  #cv-cats,
+  #cv-bottom-nav,
+  .cv-modal-box,
+  #cv-modal-box {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  .cv-card {
+    contain-intrinsic-size: 110px 220px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* Horizontal rows: GPU-friendly */
+#cv-ts-track,
+.cv-mb-row-track,
+#cv-trending-track {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+
+/* Now Showing — compact, less empty black on desktop */
+#cv-ns-hero {
+  min-height: 0 !important;
+  padding: 8px 0 4px !important;
+  margin: 0 auto !important;
+}
+#cv-ns-stack {
+  min-height: 180px !important;
+  max-height: 280px !important;
+  height: auto !important;
+}
+.cv-ns-poster {
+  max-height: 240px !important;
+}
+.cv-ns-poster img {
+  max-height: 240px !important;
+  object-fit: cover !important;
+}
+@media (min-width: 900px) {
+  #cv-ns-stack {
+    min-height: 200px !important;
+    max-height: 320px !important;
+  }
+  .cv-ns-poster, .cv-ns-poster img {
+    max-height: 300px !important;
+  }
+}
+@media (max-width: 600px) {
+  #cv-ns-stack {
+    min-height: 160px !important;
+    max-height: 220px !important;
+  }
+  .cv-ns-poster, .cv-ns-poster img {
+    max-height: 200px !important;
+  }
+}
+/* Category: force hide heroes even if JS late */
+body.cv-cat-view #cv-ns-hero,
+body.cv-cat-view #cv-featured-wrap,
+body.cv-cat-view #cv-motd-outer,
+body.cv-cat-view #cv-ts-wrap,
+body.cv-cat-view #cv-trending-wrap {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
