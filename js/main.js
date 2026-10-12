@@ -1592,32 +1592,35 @@ function cvBulkLoadAllMovies() {
     lastFirebaseKey = items.length ? items[items.length - 1]._key : null;
     _cvCatIndex = null;
     _cvCatIndexLen = -1;
-    // Deleted posts (merge/trash) purani IDB cache se wapas na aayein
     try { if (typeof idbClear === 'function') idbClear(); } catch (eIdb) {}
+    // Grid pehle (user ko content dikhao) — heavy widgets idle pe
     try {
       if (typeof renderGrid === 'function') renderGrid(false, true);
     } catch (e) {}
-    try {
-      if (typeof buildTrending === 'function') buildTrending();
-      if (typeof buildTsSlider === 'function') buildTsSlider();
-      if (typeof buildFeatured === 'function') buildFeatured();
-      if (typeof buildNsHero === 'function') buildNsHero();
-    } catch (e2) {}
-    try {
-      if (typeof idbSaveAll === 'function') {
-        if ('requestIdleCallback' in window) requestIdleCallback(function(){ idbSaveAll(allData); });
-        else setTimeout(function(){ idbSaveAll(allData); }, 500);
-      }
-    } catch (e3) {}
-    try {
-      if (typeof watchNewMovies === 'function') watchNewMovies();
-    } catch (e4) {}
-    try { if (typeof buildTrending === 'function') buildTrending(); } catch (e5) {}
-    try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e6) {}
-    // Search open ho to puri library se results turant dikhao
+    function _cvIdle(fn, delay) {
+      try {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(function(){ try { fn(); } catch(e){} }, { timeout: delay || 2000 });
+        } else {
+          setTimeout(function(){ try { fn(); } catch(e){} }, Math.min(delay || 200, 400));
+        }
+      } catch (eI) { setTimeout(function(){ try { fn(); } catch(e){} }, 300); }
+    }
+    _cvIdle(function() {
+      try { if (typeof buildFeatured === 'function') buildFeatured(); } catch (e) {}
+    }, 400);
+    _cvIdle(function() {
+      try { if (typeof buildTrending === 'function') buildTrending(); } catch (e) {}
+      try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e) {}
+      try { if (typeof buildNsHero === 'function') buildNsHero(); } catch (e) {}
+    }, 900);
+    _cvIdle(function() {
+      try { if (typeof idbSaveAll === 'function') idbSaveAll(allData); } catch (e) {}
+    }, 2500);
+    try { if (typeof watchNewMovies === 'function') watchNewMovies(); } catch (e4) {}
     try {
       if (typeof searchQ === 'string' && searchQ.trim() && typeof cvRefreshSearchUI === 'function') {
-        cvRefreshSearchUI();
+        _cvIdle(function(){ cvRefreshSearchUI(); }, 600);
       }
     } catch (e7) {}
   }, function(err) {
@@ -2078,9 +2081,19 @@ var _cvNsTimer = null;
 function buildNsHero() {
   var stack = document.getElementById('cv-ns-stack');
   if (!stack) return;
-  if (window._cvNsHeroEnabled === false) {
+  // Sirf HOME — category/genre pe kabhi na dikhao (traffic UX: jaldi grid)
+  var isHome = (typeof selCat === 'undefined' || !selCat || selCat === 'all')
+    && !(typeof selGenre !== 'undefined' && selGenre);
+  try {
+    var path = (location.pathname || '/').toLowerCase();
+    if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0 || path.indexOf('/movie/') === 0) {
+      isHome = false;
+    }
+  } catch (eP) {}
+  if (!isHome || window._cvNsHeroEnabled === false) {
     var heroWrapOff = document.getElementById('cv-ns-hero');
     if (heroWrapOff) heroWrapOff.style.display = 'none';
+    if (typeof _cvNsTimer !== 'undefined' && _cvNsTimer) { try { clearInterval(_cvNsTimer); _cvNsTimer = null; } catch(e){} }
     return;
   }
   // Agar watchdog ne pehle load-failure state dikha ke ye section chhupa
@@ -3784,8 +3797,18 @@ function cvRestorePageFromUrl() {
 // PAGINATION STATE
 // ══════════════════════════════════
 var cvCurrentPage = 1;
-var CV_PAGE_SIZE = 36;
+// Mobile pe kam cards = tez first paint + kam scroll jank
+var CV_PAGE_SIZE = (typeof window !== 'undefined' && window.innerWidth < 700) ? 24 : 36;
 var cvFilteredList = [];
+try {
+  window.addEventListener('resize', function() {
+    var n = window.innerWidth < 700 ? 24 : 36;
+    if (n !== CV_PAGE_SIZE) {
+      CV_PAGE_SIZE = n;
+      try { if (typeof cvScheduleRender === 'function') cvScheduleRender(false, true); } catch (e) {}
+    }
+  }, { passive: true });
+} catch (ePs) {}
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
 var _cvRenderTimer = null;
@@ -3793,12 +3816,13 @@ var _cvRenderPending = null;
 function cvScheduleRender(resetPage, silent) {
   _cvRenderPending = { resetPage: resetPage, silent: silent };
   if (_cvRenderTimer) return;
+  var _cvSchedMs = (typeof window !== 'undefined' && window.innerWidth < 700) ? 90 : 50;
   _cvRenderTimer = setTimeout(function() {
     _cvRenderTimer = null;
     var p = _cvRenderPending || {};
     _cvRenderPending = null;
     renderGrid(p.resetPage, p.silent);
-  }, 60);
+  }, _cvSchedMs);
 }
 
 // Category index — filter O(n) har baar poori list pe na chale repeatedly
@@ -3826,8 +3850,11 @@ function renderGrid(resetPage, silent) {
   try { if (typeof cvRefreshAdvanceFilterOptions === 'function' && allData && allData.length) cvRefreshAdvanceFilterOptions(); } catch (eAf) {}
 
   try {
-    var _isH = (typeof selCat === 'undefined' || !selCat || selCat === 'all') && !(typeof selGenre !== 'undefined' && selGenre);
-    if (_isH && typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
+    // Silent/background refresh pe heavy MovieBox rows mat banao (scroll freeze)
+    if (!silent) {
+      var _isH = (typeof selCat === 'undefined' || !selCat || selCat === 'all') && !(typeof selGenre !== 'undefined' && selGenre);
+      if (_isH && typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
+    }
   } catch (eRgMb) {}
 
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
@@ -4561,6 +4588,17 @@ function cvRenderPage(silent) {
   var cardMap = {};
   for (var i = 0; i < pageItems.length; i++) {
     var card = makeCard(pageItems[i]);
+    // First row images: eager load for faster LCP (mobile + desktop)
+    if (i < 6) {
+      try {
+        var im = card.querySelector('img.cv-card-img');
+        if (im) {
+          im.loading = 'eager';
+          im.setAttribute('fetchpriority', 'high');
+          im.decoding = 'async';
+        }
+      } catch (eImg) {}
+    }
     cardMap[pageItems[i]._key] = card;
     frag.appendChild(card);
   }
