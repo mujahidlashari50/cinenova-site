@@ -1422,12 +1422,11 @@ body.cv-cat-view #cv-mb-home { display: none !important; }
 
 /* ══ PERFORMANCE — smooth all devices ══ */
 .cv-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 150px 280px;
-  contain: layout style paint;
+  content-visibility: visible;
+  contain: none;
 }
 .cv-card-img {
-  content-visibility: auto;
+  content-visibility: visible;
   background: #1a1a1a;
 }
 #cv-grid {
@@ -1522,4 +1521,25 @@ body.cv-cat-view #cv-trending-wrap {
   overflow: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+
+/* Fix blank grid on some mobile browsers */
+.cv-card {
+  content-visibility: visible !important;
+  contain: none !important;
+}
+#cv-grid .cv-card {
+  content-visibility: visible !important;
+}
+body.cv-cat-view #cv-featured-wrap,
+body.cv-cat-view #cv-featured-card,
+html.cv-cat-view #cv-featured-wrap {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
