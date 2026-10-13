@@ -1221,8 +1221,10 @@ body.cv-cat-view #tmdb-slider-wrap {
 /* MovieBox rows ONLY inside installed PWA (not normal browser) */
 @media (display-mode: standalone) {
   body.cv-on-home.cv-pwa-app #cv-mb-home { display: block !important; }
-  body.cv-on-home.cv-pwa-app #cv-grid { display: none !important; }
-  body.cv-on-home.cv-pwa-app #cv-pagination { display: none !important; }
+  /* Grid hide ONLY when MovieBox rows actually rendered */
+  body.cv-on-home.cv-pwa-app.cv-mb-ready #cv-grid { display: none !important; }
+  body.cv-on-home.cv-pwa-app.cv-mb-ready #cv-pagination { display: none !important; }
+  body.cv-on-home.cv-pwa-app:not(.cv-mb-ready) #cv-grid { display: grid !important; }
 }
 body.cv-cat-view #cv-mb-home { display: none !important; }
 
