@@ -2595,21 +2595,30 @@ function cvMbOpenCat(cat) {
 function cvBuildMovieBoxHome() {
   var host = document.getElementById('cv-mb-home');
   if (!host) return;
+  function cvMbSetReady(on) {
+    try {
+      if (on) document.body.classList.add('cv-mb-ready');
+      else document.body.classList.remove('cv-mb-ready');
+    } catch (e) {}
+  }
   // Normal website: never MovieBox rows — only installed PWA app
   if (typeof cvIsPwaApp === 'function' && !cvIsPwaApp()) {
     host.style.display = 'none';
     host.innerHTML = '';
+    cvMbSetReady(false);
     return;
   }
   var isHome = (typeof selCat === 'undefined' || selCat === 'all' || !selCat) && !(typeof selGenre !== 'undefined' && selGenre);
   if (!isHome) {
     host.style.display = 'none';
     host.innerHTML = '';
+    cvMbSetReady(false);
     return;
   }
   var data = (typeof allData !== 'undefined' && allData) ? allData : [];
   if (!data.length) {
     host.innerHTML = '';
+    cvMbSetReady(false); // data nahi — normal grid dikhao
     return;
   }
   function take(filterFn, n) {
@@ -2650,6 +2659,9 @@ function cvBuildMovieBoxHome() {
   if (anim.length) html += cvMbBuildRow('Animation', anim, 'animation_hindi_dubbed');
 
   host.innerHTML = html;
+  cvMbSetReady(!!html && html.length > 40);
+  if (!html || html.length < 40) { host.style.display = 'none'; return; }
+
   host.style.display = '';
 }
 function cvBottomNav(action) {
