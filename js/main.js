@@ -9035,6 +9035,8 @@ function boot() {
     unsubChat: null,
     unsubMembers: null,
     lastStartAt: 0,
+    lastCountdownAt: 0,
+    _countdownRan: false,
     movieKey: null,
     movieTitle: ''
   };
@@ -9088,19 +9090,27 @@ function boot() {
       + '    <button type="button" class="cv-wp-btn primary" onclick="wpCopyLink()">📋 Copy link</button>'
       + '  </div>'
       + '  <div class="cv-wp-linkbox" id="cv-wp-linkbox">Invite link yahan dikhega…</div>'
+      + '  <div class="cv-wp-countdown" id="cv-wp-countdown" style="display:none;"></div>'
       + '  <div class="cv-wp-actions" id="cv-wp-actions"></div>'
+      + '  <div class="cv-wp-react">'
+      + '    <button type="button" onclick="wpReact('🔥')">🔥</button>'
+      + '    <button type="button" onclick="wpReact('😂')">😂</button>'
+      + '    <button type="button" onclick="wpReact('👏')">👏</button>'
+      + '    <button type="button" onclick="wpReact('😱')">😱</button>'
+      + '    <button type="button" onclick="wpReact('❤️')">❤️</button>'
+      + '  </div>'
       + '  <div class="cv-wp-cols">'
       + '    <div class="cv-wp-members"><div class="cv-wp-label">Members</div><ul id="cv-wp-member-list"></ul></div>'
       + '    <div class="cv-wp-chat">'
-      + '      <div class="cv-wp-label">Chat</div>'
+      + '      <div class="cv-wp-label">Live chat</div>'
       + '      <div id="cv-wp-chat-log" class="cv-wp-chat-log"></div>'
       + '      <form id="cv-wp-chat-form" class="cv-wp-chat-form" onsubmit="return wpSendChat(event)">'
-      + '        <input id="cv-wp-chat-input" maxlength="200" placeholder="Say something…" autocomplete="off"/>'
+      + '        <input id="cv-wp-chat-input" maxlength="200" placeholder="Chat with friends…" autocomplete="off"/>'
       + '        <button type="submit">Send</button>'
       + '      </form>'
       + '    </div>'
       + '  </div>'
-      + '  <p class="cv-wp-hint">Host starts the movie for everyone. Chat stays in sync. Video time may differ slightly on each device.</p>'
+      + '  <p class="cv-wp-hint">Sab <b>I\'m Ready</b> dabao → Host <b>Start Party</b> → 3-2-1 countdown → movie sab ke liye open. Chat + reactions live.</p>'
       + '</div>';
     document.body.appendChild(el);
   }
@@ -9152,7 +9162,7 @@ function boot() {
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
-    var member = { name: _wp.name, isHost: true, joinedAt: Date.now() };
+    var member = { name: _wp.name, isHost: true, ready: false, joinedAt: Date.now() };
     db.ref('parties/' + code).set(payload).then(function() {
       return db.ref('parties/' + code + '/members/' + _wp.uid).set(member);
     }).then(function() {
@@ -9198,6 +9208,7 @@ function boot() {
       return db.ref('parties/' + code + '/members/' + _wp.uid).set({
         name: _wp.name,
         isHost: _wp.isHost,
+        ready: false,
         joinedAt: Date.now()
       }).then(function() {
         try {
@@ -9230,11 +9241,18 @@ function boot() {
       var codeEl = document.getElementById('cv-wp-code');
       if (codeEl) codeEl.textContent = code;
       wpRenderActions(p);
+      if (p.status === 'countdown' && p.countdownAt && p.countdownAt !== _wp.lastCountdownAt) {
+        _wp.lastCountdownAt = p.countdownAt;
+        wpRunCountdown(function() {
+          if (p.movieKey) wpOpenMovie(p.movieKey);
+        });
+      }
       if (p.status === 'watching' && p.startAt && p.startAt !== _wp.lastStartAt) {
         _wp.lastStartAt = p.startAt;
-        if (!_wp.isHost) {
-          wpToast('Host started — opening movie…');
-          setTimeout(function(){ wpOpenMovie(p.movieKey); }, 400);
+        // If countdown already ran, just ensure movie open
+        if (!_wp._countdownRan) {
+          wpToast('🎬 Party started!');
+          setTimeout(function(){ wpOpenMovie(p.movieKey); }, 300);
         }
       }
     });
@@ -9242,13 +9260,19 @@ function boot() {
       var list = document.getElementById('cv-wp-member-list');
       if (!list) return;
       var html = '';
-      var n = 0;
+      var readyN = 0, total = 0;
       snap.forEach(function(ch) {
-        n++;
+        total++;
         var m = ch.val() || {};
-        html += '<li>' + (m.isHost ? '👑 ' : '👤 ') + (m.name || 'Guest') + (ch.key === _wp.uid ? ' (you)' : '') + '</li>';
+        if (m.ready) readyN++;
+        var badge = m.ready ? ' ✅' : ' ⏳';
+        html += '<li>' + (m.isHost ? '👑 ' : '👤 ') + (m.name || 'Guest') + badge + (ch.key === _wp.uid ? ' <span style="color:#a78bfa">(you)</span>' : '') + '</li>';
       });
       list.innerHTML = html || '<li>No one yet</li>';
+      _wp._readyCount = readyN;
+      _wp._memberCount = total;
+      var st = document.getElementById('cv-wp-ready-stat');
+      if (st) st.textContent = readyN + '/' + total + ' ready';
     });
     _wp.unsubChat = db.ref('parties/' + code + '/chat').limitToLast(40).on('value', function(snap) {
       var log = document.getElementById('cv-wp-chat-log');
@@ -9277,27 +9301,92 @@ function boot() {
     var box = document.getElementById('cv-wp-actions');
     if (!box) return;
     var html = '';
+    html += '<div id="cv-wp-ready-stat" style="width:100%;font-size:0.75rem;color:#a78bfa;margin-bottom:4px;"></div>';
+    html += '<button type="button" class="cv-wp-btn" id="cv-wp-ready-btn" onclick="wpToggleReady()">✅ I\'m Ready</button>';
     if (_wp.isHost) {
-      html += '<button type="button" class="cv-wp-btn primary" onclick="wpHostStart()">▶ Start together</button>';
-      html += '<button type="button" class="cv-wp-btn danger" onclick="wpEndParty()">End party</button>';
+      html += '<button type="button" class="cv-wp-btn primary" onclick="wpHostStart()">🎉 Start Party (3-2-1)</button>';
+      html += '<button type="button" class="cv-wp-btn danger" onclick="wpEndParty()">End</button>';
     } else {
-      html += '<button type="button" class="cv-wp-btn primary" onclick="wpOpenMovie()">▶ Open movie</button>';
       html += '<button type="button" class="cv-wp-btn" onclick="wpLeave()">Leave</button>';
     }
     box.innerHTML = html;
   }
 
+  window.wpToggleReady = function() {
+    if (!_wp.code || !_wp.uid) return;
+    var ref = db.ref('parties/' + _wp.code + '/members/' + _wp.uid + '/ready');
+    ref.once('value').then(function(snap) {
+      var next = !snap.val();
+      return ref.set(next).then(function() {
+        var btn = document.getElementById('cv-wp-ready-btn');
+        if (btn) {
+          btn.textContent = next ? '✅ Ready!' : '✅ I\'m Ready';
+          btn.style.background = next ? 'rgba(34,197,94,0.25)' : '';
+          btn.style.borderColor = next ? '#22c55e' : '';
+        }
+        wpSendSystem(next ? (_wp.name + ' is ready ✅') : (_wp.name + ' not ready'));
+      });
+    });
+  };
+
+  window.wpReact = function(emoji) {
+    if (!_wp.code) return;
+    wpSendSystem((_wp.name || 'Guest') + ' ' + emoji);
+  };
+
+  function wpSendSystem(text) {
+    if (!_wp.code) return;
+    db.ref('parties/' + _wp.code + '/chat').push({
+      name: '🎉',
+      uid: 'system',
+      text: String(text || '').slice(0, 120),
+      at: Date.now()
+    }).catch(function(){});
+  }
+
+  function wpRunCountdown(done) {
+    var el = document.getElementById('cv-wp-countdown');
+    if (!el) { if (done) done(); return; }
+    el.style.display = 'flex';
+    var n = 3;
+    _wp._countdownRan = true;
+    el.textContent = String(n);
+    var iv = setInterval(function() {
+      n--;
+      if (n <= 0) {
+        clearInterval(iv);
+        el.textContent = '🎬';
+        setTimeout(function() {
+          el.style.display = 'none';
+          if (done) done();
+        }, 400);
+      } else {
+        el.textContent = String(n);
+      }
+    }, 900);
+  }
+
   window.wpHostStart = function() {
     if (!_wp.isHost || !_wp.code) return;
-    var t = Date.now();
+    var now = Date.now();
+    // Countdown for everyone via Firebase
     db.ref('parties/' + _wp.code).update({
-      status: 'watching',
-      startAt: t,
-      updatedAt: t
+      status: 'countdown',
+      countdownAt: now,
+      updatedAt: now
     }).then(function() {
-      _wp.lastStartAt = t;
-      wpOpenMovie(_wp.movieKey);
-      wpToast('Started for everyone');
+      _wp.lastCountdownAt = now;
+      wpSendSystem('Host started the countdown! 🎬');
+      wpRunCountdown(function() {
+        var t2 = Date.now();
+        db.ref('parties/' + _wp.code).update({
+          status: 'watching',
+          startAt: t2,
+          updatedAt: t2
+        });
+        _wp.lastStartAt = t2;
+        wpOpenMovie(_wp.movieKey);
+      });
     }).catch(function(e) {
       wpToast('Start fail: ' + (e.message || e));
     });
