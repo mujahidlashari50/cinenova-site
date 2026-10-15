@@ -5059,6 +5059,7 @@ function openModal(key) {
     + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
     + 'Copy Link</button>'
     + '</div>'
+    + '<button type="button" onclick="wpCreateFromModal()" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:6px;color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 18px rgba(124,58,237,0.35)">🎉 Watch Party — Invite Friends</button>'
     + '<button onclick="cvOpenReportModal()" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.25);border-radius:4px;color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:inherit" onmouseover="this.style.background=\'rgba(239,68,68,0.08)\'" onmouseout="this.style.background=\'transparent\'">⚠ Report Broken Link / Issue</button>';
 
   document.getElementById('cv-modal-btns').innerHTML = btns;
@@ -9018,3 +9019,358 @@ function boot() {
   setTimeout(boot, 800);
   setTimeout(boot, 2500);
 })();
+
+
+/* ═══ WATCH PARTY (Firebase Realtime) ═══
+   Soft-sync party: same movie, host "Start together", live chat, member list.
+   Frame-perfect video sync not possible on external embeds — host leads. */
+(function(){
+  var WP_MAX = 8;
+  var _wp = {
+    code: null,
+    isHost: false,
+    uid: null,
+    name: 'Guest',
+    unsubParty: null,
+    unsubChat: null,
+    unsubMembers: null,
+    lastStartAt: 0,
+    movieKey: null,
+    movieTitle: ''
+  };
+
+  function wpUid() {
+    try {
+      if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+        return firebase.auth().currentUser.uid;
+      }
+    } catch (e) {}
+    var id = localStorage.getItem('cv_wp_uid');
+    if (!id) {
+      id = 'g_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+      try { localStorage.setItem('cv_wp_uid', id); } catch (e2) {}
+    }
+    return id;
+  }
+
+  function wpName() {
+    try {
+      var u = firebase.auth && firebase.auth().currentUser;
+      if (u) return (u.displayName || (u.email && u.email.split('@')[0]) || 'User').slice(0, 24);
+    } catch (e) {}
+    var n = localStorage.getItem('cv_wp_name');
+    if (n) return n.slice(0, 24);
+    return 'Guest' + Math.floor(Math.random() * 90 + 10);
+  }
+
+  function wpCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var s = '';
+    for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+    return s;
+  }
+
+  function wpEnsureShell() {
+    if (document.getElementById('cv-wp-overlay')) return;
+    var el = document.createElement('div');
+    el.id = 'cv-wp-overlay';
+    el.className = 'cv-wp-overlay';
+    el.style.display = 'none';
+    el.innerHTML = ''
+      + '<div class="cv-wp-panel" role="dialog" aria-label="Watch Party">'
+      + '  <div class="cv-wp-head">'
+      + '    <div class="cv-wp-head-left"><span class="cv-wp-badge">🎉 Party</span><span id="cv-wp-title" class="cv-wp-title">Watch Party</span></div>'
+      + '    <button type="button" class="cv-wp-x" onclick="wpClose()" aria-label="Close">×</button>'
+      + '  </div>'
+      + '  <div class="cv-wp-movie" id="cv-wp-movie"></div>'
+      + '  <div class="cv-wp-code-row">'
+      + '    <div><div class="cv-wp-label">Room code</div><div class="cv-wp-code" id="cv-wp-code">------</div></div>'
+      + '    <button type="button" class="cv-wp-btn" onclick="wpCopyLink()">Copy invite link</button>'
+      + '  </div>'
+      + '  <div class="cv-wp-actions" id="cv-wp-actions"></div>'
+      + '  <div class="cv-wp-cols">'
+      + '    <div class="cv-wp-members"><div class="cv-wp-label">Members</div><ul id="cv-wp-member-list"></ul></div>'
+      + '    <div class="cv-wp-chat">'
+      + '      <div class="cv-wp-label">Chat</div>'
+      + '      <div id="cv-wp-chat-log" class="cv-wp-chat-log"></div>'
+      + '      <form id="cv-wp-chat-form" class="cv-wp-chat-form" onsubmit="return wpSendChat(event)">'
+      + '        <input id="cv-wp-chat-input" maxlength="200" placeholder="Say something…" autocomplete="off"/>'
+      + '        <button type="submit">Send</button>'
+      + '      </form>'
+      + '    </div>'
+      + '  </div>'
+      + '  <p class="cv-wp-hint">Host starts the movie for everyone. Chat stays in sync. Video time may differ slightly on each device.</p>'
+      + '</div>';
+    document.body.appendChild(el);
+  }
+
+  function wpToast(msg) {
+    try {
+      if (typeof toast === 'function') toast(msg);
+      else if (typeof cvToast === 'function') cvToast(msg);
+      else alert(msg);
+    } catch (e) { try { alert(msg); } catch (e2) {} }
+  }
+
+  window.wpCreateFromModal = function() {
+    var key = window._cvCurrentKey || '';
+    var m = null;
+    try {
+      if (typeof allData !== 'undefined' && allData && key) {
+        for (var i = 0; i < allData.length; i++) {
+          if (allData[i]._key === key || allData[i].key === key) { m = allData[i]; break; }
+        }
+      }
+    } catch (e) {}
+    var title = (m && m.title) || (document.getElementById('cv-modal-title') && document.getElementById('cv-modal-title').textContent) || 'Movie';
+    if (!key) { wpToast('Movie open karke phir Watch Party dabao'); return; }
+    if (typeof db === 'undefined' || !db) { wpToast('Connection pending — 2 sec baad try'); return; }
+    wpEnsureShell();
+    _wp.uid = wpUid();
+    _wp.name = wpName();
+    _wp.isHost = true;
+    _wp.movieKey = key;
+    _wp.movieTitle = title;
+    var code = wpCode();
+    var payload = {
+      code: code,
+      movieKey: key,
+      movieTitle: title,
+      hostUid: _wp.uid,
+      hostName: _wp.name,
+      status: 'lobby',
+      startAt: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    var member = { name: _wp.name, isHost: true, joinedAt: Date.now() };
+    db.ref('parties/' + code).set(payload).then(function() {
+      return db.ref('parties/' + code + '/members/' + _wp.uid).set(member);
+    }).then(function() {
+      _wp.code = code;
+      try {
+        var url = location.origin + location.pathname + '?party=' + code;
+        history.replaceState(null, '', url);
+      } catch (e) {}
+      wpOpenUI();
+      wpSubscribe(code);
+      wpToast('Party created — link share karo');
+    }).catch(function(err) {
+      wpToast('Party fail: ' + (err.message || err));
+    });
+  };
+
+  window.wpJoin = function(code, silent) {
+    code = String(code || '').trim().toUpperCase();
+    if (!code || code.length < 4) { if (!silent) wpToast('Invalid code'); return; }
+    if (typeof db === 'undefined' || !db) { if (!silent) wpToast('Connecting…'); setTimeout(function(){ wpJoin(code, silent); }, 800); return; }
+    wpEnsureShell();
+    _wp.uid = wpUid();
+    _wp.name = wpName();
+    _wp.isHost = false;
+    db.ref('parties/' + code).once('value').then(function(snap) {
+      var p = snap.val();
+      if (!p) { wpToast('Party not found or expired'); return; }
+      _wp.code = code;
+      _wp.movieKey = p.movieKey;
+      _wp.movieTitle = p.movieTitle || 'Movie';
+      _wp.isHost = (p.hostUid === _wp.uid);
+      return db.ref('parties/' + code + '/members/' + _wp.uid).set({
+        name: _wp.name,
+        isHost: _wp.isHost,
+        joinedAt: Date.now()
+      }).then(function() {
+        try {
+          history.replaceState(null, '', location.origin + location.pathname + '?party=' + code);
+        } catch (e) {}
+        wpOpenUI();
+        wpSubscribe(code);
+        if (!silent) wpToast('Joined party');
+        if (p.status === 'watching' && p.startAt && p.startAt !== _wp.lastStartAt) {
+          _wp.lastStartAt = p.startAt;
+        }
+      });
+    }).catch(function(e) {
+      wpToast('Join fail: ' + (e.message || e));
+    });
+  };
+
+  function wpSubscribe(code) {
+    wpUnsubscribe();
+    _wp.unsubParty = db.ref('parties/' + code).on('value', function(snap) {
+      var p = snap.val();
+      if (!p) { wpToast('Party ended'); wpClose(true); return; }
+      _wp.movieKey = p.movieKey;
+      _wp.movieTitle = p.movieTitle || '';
+      _wp.isHost = (p.hostUid === _wp.uid);
+      var titleEl = document.getElementById('cv-wp-title');
+      if (titleEl) titleEl.textContent = p.movieTitle || 'Watch Party';
+      var movieEl = document.getElementById('cv-wp-movie');
+      if (movieEl) movieEl.textContent = (p.movieTitle || '') + (p.status === 'watching' ? ' · Live' : ' · Lobby');
+      var codeEl = document.getElementById('cv-wp-code');
+      if (codeEl) codeEl.textContent = code;
+      wpRenderActions(p);
+      if (p.status === 'watching' && p.startAt && p.startAt !== _wp.lastStartAt) {
+        _wp.lastStartAt = p.startAt;
+        if (!_wp.isHost) {
+          wpToast('Host started — opening movie…');
+          setTimeout(function(){ wpOpenMovie(p.movieKey); }, 400);
+        }
+      }
+    });
+    _wp.unsubMembers = db.ref('parties/' + code + '/members').on('value', function(snap) {
+      var list = document.getElementById('cv-wp-member-list');
+      if (!list) return;
+      var html = '';
+      var n = 0;
+      snap.forEach(function(ch) {
+        n++;
+        var m = ch.val() || {};
+        html += '<li>' + (m.isHost ? '👑 ' : '👤 ') + (m.name || 'Guest') + (ch.key === _wp.uid ? ' (you)' : '') + '</li>';
+      });
+      list.innerHTML = html || '<li>No one yet</li>';
+    });
+    _wp.unsubChat = db.ref('parties/' + code + '/chat').limitToLast(40).on('value', function(snap) {
+      var log = document.getElementById('cv-wp-chat-log');
+      if (!log) return;
+      var html = '';
+      snap.forEach(function(ch) {
+        var c = ch.val() || {};
+        html += '<div class="cv-wp-msg"><b>' + (c.name || '?') + '</b> ' + (c.text || '') + '</div>';
+      });
+      log.innerHTML = html;
+      log.scrollTop = log.scrollHeight;
+    });
+  }
+
+  function wpUnsubscribe() {
+    if (!_wp.code || typeof db === 'undefined') return;
+    try {
+      if (_wp.unsubParty) db.ref('parties/' + _wp.code).off('value');
+      if (_wp.unsubMembers) db.ref('parties/' + _wp.code + '/members').off('value');
+      if (_wp.unsubChat) db.ref('parties/' + _wp.code + '/chat').off('value');
+    } catch (e) {}
+    _wp.unsubParty = _wp.unsubMembers = _wp.unsubChat = null;
+  }
+
+  function wpRenderActions(p) {
+    var box = document.getElementById('cv-wp-actions');
+    if (!box) return;
+    var html = '';
+    if (_wp.isHost) {
+      html += '<button type="button" class="cv-wp-btn primary" onclick="wpHostStart()">▶ Start together</button>';
+      html += '<button type="button" class="cv-wp-btn danger" onclick="wpEndParty()">End party</button>';
+    } else {
+      html += '<button type="button" class="cv-wp-btn primary" onclick="wpOpenMovie()">▶ Open movie</button>';
+      html += '<button type="button" class="cv-wp-btn" onclick="wpLeave()">Leave</button>';
+    }
+    box.innerHTML = html;
+  }
+
+  window.wpHostStart = function() {
+    if (!_wp.isHost || !_wp.code) return;
+    var t = Date.now();
+    db.ref('parties/' + _wp.code).update({
+      status: 'watching',
+      startAt: t,
+      updatedAt: t
+    }).then(function() {
+      _wp.lastStartAt = t;
+      wpOpenMovie(_wp.movieKey);
+      wpToast('Started for everyone');
+    }).catch(function(e) {
+      wpToast('Start fail: ' + (e.message || e));
+    });
+  };
+
+  window.wpOpenMovie = function(key) {
+    key = key || _wp.movieKey;
+    if (!key) return;
+    try {
+      if (typeof cnGoToWatchWorker === 'function') {
+        cnGoToWatchWorker(key, '720p');
+        return;
+      }
+    } catch (e) {}
+    try {
+      location.href = 'https://www.cinenova.site/watch?id=' + encodeURIComponent(key) + '&q=720p';
+    } catch (e2) {}
+  };
+
+  window.wpSendChat = function(ev) {
+    if (ev) ev.preventDefault();
+    if (!_wp.code) return false;
+    var inp = document.getElementById('cv-wp-chat-input');
+    var text = (inp && inp.value || '').trim();
+    if (!text) return false;
+    if (inp) inp.value = '';
+    db.ref('parties/' + _wp.code + '/chat').push({
+      name: _wp.name,
+      uid: _wp.uid,
+      text: text.slice(0, 200),
+      at: Date.now()
+    }).catch(function(){});
+    return false;
+  };
+
+  window.wpCopyLink = function() {
+    if (!_wp.code) return;
+    var url = 'https://www.cinenova.site/?party=' + _wp.code;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function(){ wpToast('Invite link copied'); }).catch(function(){ prompt('Copy link', url); });
+    } else {
+      prompt('Copy link', url);
+    }
+  };
+
+  window.wpLeave = function() {
+    if (_wp.code && _wp.uid) {
+      try { db.ref('parties/' + _wp.code + '/members/' + _wp.uid).remove(); } catch (e) {}
+    }
+    wpClose(true);
+  };
+
+  window.wpEndParty = function() {
+    if (!_wp.isHost || !_wp.code) return;
+    if (!confirm('End party for everyone?')) return;
+    var code = _wp.code;
+    wpUnsubscribe();
+    db.ref('parties/' + code).remove().catch(function(){});
+    _wp.code = null;
+    wpClose(true);
+    wpToast('Party ended');
+  };
+
+  function wpOpenUI() {
+    wpEnsureShell();
+    var o = document.getElementById('cv-wp-overlay');
+    if (o) o.style.display = 'flex';
+    document.body.classList.add('cv-wp-open');
+  }
+
+  window.wpClose = function(skipLeave) {
+    var o = document.getElementById('cv-wp-overlay');
+    if (o) o.style.display = 'none';
+    document.body.classList.remove('cv-wp-open');
+    if (!skipLeave) {
+      // keep subscription if minimized? for simplicity leave listeners if still in party
+    }
+  };
+
+  function wpBootFromUrl() {
+    try {
+      var q = new URLSearchParams(location.search);
+      var code = q.get('party');
+      if (code) {
+        setTimeout(function(){ wpJoin(code, true); }, 1200);
+      }
+    } catch (e) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wpBootFromUrl);
+  } else {
+    setTimeout(wpBootFromUrl, 500);
+  }
+})();
+
