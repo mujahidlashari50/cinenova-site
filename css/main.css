@@ -1629,3 +1629,10 @@ html.cv-scroll-lock body {
 .cv-wp-hint{font-size:.7rem;color:#666;margin:10px 0 0;line-height:1.4}
 body.cv-wp-open{overflow:hidden}
 
+
+
+.cv-wp-countdown{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);font-size:4.5rem;font-weight:900;color:#fff;text-shadow:0 0 40px #7c3aed;border-radius:16px;pointer-events:none}
+.cv-wp-panel{position:relative}
+.cv-wp-react{display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.cv-wp-react button{width:44px;height:44px;border-radius:12px;border:1px solid #333;background:#1a1a1a;font-size:1.25rem;cursor:pointer;transition:transform .15s}
+.cv-wp-react button:active{transform:scale(1.2)}
