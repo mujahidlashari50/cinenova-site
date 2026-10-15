@@ -9085,8 +9085,9 @@ function boot() {
       + '  <div class="cv-wp-movie" id="cv-wp-movie"></div>'
       + '  <div class="cv-wp-code-row">'
       + '    <div><div class="cv-wp-label">Room code</div><div class="cv-wp-code" id="cv-wp-code">------</div></div>'
-      + '    <button type="button" class="cv-wp-btn" onclick="wpCopyLink()">Copy invite link</button>'
+      + '    <button type="button" class="cv-wp-btn primary" onclick="wpCopyLink()">📋 Copy link</button>'
       + '  </div>'
+      + '  <div class="cv-wp-linkbox" id="cv-wp-linkbox">Invite link yahan dikhega…</div>'
       + '  <div class="cv-wp-actions" id="cv-wp-actions"></div>'
       + '  <div class="cv-wp-cols">'
       + '    <div class="cv-wp-members"><div class="cv-wp-label">Members</div><ul id="cv-wp-member-list"></ul></div>'
@@ -9106,10 +9107,18 @@ function boot() {
 
   function wpToast(msg) {
     try {
-      if (typeof toast === 'function') toast(msg);
-      else if (typeof cvToast === 'function') cvToast(msg);
-      else alert(msg);
-    } catch (e) { try { alert(msg); } catch (e2) {} }
+      if (typeof toast === 'function') { toast(msg); return; }
+      if (typeof cvToast === 'function') { cvToast(msg); return; }
+    } catch (e) {}
+    try {
+      var el = document.createElement('div');
+      el.textContent = msg;
+      el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100060;background:#1a1a1a;border:1px solid #7c3aed;color:#fff;padding:12px 18px;border-radius:12px;font-size:0.85rem;font-weight:600;max-width:90%;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+      document.body.appendChild(el);
+      setTimeout(function(){ try { el.remove(); } catch(e){} }, 2800);
+    } catch (e2) {
+      try { alert(msg); } catch (e3) {}
+    }
   }
 
   window.wpCreateFromModal = function() {
@@ -9148,13 +9157,24 @@ function boot() {
       return db.ref('parties/' + code + '/members/' + _wp.uid).set(member);
     }).then(function() {
       _wp.code = code;
+      var invite = 'https://www.cinenova.site/?party=' + code;
       try {
-        var url = location.origin + location.pathname + '?party=' + code;
-        history.replaceState(null, '', url);
+        history.replaceState(null, '', location.origin + '/?party=' + code);
       } catch (e) {}
       wpOpenUI();
+      wpFillInvite(code, invite);
       wpSubscribe(code);
-      wpToast('Party created — link share karo');
+      // Auto-copy invite link
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(invite);
+        }
+      } catch (e2) {}
+      // Soft toast — not blocking alert if possible
+      try {
+        if (typeof toast === 'function') toast('🎉 Party ready — link copied!');
+        else if (typeof cvToast === 'function') cvToast('🎉 Party ready — link copied!');
+      } catch (e3) {}
     }).catch(function(err) {
       wpToast('Party fail: ' + (err.message || err));
     });
@@ -9316,10 +9336,14 @@ function boot() {
   window.wpCopyLink = function() {
     if (!_wp.code) return;
     var url = 'https://www.cinenova.site/?party=' + _wp.code;
+    var box = document.getElementById('cv-wp-linkbox');
+    if (box) box.textContent = url;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(function(){ wpToast('Invite link copied'); }).catch(function(){ prompt('Copy link', url); });
+      navigator.clipboard.writeText(url).then(function(){
+        try { if (typeof toast === 'function') toast('📋 Link copied'); else wpToast('Link copied'); } catch(e){}
+      }).catch(function(){ prompt('Copy this link:', url); });
     } else {
-      prompt('Copy link', url);
+      prompt('Copy this link:', url);
     }
   };
 
@@ -9341,11 +9365,29 @@ function boot() {
     wpToast('Party ended');
   };
 
+  function wpFillInvite(code, invite) {
+    var codeEl = document.getElementById('cv-wp-code');
+    if (codeEl) codeEl.textContent = code || '------';
+    var box = document.getElementById('cv-wp-linkbox');
+    if (box) box.textContent = invite || ('https://www.cinenova.site/?party=' + (code || ''));
+    var titleEl = document.getElementById('cv-wp-title');
+    if (titleEl && _wp.movieTitle) titleEl.textContent = _wp.movieTitle;
+    var movieEl = document.getElementById('cv-wp-movie');
+    if (movieEl) movieEl.textContent = (_wp.movieTitle || '') + ' · Lobby';
+  }
+
   function wpOpenUI() {
     wpEnsureShell();
     var o = document.getElementById('cv-wp-overlay');
-    if (o) o.style.display = 'flex';
+    if (o) {
+      o.style.display = 'flex';
+      o.style.zIndex = '100050';
+    }
     document.body.classList.add('cv-wp-open');
+    // Fill invite if we already have code
+    if (_wp.code) {
+      wpFillInvite(_wp.code, 'https://www.cinenova.site/?party=' + _wp.code);
+    }
   }
 
   window.wpClose = function(skipLeave) {
