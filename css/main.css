@@ -1596,3 +1596,130 @@ html.cv-scroll-lock body {
 #cv-subcat-drawer:not(.open) {
   pointer-events: none !important;
 }
+
+
+/* ══ New This Week (replaces Now Showing stack) ══ */
+#cv-ns-hero.cv-ntw-active,
+#cv-ns-hero {
+  min-height: 0 !important;
+  padding: 14px 0 8px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  display: block;
+  overflow: visible !important;
+}
+#cv-ns-hero::before { display: none !important; }
+#cv-ns-hero-title {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  padding: 0 16px 10px !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #eee !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.cv-ntw-count {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: rgba(229,9,20,.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(229,9,20,.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+#cv-ns-stack.cv-ntw-track,
+.cv-ntw-track {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: flex !important;
+  gap: 10px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 16px 12px !important;
+  transform: none !important;
+}
+#cv-ns-stack.cv-ntw-track::-webkit-scrollbar { display: none; }
+
+.cv-ntw-card {
+  width: 118px;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.cv-ntw-poster-wrap {
+  position: relative;
+  width: 118px;
+  height: 177px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #1a1a1a;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
+.cv-ntw-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cv-ntw-badge {
+  position: absolute;
+  top: 6px; left: 6px;
+  z-index: 2;
+  background: #e50914;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: .04em;
+}
+.cv-ntw-q {
+  position: absolute;
+  top: 6px; right: 6px;
+  z-index: 2;
+  background: rgba(0,0,0,.82);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.cv-ntw-card-title {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ccc;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cv-ntw-card-meta {
+  font-size: 0.62rem;
+  color: #777;
+  margin-top: 2px;
+}
+@media (min-width: 768px) {
+  .cv-ntw-card { width: 140px; }
+  .cv-ntw-poster-wrap { width: 140px; height: 210px; border-radius: 12px; }
+  #cv-ns-hero-title { font-size: 1.3rem !important; padding: 0 4% 12px !important; }
+  #cv-ns-stack.cv-ntw-track { padding: 0 4% 14px !important; gap: 12px !important; }
+}
+/* Hide old stack poster styles when NTW active */
+#cv-ns-hero.cv-ntw-active .cv-ns-poster,
+#cv-ns-hero.cv-ntw-active .cv-ns-skel {
+  display: none !important;
+}
+body.cv-cat-view #cv-ns-hero {
+  display: none !important;
+}
