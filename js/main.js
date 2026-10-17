@@ -3,6 +3,23 @@ document.documentElement.style.background='#141414';
 document.documentElement.style.color='#e5e5e5';
 try{document.body.classList.add('cv-booting');}catch(e){}
 
+/* Boot home class ASAP — filters never flash */
+(function(){
+  try {
+    var p = (location.pathname||'/').toLowerCase();
+    var q = location.search || '';
+    var isCat = p.indexOf('/category/')===0 || p.indexOf('/genre/')===0 || /[?&]cat=/.test(q);
+    if (isCat) {
+      document.documentElement.classList.add('cv-cat-view');
+      document.documentElement.classList.remove('cv-on-home');
+    } else {
+      document.documentElement.classList.add('cv-on-home');
+      document.documentElement.classList.remove('cv-cat-view');
+    }
+  } catch(e){}
+})();
+
+
 /* === script === */
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -572,6 +589,8 @@ function cvInitAdvanceFilters() {
     bar = document.createElement('div');
     bar.id = 'cv-adv-filters';
     bar.className = 'cv-adv-filters';
+    bar.style.display = 'none';
+    bar.setAttribute('hidden', 'hidden');
     bar.innerHTML =
       '<select id="cv-filter-year" class="cv-adv-select" aria-label="Year"><option value="">Year — All</option></select>' +
       '<select id="cv-filter-quality" class="cv-adv-select" aria-label="Quality"><option value="">Quality — All</option></select>' +
@@ -618,7 +637,8 @@ function cvUpdateAdvFiltersVisibility() {
     } catch (e) {}
     if (onHome) {
       bar.style.display = 'none';
-      // Home pe filters clear
+      bar.setAttribute('hidden', 'hidden');
+      bar.classList.remove('cv-adv-visible');
       if (typeof selYear !== 'undefined') selYear = '';
       _cvAdvQuality = '';
       var ySel = document.getElementById('cv-filter-year');
@@ -627,6 +647,8 @@ function cvUpdateAdvFiltersVisibility() {
       if (qSel) qSel.value = '';
     } else {
       bar.style.display = 'flex';
+      bar.removeAttribute('hidden');
+      bar.classList.add('cv-adv-visible');
     }
   } catch (e2) {}
 }
@@ -2811,7 +2833,10 @@ function updateSlidersVisibility(cat) {
   try {
     document.body.classList.toggle('cv-on-home', !!isHome);
     document.body.classList.toggle('cv-cat-view', !isHome);
+    document.documentElement.classList.toggle('cv-on-home', !!isHome);
+    document.documentElement.classList.toggle('cv-cat-view', !isHome);
   } catch (eCls) {}
+  try { if (typeof cvUpdateAdvFiltersVisibility === 'function') cvUpdateAdvFiltersVisibility(); } catch (eAf) {}
 
   if (isHome) {
     // Home — Motd + Trending + hero/featured + MovieBox rows
@@ -4450,16 +4475,15 @@ function cvBuildFilteredList() {
     if (bucket && bucket.length) {
       var adultUnlockedFast = adultUnlocked;
       cvFilteredList = bucket.filter(function(m) {
-        if (cvIsAdultItem(m) && !adultUnlockedFast) return false;
+        if (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m) && !adultUnlockedFast) return false;
         if (m.published === false) return false;
         return true;
       });
-      // still apply sort
-      try {
-        if (typeof cvInterleaveByCategory === 'function' && selCat === 'all') {
-          /* n/a */
-        }
-      } catch (e) {}
+      cvFilteredList.sort(function(a, b) {
+        var ta = a.addedAt || 0, tb = b.addedAt || 0;
+        if (tb !== ta) return tb - ta;
+        return String(b._key || '').localeCompare(String(a._key || ''));
+      });
       return;
     }
   }
@@ -4478,7 +4502,7 @@ function cvBuildFilteredList() {
     // ya kisi bhi dusri category mein kabhi shaamil nahi hota.
     // Adult family: adult, adult_hindi, adult_english, hot_series, vivamax, short_films, philippines, hot_short_hindi
     var adultCats = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1, short_films:1, philippines:1, hot_short_hindi:1};
-    var isAdultItem = !!adultCats[cat];
+    var isAdultItem = !!adultCats[cat] || (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m));
     var isAllAdult = (selCat === 'adult' || selCat === 'group:adult');
     if (isAdultItem) {
       // Top "Adult" / "All Adult" (group:adult) → all adult family (if unlocked)
