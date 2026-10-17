@@ -7,44 +7,7 @@ try{document.body.classList.add('cv-booting');}catch(e){}
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true });
-
-function cvTrackEvent(name, params) {
-  try {
-    params = params || {};
-    if (typeof gtag === 'function') gtag('event', name, params);
-    if (typeof db !== 'undefined' && db) {
-      var day = new Date().toISOString().slice(0, 10);
-      db.ref('analytics/events/' + day + '/' + name).transaction(function(c){ return (c||0)+1; });
-    }
-  } catch (e) {}
-}
-function cvTrackVirtualPage(path, title) {
-  try {
-    if (typeof gtag === 'function') {
-      gtag('event', 'page_view', {
-        page_path: path || location.pathname,
-        page_title: title || document.title
-      });
-    }
-  } catch (e) {}
-}
-function cvCopyShareLink(url, movieId) {
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(function() {
-        if (typeof showStatus === 'function') showStatus('Link copied', '#46d369');
-        else alert('Link copied');
-      });
-    } else {
-      var i = document.createElement('input');
-      i.value = url; document.body.appendChild(i); i.select();
-      document.execCommand('copy'); i.remove();
-      if (typeof showStatus === 'function') showStatus('Link copied', '#46d369');
-    }
-    cvTrackEvent('share', { method: 'copy', movie_id: movieId || '' });
-  } catch (e) {}
-}
+  gtag('config', 'G-N67Y5B8T2Z');
 
 /* === script === */
 (function() {
@@ -133,13 +96,11 @@ function cvOpenInBrowser() {
 /* === script === */
 (function(){try{
     var p=new URLSearchParams(location.search);
-    if(p.get('cat')||p.get('genre')){
-      ['cv-featured-wrap','cv-motd-outer','cv-ts-wrap','cv-trending-wrap','cv-ns-hero','cv-trailers-wrap','tmdb-slider-wrap'].forEach(function(id){
-        var el=document.getElementById(id); if(el) el.style.display='none';
-      });
-      try{document.body.classList.add('cv-cat-view');document.body.classList.remove('cv-on-home');}catch(e2){}
-      return;
-    }
+    if(p.get('cat')||p.get('genre')){document.getElementById('cv-featured-wrap').style.display='none';return;}
+    // Pichli baar ka pata hua state turant apply karo (Firebase ka wait
+    // nahi karna) — taake na CLS ho (banner ON case) na flash ho (OFF case).
+    // Firebase settings load hone ke baad, agar zarurat pade to silently
+    // correct + cache update ho jata hai.
     if(localStorage.getItem('cv_fb_off')==='1'){document.getElementById('cv-featured-wrap').style.display='none';}
   }catch(e){}})();
 
@@ -383,92 +344,6 @@ var searchQ = '';
 // response nahi aata (ya category ki saari pages load nahi ho jatin),
 // error ki jagah skeleton (loading) dikhega.
 var cvFirstResponseReceived = false;
-
-// ══════════════════════════════════
-// MovieBox-style Year / Quality filter bar
-// ══════════════════════════════════
-var _cvAdvQuality = '';
-function cvInitAdvanceFilters() {
-  if (document.getElementById('cv-adv-filters')) return;
-  var host = document.getElementById('cv-grid');
-  if (!host || !host.parentNode) return;
-  var bar = document.createElement('div');
-  bar.id = 'cv-adv-filters';
-  bar.className = 'cv-adv-filters';
-  bar.innerHTML =
-    '<select id="cv-filter-year" class="cv-adv-select" aria-label="Year"><option value="">Year — All</option></select>' +
-    '<select id="cv-filter-quality" class="cv-adv-select" aria-label="Quality">' +
-    '<option value="">Quality — All</option>' +
-    '<option value="480p">480p</option><option value="720p">720p</option>' +
-    '<option value="1080p">1080p</option><option value="4k">4K</option></select>' +
-    '<button type="button" class="cv-adv-reset" id="cv-filter-reset">Reset</button>';
-  host.parentNode.insertBefore(bar, host);
-  var ySel = document.getElementById('cv-filter-year');
-  var years = {};
-  (typeof allData !== 'undefined' ? allData : []).forEach(function(m) {
-    var y = String(m.year || '').replace(/\D/g, '').substring(0, 4);
-    if (y && y.length === 4) years[y] = 1;
-  });
-  Object.keys(years).sort().reverse().slice(0, 30).forEach(function(y) {
-    var o = document.createElement('option');
-    o.value = y; o.textContent = y;
-    ySel.appendChild(o);
-  });
-  ySel.onchange = function() {
-    if (typeof selYear !== 'undefined') selYear = ySel.value || '';
-    cvApplyAdvanceFilters();
-  };
-  document.getElementById('cv-filter-quality').onchange = function() {
-    _cvAdvQuality = this.value || '';
-    cvApplyAdvanceFilters();
-  };
-  document.getElementById('cv-filter-reset').onclick = function() {
-    if (typeof selYear !== 'undefined') selYear = '';
-    _cvAdvQuality = '';
-    ySel.value = '';
-    document.getElementById('cv-filter-quality').value = '';
-    cvApplyAdvanceFilters();
-  };
-}
-function cvApplyAdvanceFilters() {
-  try {
-    if (typeof cvTrackEvent === 'function') {
-      cvTrackEvent('filter_use', { year: (typeof selYear!=='undefined'?selYear:'') || 'all', quality: _cvAdvQuality || 'all' });
-    }
-    if (typeof renderGrid === 'function') renderGrid();
-    else if (typeof applyFilters === 'function') applyFilters();
-    else if (typeof filterMovies === 'function') filterMovies();
-    else if (typeof showMovies === 'function') showMovies();
-    // visual fallback
-    var grid = document.getElementById('cv-grid');
-    if (!grid) return;
-    grid.querySelectorAll('.cv-card').forEach(function(card) {
-      var key = card.getAttribute('data-key');
-      if (!key) return;
-      var m = (allData || []).find(function(x){ return x._key === key; });
-      if (!m) return;
-      var show = true;
-      if (typeof selYear !== 'undefined' && selYear) {
-        var y = String(m.year || '').replace(/\D/g,'').substring(0,4);
-        if (y !== selYear) show = false;
-      }
-      if (show && _cvAdvQuality) {
-        var blob = (String(m.quality||'') + ' ' + String(m.title||'')).toLowerCase();
-        if (_cvAdvQuality === '4k') { if (!/4k|2160/.test(blob)) show = false; }
-        else if (blob.indexOf(_cvAdvQuality) < 0) show = false;
-      }
-      card.style.display = show ? '' : 'none';
-    });
-  } catch (e) {}
-}
-try {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(cvInitAdvanceFilters, 2000);
-    setTimeout(cvInitAdvanceFilters, 5000);
-  });
-} catch (e) {}
-
-
 
 // ══════════════════════════════════
 // ADULT 18+ AGE-GATE
@@ -1102,7 +977,7 @@ setTimeout(function() {
 var PAGE_SIZE = 100;        // pehli paint ke liye
 var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
 var CACHE_NAME = 'cv_movies_v1';
-var CACHE_TTL = 30 * 60 * 1000; // 30 min — deleted/merged posts jaldi site se hatain
+var CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours — more cache, less Firebase reads
 var lastFirebaseKey = null; // Firebase pagination cursor
 var allLoaded = false;      // All loaded?
 var isLoadingMore = false;  // Loading in progress?
@@ -1384,8 +1259,6 @@ function cvBulkLoadAllMovies() {
     lastFirebaseKey = items.length ? items[items.length - 1]._key : null;
     _cvCatIndex = null;
     _cvCatIndexLen = -1;
-    // Deleted posts (merge/trash) purani IDB cache se wapas na aayein
-    try { if (typeof idbClear === 'function') idbClear(); } catch (eIdb) {}
     try {
       if (typeof renderGrid === 'function') renderGrid(false, true);
     } catch (e) {}
@@ -1406,12 +1279,6 @@ function cvBulkLoadAllMovies() {
     } catch (e4) {}
     try { if (typeof buildTrending === 'function') buildTrending(); } catch (e5) {}
     try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e6) {}
-    // Search open ho to puri library se results turant dikhao
-    try {
-      if (typeof searchQ === 'string' && searchQ.trim() && typeof cvRefreshSearchUI === 'function') {
-        cvRefreshSearchUI();
-      }
-    } catch (e7) {}
   }, function(err) {
     _cvBulkStarted = false;
     try { if (typeof showLoadingMore === 'function') showLoadingMore(false); } catch (e) {}
@@ -1706,15 +1573,6 @@ function watchNewMovies() {
   watchQuery.on('child_removed', function(snap) {
     var removedKey = snap.key;
     allData = allData.filter(function(m) { return m._key !== removedKey; });
-    try {
-      idbOpen(function(err, idb) {
-        if (err || !idb) return;
-        try {
-          var tx = idb.transaction(['movies'], 'readwrite');
-          tx.objectStore('movies').delete(removedKey);
-        } catch (e2) {}
-      });
-    } catch (e3) {}
     _cvDebouncedRefresh();
   });
 }
@@ -2204,48 +2062,31 @@ function featuredShowSlide(idx) {
 // SLIDER & TMDB VISIBILITY (category based)
 // ══════════════════════════════════
 function updateSlidersVisibility(cat) {
-  var isHome = (cat === 'all' || !cat) && !(typeof selGenre !== 'undefined' && selGenre);
+  var isHome = (cat === 'all');
   var trailersWrap = document.getElementById('cv-trailers-wrap');
   var featuredWrap = document.getElementById('cv-featured-wrap');
   var nsHero = document.getElementById('cv-ns-hero');
-  var motdOuter = document.getElementById('cv-motd-outer');
-  var tsWrap = document.getElementById('cv-ts-wrap');
-  var trendWrap = document.getElementById('cv-trending-wrap');
-  var tmdbWrap = document.getElementById('tmdb-slider-wrap');
-
-  try {
-    document.body.classList.toggle('cv-on-home', !!isHome);
-    document.body.classList.toggle('cv-cat-view', !isHome);
-  } catch (eCls) {}
 
   if (isHome) {
-    // Home — Motd + Trending + hero/featured
+    // Home — custom images hain to hamesha show, warna admin toggle respect karo
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (featuredWrap) {
+      // ✅ FIX — sirf display toggle karne ki jagah buildFeatured() dobara
+      // call karo, bilkul waisa hi jaisa page refresh pe hota hai. Pehle
+      // yahan sirf ek purani/stale "_adminEnabled" flag pe depend karte the
+      // jo kabhi kabhi galat set ho jati thi, isliye category se Home wapis
+      // aane par banner show nahi hota tha jab tak refresh na karo.
       buildFeatured();
     }
-    if (motdOuter) motdOuter.style.display = '';
-    if (tsWrap) tsWrap.style.display = '';
-    if (trendWrap) trendWrap.style.display = '';
-    if (tmdbWrap) tmdbWrap.style.display = '';
-    try {
-      if (typeof cvBuildMotd === 'function') cvBuildMotd();
-      if (typeof buildTsSlider === 'function') buildTsSlider();
-    } catch (eH) {}
   } else {
-    // Category — Motd + Trending hide (sirf grid)
+    // Category pe sirf grid — sab hide
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
     if (featuredWrap) {
       if (featuredWrap._adminEnabled === undefined) featuredWrap._adminEnabled = featuredWrap.style.display !== 'none';
       featuredWrap.style.display = 'none';
     }
-    if (motdOuter) motdOuter.style.display = 'none';
-    if (tsWrap) tsWrap.style.display = 'none';
-    if (trendWrap) trendWrap.style.display = 'none';
-    if (tmdbWrap) tmdbWrap.style.display = 'none';
-    try { if (typeof cvMotdHide === 'function') cvMotdHide(); } catch (eM) {}
   }
 
   // Category heading update
@@ -2289,278 +2130,53 @@ var cvTsClones = 0;
 var cvTsTotal = 0;
 var cvTsInterval = null;
 
-function cvComingSoonTrailerUrl(m) {
-  if (!m) return '';
-  var u = m.trailerUrl || m.trailer || m.youtube || m.trailerKey || '';
-  if (!u) return '';
-  u = String(u).trim();
-  if (/^[a-zA-Z0-9_-]{6,20}$/.test(u)) return 'https://www.youtube.com/embed/' + u + '?autoplay=1&rel=0';
-  if (u.indexOf('youtube.com/watch') > -1) {
-    var m1 = u.match(/[?&]v=([a-zA-Z0-9_-]+)/);
-    if (m1) return 'https://www.youtube.com/embed/' + m1[1] + '?autoplay=1&rel=0';
-  }
-  if (u.indexOf('youtu.be/') > -1) {
-    var m2 = u.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-    if (m2) return 'https://www.youtube.com/embed/' + m2[1] + '?autoplay=1&rel=0';
-  }
-  if (u.indexOf('youtube.com/embed') > -1) return u.indexOf('autoplay') > -1 ? u : (u + (u.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1');
-  return u;
-}
-
-function cvPlayComingSoon(m) {
-  if (!m) return;
-  try { if (typeof cvTrackEvent === 'function') cvTrackEvent('coming_soon_trailer', { title: m.title || '' }); } catch (e) {}
-
-  // Sirf trailer — movie modal KABHI nahi
-  var tid = m.tmdbId || m.tmdb_id || m.tmdb || '';
-  if (!tid && m._key && String(m._key).indexOf('tmdb_') === 0) tid = String(m._key).replace(/^tmdb_/, '');
-  if (!tid && m.movieKey && String(m.movieKey).indexOf('tmdb_') === 0) tid = String(m.movieKey).replace(/^tmdb_/, '');
-  tid = tid ? String(tid).replace(/\D/g, '') : '';
-  var key = (typeof TMDB_KEY !== 'undefined' && TMDB_KEY) ? TMDB_KEY : 'b28ca4fbe7f15cd17c1df4869ac2d236';
-
-  function playYtKey(ytKey, title) {
-    if (!ytKey) return false;
-    var embed = 'https://www.youtube.com/embed/' + ytKey + '?autoplay=1&rel=0&modestbranding=1';
-    if (typeof playVideo === 'function') {
-      playVideo(embed, (title || 'Movie') + ' — Trailer');
-      return true;
-    }
-    // fallback player shell
-    try {
-      var inner = document.getElementById('cv-player-inner');
-      var loading = document.getElementById('cv-player-loading');
-      var titleEl = document.getElementById('cv-player-title');
-      if (titleEl) titleEl.textContent = 'Trailer: ' + (title || '');
-      if (loading) loading.classList.remove('show');
-      if (inner) {
-        inner.innerHTML = '<iframe src="' + embed + '" allowfullscreen frameborder="0" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;display:block;border:0"></iframe>';
-      }
-      var player = document.getElementById('cv-player');
-      if (player) player.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      if (typeof cvPushState === 'function') cvPushState('player');
-      return true;
-    } catch (e2) { return false; }
-  }
-
-  function fetchTrailerByTmdbId(id, title) {
-    if (typeof showStatus === 'function') showStatus('Loading trailer...', '#aaa');
-    try {
-      var inner = document.getElementById('cv-player-inner');
-      var loading = document.getElementById('cv-player-loading');
-      var titleEl = document.getElementById('cv-player-title');
-      if (inner) inner.innerHTML = '';
-      if (titleEl) titleEl.textContent = 'Trailer: ' + (title || '');
-      if (loading) loading.classList.add('show');
-      var player = document.getElementById('cv-player');
-      if (player) player.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      if (typeof cvPushState === 'function') cvPushState('player');
-    } catch (e0) {}
-
-    fetch('https://api.themoviedb.org/3/movie/' + id + '/videos?api_key=' + key + '&language=en-US')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        var loading = document.getElementById('cv-player-loading');
-        if (loading) loading.classList.remove('show');
-        var videos = (data && data.results) || [];
-        var trailer = null;
-        for (var i = 0; i < videos.length; i++) {
-          if (videos[i].site === 'YouTube' && videos[i].type === 'Trailer') { trailer = videos[i]; break; }
-        }
-        if (!trailer) {
-          for (var j = 0; j < videos.length; j++) {
-            if (videos[j].site === 'YouTube') { trailer = videos[j]; break; }
-          }
-        }
-        if (trailer && trailer.key) {
-          playYtKey(trailer.key, title);
-        } else {
-          var inner = document.getElementById('cv-player-inner');
-          if (inner) {
-            inner.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;gap:12px;padding:20px;text-align:center">'
-              + '<div style="font-size:2.5rem">🎬</div>'
-              + '<div style="color:#fff;font-weight:700">' + (title || '') + '</div>'
-              + '<div>Trailer not available</div>'
-              + '<button onclick="cvGoBack()" style="padding:10px 22px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Back</button></div>';
-          }
-        }
-      })
-      .catch(function() {
-        var loading = document.getElementById('cv-player-loading');
-        if (loading) loading.classList.remove('show');
-        if (typeof showStatus === 'function') showStatus('Trailer load failed', '#f66');
-      });
-  }
-
-  // 1) Direct YouTube already saved
-  var direct = cvComingSoonTrailerUrl(m);
-  if (direct) {
-    if (typeof playVideo === 'function') playVideo(direct, (m.title || 'Movie') + ' — Trailer');
-    else {
-      var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
-      if (mk) playYtKey(mk[1], m.title);
-    }
-    return;
-  }
-
-  // 2) Has TMDB id → trailer
-  if (tid) {
-    fetchTrailerByTmdbId(tid, m.title || 'Trailer');
-    return;
-  }
-
-  // 3) Search TMDB by title
-  var title = (m.title || '').replace(/\s*\(\d{4}\)\s*$/, '').trim();
-  if (!title) {
-    if (typeof showStatus === 'function') showStatus('Trailer not available', '#f5c518');
-    return;
-  }
-  var year = m.year || (m.releaseDate ? String(m.releaseDate).substring(0, 4) : '');
-  var searchUrl = 'https://api.themoviedb.org/3/search/movie?api_key=' + key +
-    '&query=' + encodeURIComponent(title) + (year ? '&year=' + encodeURIComponent(year) : '') + '&language=en-US';
-  if (typeof showStatus === 'function') showStatus('Finding trailer...', '#aaa');
-  fetch(searchUrl)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var results = (data && data.results) || [];
-      var hit = results[0];
-      if ((!hit || !hit.id) && year) {
-        return fetch('https://api.themoviedb.org/3/search/movie?api_key=' + key + '&query=' + encodeURIComponent(title) + '&language=en-US')
-          .then(function(r2) { return r2.json(); })
-          .then(function(d2) { return ((d2 && d2.results) || [])[0] || null; });
-      }
-      return hit;
-    })
-    .then(function(hit) {
-      if (!hit || !hit.id) {
-        if (typeof showStatus === 'function') showStatus('Trailer not found', '#f5c518');
-        return;
-      }
-      try { m.tmdbId = hit.id; } catch (e1) {}
-      fetchTrailerByTmdbId(hit.id, m.title || title);
-    })
-    .catch(function() {
-      if (typeof showStatus === 'function') showStatus('Trailer load failed', '#f66');
-    });
-}
-
 function buildTsSlider() {
+  var tsItems = allData.filter(function(m) { var _t=m.trending; return (_t===true||_t===1||_t==='1'||_t==='true') && !cvIsAdultItem(m); });
   var wrap = document.getElementById('cv-ts-wrap');
   var track = document.getElementById('cv-ts-track');
-  // Sirf Home — Coming Soon
-  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
-    if (wrap) wrap.style.display = 'none';
-    return;
-  }
-  if (!wrap || !track) return;
+  if (!tsItems.length || !wrap || !track) { if (wrap) wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
 
-  // Title: Trending → Coming Soon
-  try {
-    var titleSpan = wrap.querySelector('span[style*="font-weight:800"], span[style*="font-weight: 800"]');
-    if (titleSpan) titleSpan.textContent = '🎬 Coming Soon';
-    var badge = wrap.querySelector('span[style*="border-radius:10px"]');
-    if (badge) { badge.textContent = 'NEW'; badge.style.background = '#0071eb'; }
-  } catch (eT) {}
+  var gap = 10;
+  cvTsCardW = window.innerWidth >= 900 ? 150 : (window.innerWidth <= 480 ? 110 : 130);
+  var cardStep = cvTsCardW + gap;
+  cvTsTotal = Math.min(tsItems.length, 20);
+  var items = tsItems.slice(0, cvTsTotal);
+  cvTsClones = Math.min(4, items.length);
 
-  function renderCsItems(tsItems) {
-    if (!tsItems.length) { wrap.style.display = 'none'; return; }
-    wrap.style.display = 'block';
-    var gap = 10;
-    cvTsCardW = window.innerWidth >= 900 ? 150 : (window.innerWidth <= 480 ? 110 : 130);
-    var cardStep = cvTsCardW + gap;
-    cvTsTotal = Math.min(tsItems.length, 24);
-    var items = tsItems.slice(0, cvTsTotal);
-    cvTsClones = Math.min(4, items.length);
-
-    function makeTsCard(m, idx) {
-      var thumb = m.thumbnail || m.poster || '';
-      var imgHtml = thumb
-        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
-        : '<div class="cv-card-no-img">🎬</div>';
-      var dateBadge = (m.releaseDate || m.year)
-        ? '<div class="cv-badge cv-cs-date">' + escHtml(String(m.releaseDate || m.year)) + '</div>'
-        : '<div class="cv-badge">SOON</div>';
-      return '<div class="cv-card cv-cs-card" style="flex-shrink:0;width:' + cvTsCardW + 'px;cursor:pointer" data-cs-idx="' + idx + '">'
-        + imgHtml + dateBadge
-        + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
-        + '<div class="cv-card-meta">' + escHtml(m.category || 'Coming Soon') + '</div></div>'
-        + '</div>';
-    }
-
-    var html = '';
-    for (var i = items.length - cvTsClones; i < items.length; i++) html += makeTsCard(items[i], i);
-    items.forEach(function(m, i) { html += makeTsCard(m, i); });
-    for (var j = 0; j < cvTsClones; j++) html += makeTsCard(items[j], j);
-
-    track.innerHTML = html;
-    window._cvComingSoonItems = items;
-    track.querySelectorAll('.cv-cs-card[data-cs-idx]').forEach(function(el) {
-      el.addEventListener('click', function(e) {
-        e.preventDefault();
-        var ix = parseInt(el.getAttribute('data-cs-idx'), 10);
-        var item = (window._cvComingSoonItems || [])[ix];
-        if (item) cvPlayComingSoon(item);
-      });
-    });
-    cvTsIndex = cvTsClones;
-    track.style.transition = 'none';
-    track.style.transform = 'translateX(-' + (cvTsIndex * cardStep) + 'px)';
-    cvTsSetupDrag(track, cardStep);
-    cvTsAutoPlay(track, cardStep);
+  function makeTsCard(m) {
+    var cat = (m.category || '').toLowerCase();
+    var thumb = m.thumbnail || '';
+    var imgHtml = thumb
+      ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display="none";this.nextSibling&&(this.nextSibling.style.display="flex")"><div class="cv-card-no-img" style="display:none;">🎬</div></div>'
+      : '<div class="cv-card-no-img">🎬</div>';
+    var ratingBadge = m.rating ? '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>' : '';
+    var catBadge = m.category ? '<div class="cv-cat-badge cv-new">' + escHtml(m.category) + '</div>' : '';
+    var tsSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
+    return '<a class="cv-card" href="/movie/' + escHtml(tsSlug) + '" style="flex-shrink:0;width:' + cvTsCardW + 'px;" data-key="' + escHtml(m._key) + '">'
+      + imgHtml + ratingBadge + catBadge
+      + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
+      + '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + escHtml(m.quality) : '') + '</div></div>'
+      + '</a>';
   }
 
-  // 1) Panel-selected list from Firebase comingSoon
-  if (db) {
-    db.ref('comingSoon').once('value').then(function(snap) {
-      var items = [];
-      if (snap && snap.exists()) {
-        snap.forEach(function(ch) {
-          var v = ch.val();
-          if (!v) return;
-          if (v.enabled === false || v.enabled === 'false' || v.hidden === true) return;
-          v._key = ch.key;
-          if (!v.movieKey) v.movieKey = ch.key;
-          if (!v.tmdbId && String(ch.key).indexOf('tmdb_') === 0) v.tmdbId = String(ch.key).replace('tmdb_', '');
-          items.push(v);
-        });
-      }
-      items.sort(function(a, b) {
-        var oa = parseInt(a.order, 10); if (isNaN(oa)) oa = 9999;
-        var ob = parseInt(b.order, 10); if (isNaN(ob)) ob = 9999;
-        if (oa !== ob) return oa - ob;
-        return String(b.releaseDate || '').localeCompare(String(a.releaseDate || ''));
-      });
-      if (items.length) {
-        renderCsItems(items);
-        return;
-      }
-      // 2) Fallback: movies flagged comingSoon in library
-      var local = (allData || []).filter(function(m) {
-        var c = m.comingSoon;
-        return (c === true || c === 1 || c === '1' || c === 'true') && !cvIsAdultItem(m);
-      });
-      if (local.length) {
-        renderCsItems(local.map(function(m) {
-          return {
-            title: m.title,
-            thumbnail: m.thumbnail,
-            category: m.category,
-            year: m.year,
-            releaseDate: m.releaseDate || m.year,
-            trailerUrl: m.trailerUrl || m.trailer || m.youtube,
-            movieKey: m._key
-          };
-        }));
-      } else {
-        wrap.style.display = 'none';
-      }
-    }).catch(function() {
-      wrap.style.display = 'none';
-    });
-  } else {
-    wrap.style.display = 'none';
-  }
+  var html = '';
+  for (var i = items.length - cvTsClones; i < items.length; i++) html += makeTsCard(items[i]);
+  items.forEach(function(m) { html += makeTsCard(m); });
+  for (var j = 0; j < cvTsClones; j++) html += makeTsCard(items[j]);
+
+  track.innerHTML = html;
+  // Attach click handlers via data-key (avoids inline onclick escaping)
+  track.querySelectorAll('.cv-card[data-key]').forEach(function(el) {
+    var key = el.getAttribute('data-key');
+    el.addEventListener('click', function(e) { e.preventDefault(); openModal(key); });
+  });
+  cvTsIndex = cvTsClones;
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(-' + (cvTsIndex * cardStep) + 'px)';
+
+  cvTsSetupDrag(track, cardStep);
+  cvTsAutoPlay(track, cardStep);
 }
 
 function cvTsSnap(track, cardStep) {
@@ -2659,17 +2275,8 @@ function cvMotdFetchKey(key, cb) {
 function cvMotdRenderMovie(m) {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !m) return;
-  // Sirf Home
-  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
-    var oHide = document.getElementById('cv-motd-outer');
-    if (oHide) oHide.style.display = 'none';
-    return;
-  }
   var outerEl = document.getElementById('cv-motd-outer');
   var navBtnEl = document.getElementById('cv-nav-motd-btn');
-  // "Pick of the Day" title hatao
-  var labelEl = document.getElementById('cv-motd-label');
-  if (labelEl) labelEl.style.display = 'none';
   var thumb = m.thumbnail ? escHtml(m.thumbnail) : '';
   var meta = [m.year, m.category].filter(Boolean).map(function(x){ return escHtml(String(x)); }).join(' · ');
   var motdSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(m._key);
@@ -2680,7 +2287,7 @@ function cvMotdRenderMovie(m) {
       '<div id="cv-motd-content">' +
         (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
         '<div style="flex:1;min-width:0">' +
-          '<div id="cv-motd-badge">★ Featured</div>' +
+          '<div id="cv-motd-badge">🎬 MOVIE OF THE DAY</div>' +
           '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
           (meta ? '<div id="cv-motd-meta">' + meta + '</div>' : '') +
         '</div>' +
@@ -2758,20 +2365,12 @@ function cvMotdAutoPickAndShow() {
 function cvBuildMotd() {
   var wrap = document.getElementById('cv-motd-wrap');
   if (!wrap || !db) return;
-  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
-    cvMotdHide();
-    return;
-  }
   if (window._cvMotdEnabled === false) {
     cvMotdHide();
     return;
   }
 
   function applySnap(snap) {
-    if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
-      cvMotdHide();
-      return;
-    }
     if (window._cvMotdEnabled === false) { cvMotdHide(); return; }
     var d = snap.val() || {};
     // Panel can disable MOTD entirely
@@ -2842,10 +2441,6 @@ function buildTrending() {
   var wrap = document.getElementById('cv-trending-wrap');
   var track = document.getElementById('cv-trending-track');
   if (!wrap || !track) return;
-  if ((typeof selCat !== 'undefined' && selCat && selCat !== 'all') || (typeof selGenre !== 'undefined' && selGenre)) {
-    wrap.style.display = 'none';
-    return;
-  }
 
   function isTrendFlag(m) {
     var t = m && m.trending;
@@ -3408,57 +3003,32 @@ function cvFuzzyTitleMatch(title, q) {
   return matched === qWords.length && matched > 0;
 }
 
-/** Normalize title/query for fast search (strip noise) */
-function cvSearchNorm(s) {
-  return String(s || '').toLowerCase()
-    .replace(/\b(19|20)\d{2}\b/g, ' ')
-    .replace(/\b(full\s*movie|movie\s*download|download|watch\s*online|hindi\s*dubbed|dual\s*audio|1080p|720p|480p|web-?dl|hdrip)\b/gi, ' ')
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ').trim();
-}
-
-/** Search score — higher = better match (title + cast, old movies included) */
+/** Search score — higher = better match (title only) */
 function cvSearchScore(m, q) {
   if (!q) return 0;
-  q = String(q).toLowerCase().trim();
-  var titleRaw = (m.title || '').toLowerCase().trim();
-  if (!titleRaw && !(m.cast)) return 0;
-  var title = cvSearchNorm(titleRaw);
-  var qn = cvSearchNorm(q) || q;
-  var year = String(m.year || '').replace(/\D/g, '').substring(0, 4);
-  var score = 0;
-
-  // Exact / starts / contains on raw + cleaned title
-  if (titleRaw === q || title === qn) score = Math.max(score, 1000);
-  else if (titleRaw.indexOf(q) === 0 || (qn && title.indexOf(qn) === 0)) score = Math.max(score, 920);
-  else if (titleRaw.indexOf(q) > -1) score = Math.max(score, 850 - Math.min(titleRaw.indexOf(q), 40));
-  else if (qn && title.indexOf(qn) > -1) score = Math.max(score, 820 - Math.min(title.indexOf(qn), 40));
-
-  // All query words in cleaned title (any order) — "unabomber" finds long titles
-  var qWords = qn.split(/\s+/).filter(function(w){ return w.length >= 1; });
-  if (qWords.length && title) {
-    var allIn = true, prefixHits = 0;
+  var title = (m.title || '').toLowerCase().trim();
+  if (!title) return 0;
+  var year = String(m.year || '');
+  // Exact title
+  if (title === q) return 1000;
+  // Starts with query
+  if (title.indexOf(q) === 0) return 900;
+  // Title contains full query as substring
+  if (title.indexOf(q) > -1) return 800 - Math.min(title.indexOf(q), 50);
+  // All query words present in title (order free)
+  var qWords = q.split(/\s+/).filter(Boolean);
+  if (qWords.length > 1) {
+    var allIn = true;
     for (var i = 0; i < qWords.length; i++) {
-      var w = qWords[i];
-      if (title.indexOf(w) === -1) { allIn = false; break; }
-      // word starts a token
-      if (new RegExp('(?:^|\\s)' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(title)) prefixHits++;
+      if (title.indexOf(qWords[i]) === -1) { allIn = false; break; }
     }
-    if (allIn) score = Math.max(score, 750 + prefixHits * 20);
+    if (allIn) return 700;
   }
-
-  // Cast match (weaker)
-  var cast = (m.cast || '').toLowerCase();
-  if (cast && q.length >= 3 && cast.indexOf(q) > -1) score = Math.max(score, 500);
-
-  // Year only
-  if (year && q === year) score = Math.max(score, 50);
-
-  // Fuzzy typos on cleaned title
-  if (score < 400 && title && cvFuzzyTitleMatch(title, qn || q)) score = Math.max(score, 420);
-
-  // Slight boost: older library items still rank by name match first (score already name-based)
-  return score;
+  // Year match alone is weak — only with some title hint
+  if (year && q === year) return 50;
+  // Fuzzy title (typos)
+  if (cvFuzzyTitleMatch(title, q)) return 400;
+  return 0;
 }
 
 function cvTitleMatchesSearch(m, q) {
@@ -3863,43 +3433,26 @@ function cvBuildFilteredList() {
       return ((b.addedAt || 0) - (a.addedAt || 0));
     });
   } else if (selCat === 'all') {
-    // HOME MIX: har category se 1-1 post (round-robin) — HDFun-style mixed feed.
-    // Bulk import ke baad bhi pehla page ek hi category se nahi bharega.
+    // HOME MIX: last bulk import ek category ki ho to pehle page usi se
+    // nahi bharta — categories ko round-robin interleave karo (har group
+    // andar newest pehle). Category pages / search pe yeh apply nahi.
     cvFilteredList = cvInterleaveByCategory(cvFilteredList);
   }
 }
 
-// Home feed MIX — har panel category ka newest pehle, phir round-robin
-// taake Home pe Bollywood / South / Hollywood Hindi / Dual / Series mix dikhe
-// (HDFun-style mixed latest, adult Home pe nahi).
+// Home feed diversity — group by category, sort each by addedAt, then
+// round-robin so Hollywood/Bollywood/Animation/WebSeries mixed dikhein.
 function cvInterleaveByCategory(list) {
   if (!list || list.length < 3) return list || [];
-  var ADULT = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1,
-    short_films:1, philippines:1, hot_short_hindi:1};
-  function normCat(m) {
-    var c = '';
-    try {
-      c = (typeof cvNormalizeCategory === 'function')
-        ? cvNormalizeCategory(m && m.category)
-        : String((m && m.category) || '').toLowerCase();
-    } catch (e) {
-      c = String((m && m.category) || '').toLowerCase();
-    }
-    c = (c || 'other').replace(/\s+/g, '_');
-    return c;
-  }
-  // Panel slugs ko mix families mein (related merge, lekin Hindi Dubbed ≠ Bollywood)
+  // Normalize related categories into families so home doesn't fill with one region
   function family(cat) {
-    var c = (cat || 'other').toLowerCase();
-    if (ADULT[c]) return 'adult';
-    if (c === 'hindi_dubbed' || c === 'hollywood_dubbed') return 'hindi_dubbed';
-    if (c === 'english_movies' || c === 'hollywood') return 'english_movies';
-    if (c === 'dual_audio') return 'dual_audio';
-    if (c === 'south_hindi' || c === 'tamil_telugu' || /south|tollywood|tamil|telugu/.test(c)) return 'south_hindi';
-    if (c === 'bollywood_hindi' || c === 'bollywood') return 'bollywood_hindi';
-    if (c === 'webseries_hindi' || c === 'webseries' || c === 'web_series') return 'webseries_hindi';
-    if (c === 'kdrama_hindi' || /kdrama|k_drama/.test(c)) return 'kdrama_hindi';
-    if (c === 'anime_hindi' || c === 'animation_hindi_dubbed' || /animat|anime/.test(c)) return 'animation';
+    var c = ((cat || 'other') + '').toLowerCase().replace(/\s+/g, '_');
+    if (/adult|vivamax|hot_series|short_films|philippines|hot_short/.test(c)) return 'adult';
+    if (/tollywood|south|tamil|telugu|malayalam|kannada|guntur|kollywood/.test(c)) return 'south';
+    if (/bollywood|hindi_movies|hindi$/.test(c)) return 'bollywood';
+    if (/hollywood|english/.test(c)) return 'hollywood';
+    if (/webseries|web_series|series|kdrama|drama/.test(c)) return 'series';
+    if (/animat/.test(c)) return 'animation';
     if (/punjabi/.test(c)) return 'punjabi';
     return c || 'other';
   }
@@ -3907,34 +3460,22 @@ function cvInterleaveByCategory(list) {
   var order = [];
   for (var i = 0; i < list.length; i++) {
     var m = list[i];
-    var c = family(normCat(m));
-    if (c === 'adult') continue;
+    var c = family(m.category);
+    if (c === 'adult') continue; // home never mixes adult
     if (!groups[c]) { groups[c] = []; order.push(c); }
     groups[c].push(m);
   }
-  if (!order.length) {
-    return list.filter(function(m) { return family(normCat(m)) !== 'adult'; })
-      .sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
-  }
+  var flat = [];
   order.forEach(function(c) {
-    groups[c].sort(function(a, b) {
-      var ta = a.addedAt || 0, tb = b.addedAt || 0;
-      if (tb !== ta) return tb - ta;
-      return String(b._key || '') < String(a._key || '') ? 1 : -1;
-    });
-  });
-  // Preferred home order (HDFun-like variety on first screen)
-  var prefer = ['hindi_dubbed','bollywood_hindi','south_hindi','dual_audio','english_movies','webseries_hindi','kdrama_hindi','animation','punjabi','other'];
-  order.sort(function(a, b) {
-    var ia = prefer.indexOf(a); if (ia < 0) ia = 99;
-    var ib = prefer.indexOf(b); if (ib < 0) ib = 99;
-    if (ia !== ib) return ia - ib;
-    return a < b ? -1 : 1;
+    groups[c].sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
   });
   if (order.length < 2) {
-    return groups[order[0]].slice();
+    // single family — still shuffle lightly by year buckets
+    flat = list.filter(function(m) { return family(m.category) !== 'adult'; });
+    flat.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+    return flat;
   }
-  // Round-robin: 1 post per category, cycle — first page multi-category
+  // Round-robin across families
   var idxs = {};
   order.forEach(function(c) { idxs[c] = 0; });
   var out = [];
@@ -3943,8 +3484,12 @@ function cvInterleaveByCategory(list) {
   var lastFam = '';
   while (remaining > 0) {
     var progressed = false;
-    var tryOrder = order.filter(function(c) { return idxs[c] < groups[c].length && c !== lastFam; })
-      .concat(order.filter(function(c) { return idxs[c] < groups[c].length && c === lastFam; }));
+    // Prefer a family different from last
+    var tryOrder = order.slice();
+    if (lastFam) {
+      tryOrder = order.filter(function(c) { return c !== lastFam && idxs[c] < groups[c].length; })
+        .concat(order.filter(function(c) { return c === lastFam; }));
+    }
     for (var k = 0; k < tryOrder.length; k++) {
       var cat = tryOrder[k];
       var g = groups[cat];
@@ -3955,7 +3500,7 @@ function cvInterleaveByCategory(list) {
         lastFam = cat;
         remaining--;
         progressed = true;
-        break;
+        break; // one item then re-evaluate lastFam
       }
     }
     if (!progressed) break;
@@ -4200,9 +3745,6 @@ function makeCard(m) {
   var key = m._key;
   var slug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key);
   div.href = '/movie/' + slug;
-  div.setAttribute('data-key', key);
-  if (m.year) div.setAttribute('data-year', String(m.year).replace(/\D/g,'').substring(0,4));
-  if (m.quality) div.setAttribute('data-quality', String(m.quality).toLowerCase());
   div.onclick = function(e) {
     e.preventDefault();
     openModal(key);
@@ -4218,10 +3760,6 @@ function makeCard(m) {
   }
   if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
   if (cat) inner += '<a class="cv-cat-badge cv-new" href="?cat=' + encodeURIComponent(cat) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
-  if (m.quality) {
-    var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
-    inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
-  }
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
            '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
 
@@ -4352,7 +3890,7 @@ function openModal(key) {
   if (hasDownload) {
     var dlData = [];
     // Worker URL use karo — fresh token har baar milega
-    var _wBase = 'https://www.cinenova.site/get?id=' + encodeURIComponent(_mkey) + '&q=';
+    var _wBase = 'https://download.cinenova.site/get?id=' + encodeURIComponent(_mkey) + '&q=';
     if (m.download480p)  dlData.push({q:'480p',  url: _wBase + '480p',  size:m.size480||''});
     if (m.download720p)  dlData.push({q:'720p',  url: _wBase + '720p',  size:m.size720||''});
     if (m.download1080p) dlData.push({q:'1080p', url: _wBase + '1080p', size:m.size1080||''});
@@ -4379,29 +3917,6 @@ function openModal(key) {
     + '<button onclick="cvOpenReportModal()" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.25);border-radius:4px;color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:inherit" onmouseover="this.style.background=\'rgba(239,68,68,0.08)\'" onmouseout="this.style.background=\'transparent\'">⚠ Report Broken Link / Issue</button>';
 
   document.getElementById('cv-modal-btns').innerHTML = btns;
-  try {
-    var _shareWrap = document.getElementById('cv-modal-share');
-    if (!_shareWrap) {
-      _shareWrap = document.createElement('div');
-      _shareWrap.id = 'cv-modal-share';
-      _shareWrap.className = 'cv-modal-share';
-      var _btnsParent = document.getElementById('cv-modal-btns');
-      if (_btnsParent && _btnsParent.parentNode) {
-        _btnsParent.parentNode.insertBefore(_shareWrap, _btnsParent.nextSibling);
-      }
-    }
-    var _shareUrl = location.origin + '/movie/' + (m.seoSlug || (typeof cvSlug==='function'?cvSlug(m.title):'') || key);
-    var _shareText = encodeURIComponent((m.title || 'Movie') + ' — Watch/Download on CineNova');
-    var _shareEnc = encodeURIComponent(_shareUrl);
-    var _safeKey = String(key).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    _shareWrap.innerHTML =
-      '<div class="cv-share-label">Share</div>' +
-      '<div class="cv-share-row">' +
-      '<a class="cv-share-btn cv-share-wa" href="https://wa.me/?text=' + _shareText + '%20' + _shareEnc + '" target="_blank" rel="noopener">WhatsApp</a>' +
-      '<a class="cv-share-btn cv-share-tg" href="https://t.me/share/url?url=' + _shareEnc + '&text=' + _shareText + '" target="_blank" rel="noopener">Telegram</a>' +
-      '<button type="button" class="cv-share-btn cv-share-copy" onclick="cvCopyShareLink(\'' + _shareUrl.replace(/'/g, "\\'") + '\',\'' + _safeKey + '\')">Copy Link</button>' +
-      '</div>';
-  } catch (eShare) {}
 
   // Episodes (webseries)
   var epEl = document.getElementById('cv-episodes');
@@ -4524,16 +4039,6 @@ function openModal(key) {
     loadRating(key);
     loadComments(key);
     loadRelatedMovies(key, m);
-    try {
-      var _slugPv = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || key;
-      cvTrackEvent('movie_open', {
-        movie_id: key,
-        movie_title: (m.title || '').substring(0, 80),
-        category: m.category || '',
-        year: m.year || ''
-      });
-      cvTrackVirtualPage('/movie/' + _slugPv, (m.title || 'Movie') + ' | CineNova');
-    } catch (eTrk) {}
   }
 
   document.getElementById('cv-modal').classList.add('open');
@@ -4962,229 +4467,6 @@ window.addEventListener('popstate', function(e) {
   }
 });
 
-
-// ══════════════════════════════════
-// 💎 SUBSCRIPTION GATE
-// settings/subscription + users/{uid}/subscription
-// ══════════════════════════════════
-var _cvSubSettings = null;
-var _cvSubCache = null; // { uid, sub, checkedAt }
-var _cvSubSettingsAt = 0;
-
-function cvLoadSubSettings(cb) {
-  if (_cvSubSettings && (Date.now() - _cvSubSettingsAt) < 60000) {
-    if (cb) cb(_cvSubSettings);
-    return;
-  }
-  if (typeof db === 'undefined' || !db) {
-    _cvSubSettings = { enabled: false };
-    if (cb) cb(_cvSubSettings);
-    return;
-  }
-  db.ref('settings/subscription').once('value').then(function(snap) {
-    _cvSubSettings = snap.val() || { enabled: false };
-    _cvSubSettingsAt = Date.now();
-    if (cb) cb(_cvSubSettings);
-  }).catch(function() {
-    _cvSubSettings = { enabled: false };
-    if (cb) cb(_cvSubSettings);
-  });
-}
-
-function cvIsSubActive(sub) {
-  if (!sub || sub.status !== 'active') return false;
-  var exp = Number(sub.expiresAt || 0);
-  return exp > Date.now();
-}
-
-function cvGetCurrentUser(cb) {
-  try {
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      var u = firebase.auth().currentUser;
-      if (u) { cb(u); return; }
-      // auth may not be loaded
-      if (typeof cvEnsureFirebaseAuth === 'function') {
-        cvEnsureFirebaseAuth(function() {
-          cb(firebase.auth().currentUser || null);
-        });
-        return;
-      }
-    }
-  } catch (e) {}
-  cb(null);
-}
-
-function cvFetchUserSub(uid, cb) {
-  if (!uid || typeof db === 'undefined' || !db) { cb(null); return; }
-  if (_cvSubCache && _cvSubCache.uid === uid && (Date.now() - _cvSubCache.checkedAt) < 30000) {
-    cb(_cvSubCache.sub);
-    return;
-  }
-  db.ref('users/' + uid + '/subscription').once('value').then(function(snap) {
-    var sub = snap.val() || null;
-    _cvSubCache = { uid: uid, sub: sub, checkedAt: Date.now() };
-    cb(sub);
-  }).catch(function(){ cb(null); });
-}
-
-/** action: 'download' | 'watch' — if allowed runs onOk, else shows paywall */
-function cnGatedPlayVideo(url, title) {
-  cnRequireSub('watch', function() {
-    if (typeof playVideo === 'function') playVideo(url, title);
-  });
-}
-
-function cnRequireSub(action, onOk) {
-  cvLoadSubSettings(function(cfg) {
-    if (!cfg || !cfg.enabled) {
-      if (onOk) onOk();
-      return;
-    }
-    var need = (action === 'watch') ? (cfg.requireForWatch !== false) : (cfg.requireForDownload !== false);
-    if (!need) {
-      if (onOk) onOk();
-      return;
-    }
-    // Need auth SDK
-    function afterAuthReady() {
-      cvGetCurrentUser(function(user) {
-        if (!user) {
-          cvShowSubModal(cfg, null, 'login');
-          return;
-        }
-        cvFetchUserSub(user.uid, function(sub) {
-          if (cvIsSubActive(sub)) {
-            if (onOk) onOk();
-          } else {
-            cvShowSubModal(cfg, user, 'subscribe');
-          }
-        });
-      });
-    }
-    if (typeof cvEnsureFirebaseAuth === 'function') {
-      cvEnsureFirebaseAuth(function(err) {
-        afterAuthReady();
-      });
-    } else {
-      afterAuthReady();
-    }
-  });
-}
-
-function cvEnsureFirebaseAuth(cb) {
-  try {
-    if (typeof firebase !== 'undefined' && firebase.auth) { cb(); return; }
-  } catch (e) {}
-  // reuse adult-gate loader if present
-  if (typeof _cvFirebaseAuthLoaded !== 'undefined' && _cvFirebaseAuthLoaded) {
-    try { cb(); } catch(e){}
-    return;
-  }
-  var s = document.createElement('script');
-  s.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
-  s.onload = function() {
-    try {
-      if (!firebase.apps.length && typeof firebaseConfig !== 'undefined') firebase.initializeApp(firebaseConfig);
-    } catch (e) {}
-    if (cb) cb();
-  };
-  s.onerror = function() { if (cb) cb('load fail'); };
-  document.head.appendChild(s);
-}
-
-function cvShowSubModal(cfg, user, mode) {
-  var old = document.getElementById('cv-sub-modal');
-  if (old) old.remove();
-  var plans = (cfg && cfg.plans) || {};
-  var planHtml = '';
-  ['weekly','monthly','yearly'].forEach(function(k) {
-    var p = plans[k];
-    if (!p) return;
-    planHtml += '<button type="button" class="cv-sub-plan" data-plan="'+k+'" style="display:block;width:100%;text-align:left;padding:12px 14px;margin:0 0 8px;background:#1a1a1a;border:1px solid #333;border-radius:10px;color:#fff;cursor:pointer;">'
-      + '<b style="font-size:1rem;">' + (p.label||k) + '</b>'
-      + '<span style="float:right;color:#fbbf24;font-weight:800;">Rs ' + (p.price||0) + '</span>'
-      + '<div style="font-size:0.75rem;color:#888;margin-top:4px;">' + (p.days||0) + ' days access</div></button>';
-  });
-  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : 'Admin se contact karke payment confirm karein.';
-  var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
-  var modal = document.createElement('div');
-  modal.id = 'cv-sub-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
-  modal.innerHTML = '<div style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;padding:20px;">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
-    + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
-    + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
-    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">Movies dekhne / download karne ke liye active subscription zaroori hai.</p>'
-    + (user ? '<div style="font-size:0.78rem;color:#4ade80;margin-bottom:10px;">Logged in: '+ (user.email||user.uid) +'</div>'
-            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Google se Login</button></div>')
-    + (user ? ('<div style="margin-bottom:12px;">' + planHtml + '</div>'
-      + '<div style="background:#141414;border:1px solid #222;border-radius:10px;padding:12px;font-size:0.8rem;color:#ccc;line-height:1.55;margin-bottom:12px;"><b style="color:#fbbf24;">Payment</b><br>' + note + '<br>' + support + '</div>'
-      + '<textarea id="cv-sub-note" rows="2" placeholder="Payment reference / JazzCash number / note…" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
-      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Payment Request bhejo</button>'
-      + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:8px;"></div>')
-      : '')
-    + '</div>';
-  document.body.appendChild(modal);
-  document.getElementById('cv-sub-close').onclick = function(){ modal.remove(); };
-  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
-  var selectedPlan = 'monthly';
-  modal.querySelectorAll('.cv-sub-plan').forEach(function(btn) {
-    btn.onclick = function() {
-      selectedPlan = btn.getAttribute('data-plan') || 'monthly';
-      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){ b.style.borderColor = '#333'; });
-      btn.style.borderColor = '#a78bfa';
-    };
-  });
-  var loginBtn = document.getElementById('cv-sub-login');
-  if (loginBtn) {
-    loginBtn.onclick = function() {
-      cvEnsureFirebaseAuth(function() {
-        try {
-          var provider = new firebase.auth.GoogleAuthProvider();
-          firebase.auth().signInWithPopup(provider).then(function(result) {
-            var u = result.user;
-            if (u && db) {
-              db.ref('users/' + u.uid).update({
-                email: u.email || '',
-                name: u.displayName || '',
-                photo: u.photoURL || '',
-                lastLogin: Date.now()
-              }).catch(function(){});
-            }
-            modal.remove();
-            cvShowSubModal(cfg, u, 'subscribe');
-          }).catch(function(err) {
-            alert('Login fail: ' + (err.message || err));
-          });
-        } catch (e) { alert('Auth error'); }
-      });
-    };
-  }
-  var reqBtn = document.getElementById('cv-sub-request');
-  if (reqBtn && user) {
-    reqBtn.onclick = function() {
-      var noteEl = document.getElementById('cv-sub-note');
-      var msg = document.getElementById('cv-sub-msg');
-      if (!db) { if (msg) msg.textContent = 'DB not ready'; return; }
-      var payload = {
-        uid: user.uid,
-        email: user.email || '',
-        plan: selectedPlan,
-        note: (noteEl && noteEl.value) ? noteEl.value.trim() : '',
-        status: 'pending',
-        createdAt: Date.now()
-      };
-      db.ref('subRequests').push(payload).then(function() {
-        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request bhej di — admin approve karega. Payment instructions follow karein.'; }
-        reqBtn.disabled = true;
-      }).catch(function(e) {
-        if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Error: ' + e.message; }
-      });
-    };
-  }
-}
-
-
 // Download — ab Cloudflare Worker timer page pe navigate karta hai
 function dlLink(url, quality) {
   if (!url) return;
@@ -5203,17 +4485,11 @@ function cnBumpDownloadCount(movieKey) {
     db.ref('downloadCounts/' + movieKey).transaction(function(cur) {
       return (typeof cur === 'number' ? cur : 0) + 1;
     }).catch(function(){});
-    if (typeof cvTrackEvent === 'function') {
-      cvTrackEvent('download_click', {
-        movie_id: movieKey,
-        movie_title: (window._cvCurrentTitle || '').substring(0, 80)
-      });
-    }
   } catch (e) {}
 }
 
 function cnGoToDownloadWorker(movieKey, quality, season, episode) {
-  var WORKER_DL_BASE = 'https://www.cinenova.site/dl';
+  var WORKER_DL_BASE = 'https://download.cinenova.site/dl';
   if (!movieKey) return;
   cnBumpDownloadCount(movieKey);
   var params = new URLSearchParams();
@@ -5240,7 +4516,7 @@ function cnWarmDownloads(movieKey, dlData) {
   qs.slice(0, 3).forEach(function(q) {
     if (seen[q]) return;
     seen[q] = 1;
-    var u = 'https://www.cinenova.site/warm?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
+    var u = 'https://download.cinenova.site/warm?id=' + encodeURIComponent(movieKey) + '&q=' + encodeURIComponent(q);
     try {
       fetch(u, { mode: 'cors', credentials: 'omit' }).catch(function(){});
     } catch (e) {}
@@ -5252,9 +4528,9 @@ function cnWarmDownloads(movieKey, dlData) {
 // Yehi worker /dl (download) route bhi handle karta hai — same domain.
 // /watch full HTML page deta hai (ad+timer+Playmate player), isliye
 // yahan seedha page navigate karte hain, VLC intent nahi.
-// Domain: https://www.cinenova.site (timer/ads same verified domain)
+// Domain: https://download.cinenova.site
 // ══════════════════════════════════
-var CN_PLAY_WORKER = 'https://www.cinenova.site';
+var CN_PLAY_WORKER = 'https://download.cinenova.site';
 
 function cnPlayGoUrl(movieKey, quality, season, episode) {
   var params = new URLSearchParams();
@@ -5356,16 +4632,15 @@ function cnOpenInVlc(httpsUrl, title) {
 // player bana ke deta hai.
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
-  cnRequireSub('watch', function() {
-    window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
-  });
+  // Hamesha worker /watch (timer + resolved-link HTML5 player)
+  // Seedha Playmate/VLC mat kholo — worker resolve karke play karega
+  window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
 }
 
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
   if (!movieKey) return;
-  cnRequireSub('watch', function() {
-    window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
-  });
+  // Hamesha worker /watch — timer + resolved-link HTML5 player
+  window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
 }
 
 
@@ -5915,7 +5190,7 @@ function cvBuildSuggestions(q, dropdownEl) {
     if (sc > 0) scored.push({ m: m, sc: sc });
   }
   scored.sort(function(a, b) { return b.sc - a.sc; });
-  var results = scored.slice(0, 12).map(function(x){ return x.m; });
+  var results = scored.slice(0, 8).map(function(x){ return x.m; });
 
   cvSugFocusIdx = -1;
 
@@ -5929,7 +5204,7 @@ function cvBuildSuggestions(q, dropdownEl) {
   }
 
   var totalMatch = scored.length;
-  var html = '<div class="cv-sug-header">Results (' + totalMatch + (totalMatch > 12 ? '+, showing top 12' : '') + (!allLoaded ? ' · scanning…' : '') + ')</div>';
+  var html = '<div class="cv-sug-header">Results (' + totalMatch + (totalMatch > 8 ? '+, showing top 8' : '') + (!allLoaded ? ' · scanning…' : '') + ')</div>';
   results.forEach(function(m, i) {
     var thumb = m.thumbnail || '';
     var cat = (m.category || '');
@@ -6001,27 +5276,21 @@ function cvMoveSugFocus(dropdownEl, dir) {
   items[cvSugFocusIdx].scrollIntoView({ block: 'nearest' });
 }
 
-// Desktop search input — fast: instant suggestions + bulk library load
+// Desktop search input
 document.getElementById('cv-search').addEventListener('input', function() {
   clearTimeout(searchTimer);
   var val = this.value;
   var clr = document.getElementById('cv-search-clear');
   if (clr) clr.style.display = val ? 'flex' : 'none';
   var dd = document.getElementById('cv-search-dropdown');
-  // Poori library ek bulk request se (purani movies bhi search mein aayein)
+  // Jab bhi user search kare — pura data load karo background mein (agar nahi hua)
   if (val && !allLoaded) {
-    window._cvSearchMode = true;
-    try { if (typeof cvBulkLoadAllMovies === 'function') cvBulkLoadAllMovies(); } catch (eB) {}
     _cvLoadAllForSearch(val, dd);
   }
-  // Turant jo data already loaded hai us se suggestions
-  searchQ = val;
-  if (val && allData.length) {
-    if (dd) cvBuildSuggestions(val, dd);
-  }
   searchTimer = setTimeout(function() {
+    // If Firebase not loaded yet, show loading message
     if (val && allData.length === 0) {
-      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Loading library…</div>'; dd.classList.add('open'); }
+      if (dd) { dd.innerHTML = '<div class="cv-sug-empty">⏳ Data is loading, please try again...</div>'; dd.classList.add('open'); }
       return;
     }
     searchQ = val;
@@ -6034,7 +5303,7 @@ document.getElementById('cv-search').addEventListener('input', function() {
     }
     renderGrid();
     if (dd) cvBuildSuggestions(val, dd);
-  }, 80);
+  }, 250);
 });
 
 // Desktop keyboard nav
@@ -7060,10 +6329,6 @@ if (cvMobileInp) {
     var val = this.value;
     var mclr = document.getElementById('cv-search-mobile-clear');
     if (mclr) mclr.style.display = val ? 'flex' : 'none';
-    if (val && !allLoaded) {
-      window._cvSearchMode = true;
-      try { if (typeof cvBulkLoadAllMovies === 'function') cvBulkLoadAllMovies(); } catch (eM) {}
-    }
     if (cvDesktopInp) cvDesktopInp.value = val;
     cvDesktopInp && cvDesktopInp.dispatchEvent(new Event('input'));
     var mdd = document.getElementById('cv-mobile-search-dropdown');
