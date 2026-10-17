@@ -1596,3 +1596,151 @@ html.cv-scroll-lock body {
 #cv-subcat-drawer:not(.open) {
   pointer-events: none !important;
 }
+
+
+/* Trailers slider PERMANENT OFF */
+#cv-trailers-wrap,
+#cv-trailers-track,
+.cv-trailers-section {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ══ This Week's auto-slider (replaces featured banner) ══ */
+#cv-featured-wrap.cv-tw-wrap,
+#cv-featured-wrap {
+  display: block;
+  margin: 10px 0 6px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+#cv-featured-wrap.cv-tw-wrap #cv-featured-card,
+#cv-featured-wrap.cv-tw-wrap #cv-featured-bg,
+#cv-featured-wrap.cv-tw-wrap #cv-featured-dots,
+#cv-featured-wrap.cv-tw-wrap #cv-featured-img {
+  display: none !important;
+}
+.cv-tw-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 10px;
+}
+.cv-tw-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #eee;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cv-tw-count {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: rgba(229,9,20,.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(229,9,20,.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.cv-tw-nav { display: flex; gap: 6px; }
+.cv-tw-btn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid #2a2a2a;
+  background: #1f1f1f;
+  color: #e5e5e5;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.cv-tw-btn:active { background: #333; }
+.cv-tw-viewport {
+  overflow: hidden;
+  padding: 0 16px 12px;
+}
+.cv-tw-track {
+  display: flex;
+  gap: 10px;
+  transition: transform .45s cubic-bezier(.25,.46,.45,.94);
+  will-change: transform;
+}
+.cv-tw-card {
+  width: 118px;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.cv-tw-poster-wrap {
+  position: relative;
+  width: 118px;
+  height: 177px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #1a1a1a;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.cv-tw-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cv-tw-badge {
+  position: absolute;
+  top: 6px; left: 6px;
+  z-index: 2;
+  background: #e50914;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.cv-tw-q {
+  position: absolute;
+  top: 6px; right: 6px;
+  z-index: 2;
+  background: rgba(0,0,0,.82);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.cv-tw-card-title {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ccc;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cv-tw-card-meta {
+  font-size: 0.62rem;
+  color: #777;
+  margin-top: 2px;
+}
+@media (min-width: 768px) {
+  .cv-tw-card { width: 140px; }
+  .cv-tw-poster-wrap { width: 140px; height: 210px; border-radius: 12px; }
+  .cv-tw-head { padding: 0 4% 12px; }
+  .cv-tw-viewport { padding: 0 4% 14px; }
+  .cv-tw-title { font-size: 1.3rem; }
+}
+body.cv-cat-view #cv-featured-wrap {
+  display: none !important;
+}
