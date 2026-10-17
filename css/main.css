@@ -1744,3 +1744,44 @@ html.cv-scroll-lock body {
 body.cv-cat-view #cv-featured-wrap {
   display: none !important;
 }
+
+
+/* NOW SHOWING PERMANENT OFF */
+#cv-ns-hero,
+#cv-ns-stack,
+.cv-ns-poster {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+}
+
+/* This Week: native finger swipe */
+.cv-tw-viewport {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.cv-tw-viewport::-webkit-scrollbar { display: none; }
+.cv-tw-track {
+  transform: none !important;
+  will-change: auto !important;
+}
+.cv-tw-card {
+  scroll-snap-align: start;
+}
+
+/* Year / Quality — desktop center */
+@media (min-width: 900px) {
+  .cv-adv-filters,
+  #cv-adv-filters {
+    justify-content: center !important;
+    padding-left: 4% !important;
+    padding-right: 4% !important;
+  }
+}
