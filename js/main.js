@@ -2140,10 +2140,13 @@ var _cvNsPool = [];
 var _cvNsOffset = 0;
 var _cvNsTimer = null;
 
+/** New This Week — replaces old Now Showing stack */
 function buildNsHero() {
   var stack = document.getElementById('cv-ns-stack');
-  if (!stack) return;
-  // Sirf HOME — category/genre pe kabhi na dikhao (traffic UX: jaldi grid)
+  var hero = document.getElementById('cv-ns-hero');
+  if (!stack || !hero) return;
+
+  // Home only
   var isHome = (typeof selCat === 'undefined' || !selCat || selCat === 'all')
     && !(typeof selGenre !== 'undefined' && selGenre);
   try {
@@ -2153,87 +2156,94 @@ function buildNsHero() {
     }
   } catch (eP) {}
   if (!isHome || window._cvNsHeroEnabled === false) {
-    var heroWrapOff = document.getElementById('cv-ns-hero');
-    if (heroWrapOff) heroWrapOff.style.display = 'none';
-    if (typeof _cvNsTimer !== 'undefined' && _cvNsTimer) { try { clearInterval(_cvNsTimer); _cvNsTimer = null; } catch(e){} }
+    hero.style.display = 'none';
+    if (_cvNsTimer) { try { clearInterval(_cvNsTimer); } catch (e) {} _cvNsTimer = null; }
     return;
   }
-  // Agar watchdog ne pehle load-failure state dikha ke ye section chhupa
-  // diya tha, aur ab data der se hi sahi aa gaya, to section wapas dikhao
-  // (lekin cat/genre view me jaan-boojh kar chhupaya gaya ho to waisa hi rehne do).
-  if (window._cvLoadFailureShown) {
-    try {
-      var heroWrap = document.getElementById('cv-ns-hero');
-      var p = new URLSearchParams(location.search);
-      if (heroWrap && !(p.get('cat') || p.get('genre'))) heroWrap.style.display = '';
-    } catch(e) {}
-  }
-  // allData newest-first already (see fetchFirebasePage) — non-adult, has thumbnail
-  var pool = [];
-  for (var i = 0; i < allData.length && pool.length < 12; i++) {
+
+  var weekMs = 7 * 24 * 60 * 60 * 1000;
+  var now = Date.now();
+  var week = [];
+  var fallback = [];
+
+  for (var i = 0; i < allData.length; i++) {
     var m = allData[i];
-    if (m && m.thumbnail && !cvIsAdultItem(m)) pool.push(m);
+    if (!m || !m.thumbnail || (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m))) continue;
+    var ts = Number(m.addedAt || m.createdAt || m.updatedAt || 0);
+    if (ts && (now - ts) <= weekMs) week.push(m);
+    else fallback.push(m);
+    if (week.length >= 24) break;
   }
-  if (!pool.length) return;
+
+  // Newest first
+  function byNew(a, b) {
+    return Number(b.addedAt || b.createdAt || 0) - Number(a.addedAt || a.createdAt || 0);
+  }
+  week.sort(byNew);
+  fallback.sort(byNew);
+
+  var pool = week.length ? week : fallback.slice(0, 16);
+  if (!pool.length) {
+    hero.style.display = 'none';
+    return;
+  }
+
   _cvNsPool = pool;
-  _cvNsOffset = 0;
-  _cvNsRender(false);
+  if (_cvNsTimer) { try { clearInterval(_cvNsTimer); } catch (e2) {} _cvNsTimer = null; }
 
-  if (_cvNsTimer) clearInterval(_cvNsTimer);
-  if (_cvNsPool.length > 1) {
-    _cvNsTimer = setInterval(_cvNsRotate, 3800);
+  // Title
+  var titleEl = document.getElementById('cv-ns-hero-title');
+  if (titleEl) {
+    titleEl.innerHTML = week.length
+      ? '✨ New This Week <span class="cv-ntw-count">' + Math.min(pool.length, 24) + '</span>'
+      : '✨ New Uploads <span class="cv-ntw-count">' + pool.length + '</span>';
   }
-}
 
-function _cvNsPick(offset) {
-  var pool = _cvNsPool, n = pool.length, picks = [];
-  if (!n) return picks;
-  for (var k = 0; k < 3; k++) picks.push(pool[(offset + k) % n]);
-  return picks;
-}
-
-function _cvNsRender(fadeIn) {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack) return;
-  var picks = _cvNsPick(_cvNsOffset);
-  if (!picks.length) return;
-  while (picks.length < 3) picks.push(picks[picks.length - 1]);
-
-  var classes = ['cv-ns-p0', 'cv-ns-p1', 'cv-ns-p2'];
   var html = '';
-  for (var j = 0; j < 3; j++) {
-    var mv = picks[j];
-    var key = mv._key;
-    var thumb = cvThumb(mv.thumbnail);
-    var isFront = classes[j] === 'cv-ns-p2';
-    var heroSlug = mv.seoSlug || cvSlug(mv.title) || encodeURIComponent(key);
-    html += '<a class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" href="/movie/' + escHtml(heroSlug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(&quot;' + escJs(key) + '&quot;)">' +
-              '<img alt="' + escHtml(mv.title || 'Movie') + '" loading="lazy" src="' + escHtml(thumb) + '"/>' +
-              (isFront ? '<div class="cv-ns-p2-cap">' + escHtml(mv.title || '') + '</div>' : '') +
-            '</a>';
+  var limit = Math.min(pool.length, 20);
+  for (var j = 0; j < limit; j++) {
+    var mv = pool[j];
+    var key = mv._key || '';
+    var thumb = '';
+    try {
+      if (typeof cvThumb === 'function') thumb = cvThumb(mv.thumbnail) || mv.thumbnail;
+      else thumb = mv.thumbnail || '';
+    } catch (e3) { thumb = mv.thumbnail || ''; }
+    var slug = mv.seoSlug || (typeof cvSlug === 'function' ? cvSlug(mv.title) : '') || encodeURIComponent(key);
+    var title = mv.title || 'Movie';
+    var year = mv.year ? String(mv.year) : '';
+    var q = '';
+    try {
+      var qm = String(mv.quality || '').match(/\d{3,4}\s*p/i);
+      if (qm) q = qm[0].replace(/\s+/g, '').toUpperCase();
+    } catch (e4) {}
+    var isFresh = false;
+    try {
+      var ats = Number(mv.addedAt || 0);
+      isFresh = ats && (now - ats) < 3 * 24 * 60 * 60 * 1000;
+    } catch (e5) {}
+
+    html += '<a class="cv-ntw-card" href="/movie/' + (typeof escHtml === 'function' ? escHtml(slug) : slug) + '" data-key="' + (typeof escHtml === 'function' ? escHtml(key) : key) + '" onclick="event.preventDefault();openModal(\'' + (typeof escJs === 'function' ? escJs(key) : key) + '\')">'
+      + '<div class="cv-ntw-poster-wrap">'
+      + (isFresh ? '<span class="cv-ntw-badge">NEW</span>' : '')
+      + (q ? '<span class="cv-ntw-q">' + q + '</span>' : '')
+      + '<img class="cv-ntw-poster" src="' + (typeof escHtml === 'function' ? escHtml(thumb) : thumb) + '" alt="" loading="' + (j < 4 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.style.opacity=0.3"/>'
+      + '</div>'
+      + '<div class="cv-ntw-card-title">' + (typeof escHtml === 'function' ? escHtml(title) : title) + '</div>'
+      + (year ? '<div class="cv-ntw-card-meta">' + year + '</div>' : '')
+      + '</a>';
   }
+
+  stack.className = 'cv-ntw-track';
   stack.innerHTML = html;
-
-  if (fadeIn) {
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        var posters = stack.querySelectorAll('.cv-ns-poster');
-        for (var p = 0; p < posters.length; p++) posters[p].classList.remove('cv-ns-fading');
-      });
-    });
-  }
+  hero.style.display = '';
+  hero.classList.add('cv-ntw-active');
 }
 
-function _cvNsRotate() {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack || _cvNsPool.length < 2) return;
-  var posters = stack.querySelectorAll('.cv-ns-poster');
-  for (var p = 0; p < posters.length; p++) posters[p].classList.add('cv-ns-fading');
-  setTimeout(function() {
-    _cvNsOffset = (_cvNsOffset + 1) % _cvNsPool.length;
-    _cvNsRender(true);
-  }, 380);
-}
+function _cvNsPick(offset) { return []; }
+function _cvNsRender(fadeIn) {}
+function _cvNsRotate() {}
+
 
 function buildFeatured() {
   var wrap = document.getElementById('cv-featured-wrap');
