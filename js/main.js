@@ -2206,16 +2206,10 @@ function buildFeatured() {
   wrap.classList.add('cv-tw-wrap');
   wrap.style.display = 'block';
 
-  var label = week.length ? "This Week's" : 'New Uploads';
   var html = ''
-    + '<div class="cv-tw-head">'
-    +   '<div class="cv-tw-title">✨ ' + label + ' <span class="cv-tw-count">' + pool.length + '</span></div>'
-    +   '<div class="cv-tw-nav">'
-    +     '<button type="button" class="cv-tw-btn" id="cv-tw-prev" aria-label="Prev">‹</button>'
-    +     '<button type="button" class="cv-tw-btn" id="cv-tw-next" aria-label="Next">›</button>'
-    +   '</div>'
-    + '</div>'
     + '<div class="cv-tw-viewport">'
+    +   '<button type="button" class="cv-tw-edge cv-tw-edge-l" id="cv-tw-prev" aria-label="Prev">‹</button>'
+    +   '<button type="button" class="cv-tw-edge cv-tw-edge-r" id="cv-tw-next" aria-label="Next">›</button>'
     +   '<div class="cv-tw-track" id="cv-tw-track">';
 
   for (var j = 0; j < pool.length; j++) {
@@ -2248,8 +2242,6 @@ function buildFeatured() {
       + '<img class="cv-tw-poster" src="' + (typeof escHtml === 'function' ? escHtml(thumb) : thumb)
       + '" alt="" loading="' + (j < 5 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.style.opacity=.3"/>'
       + '</div>'
-      + '<div class="cv-tw-card-title">' + (typeof escHtml === 'function' ? escHtml(title) : title) + '</div>'
-      + (year ? '<div class="cv-tw-card-meta">' + year + '</div>' : '')
       + '</a>';
   }
   html += '</div></div>';
