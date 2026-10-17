@@ -395,12 +395,11 @@ var allData = [];
 function cvScrollLock() {
   try {
     document.documentElement.classList.add('cv-scroll-lock');
-    try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+    document.body.style.overflow = 'hidden';
   } catch (e) {}
 }
 function cvScrollUnlock() {
   try {
-    // Sirf tab unlock jab koi modal/player open na ho
     var modal = document.getElementById('cv-modal');
     var player = document.getElementById('cv-player');
     var dl = document.getElementById('cv-dl-popup');
@@ -412,7 +411,7 @@ function cvScrollUnlock() {
       (search && search.classList.contains('open') && getComputedStyle(search).display !== 'none');
     if (still) return;
     document.documentElement.classList.remove('cv-scroll-lock');
-    try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+    document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
@@ -970,12 +969,11 @@ function _cvOnFirebaseReady() {
 
     // Featured Banner toggle — robust check (true/"true"/1 sab enabled maane)
     var fbVal = sl.featuredBanner;
-    var fbEnabled = (fbVal === true || fbVal === 'true' || fbVal === 1 || fbVal === '1');
+    var fbEnabled = false; // PERMANENT OFF — featured banner removed
     var featuredWrap = document.getElementById('cv-featured-wrap');
     if (featuredWrap) {
-      featuredWrap._adminEnabled = fbEnabled;
-      // Admin toggle hamesha respect karo — custom images hon ya movie posters
-      featuredWrap.style.display = fbEnabled ? 'block' : 'none';
+      featuredWrap._adminEnabled = false;
+      featuredWrap.style.display = 'none';
     }
     try { localStorage.setItem('cv_fb_off', fbEnabled ? '0' : '1'); } catch (e) {}
 
@@ -2236,69 +2234,155 @@ function _cvNsRotate() {
 }
 
 function buildFeatured() {
+  // "This Week's" auto-slider — replaces old featured banner
   var wrap = document.getElementById('cv-featured-wrap');
   if (!wrap) return;
 
-  // ── ADMIN TOGGLE — sabse pehle respect karo. Jab tak settings se explicit
-  // "true" na mile (abhi undefined ho sakta hai agar movies cache se settings
-  // se pehle hi load ho gayi), tab tak kuch bhi show mat karo — warna OFF
-  // hone ke bawajood reload par banner ek pal ke liye flash ho jata tha.
-  if (wrap._adminEnabled !== true) { wrap.style.display = 'none'; return; }
+  // Home only
+  var isHome = (typeof selCat === 'undefined' || !selCat || selCat === 'all')
+    && !(typeof selGenre !== 'undefined' && selGenre);
+  try {
+    var path = (location.pathname || '/').toLowerCase();
+    if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0 || path.indexOf('/movie/') === 0) isHome = false;
+  } catch (eP) {}
 
-  // ── CUSTOM BANNER MODE: admin panel se images ──
-  if (window._customBannerImages && window._customBannerImages.length > 0) {
-    wrap.style.display = 'block';
-    wrap._customMode = true;
-    featuredList = window._customBannerImages.map(function(url, i) {
-      return { _custom: true, _key: 'custom_' + i, thumbnail: url, title: '', description: '' };
-    });
-  } else {
-    // ── NORMAL MODE: featured movies ──
-    wrap._customMode = false;
-    featuredList = allData.filter(function(m) { return m.featured && !cvIsAdultItem(m); });
-    if (!featuredList.length) {
-      // ✅ FALLBACK — admin ne toggle ON kiya hai lekin koi movie manually
-      // "Featured" mark nahi ki (aur custom images bhi nahi hain). Pehle
-      // yahan section khaali content ki wajah se hide ho jata tha, chahe
-      // admin toggle ON ho. Ab MOTD jaisa hi fallback: top downloads wali
-      // (ya nayi) non-adult movies khud-ba-khud dikha do.
-      var fbPool = allData.filter(function(m) { return !cvIsAdultItem(m); });
-      fbPool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
-      featuredList = fbPool.slice(0, 5);
+  if (!isHome) {
+    wrap.style.display = 'none';
+    if (window._cvTwTimer) { try { clearInterval(window._cvTwTimer); } catch (e) {} window._cvTwTimer = null; }
+    return;
+  }
+
+  var weekMs = 7 * 24 * 60 * 60 * 1000;
+  var now = Date.now();
+  var week = [], fallback = [];
+  for (var i = 0; i < (allData || []).length; i++) {
+    var m = allData[i];
+    if (!m || !m.thumbnail) continue;
+    if (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m)) continue;
+    if (m.published === false) continue;
+    var ts = Number(m.addedAt || m.createdAt || 0);
+    if (ts && (now - ts) <= weekMs) week.push(m);
+    else fallback.push(m);
+    if (week.length >= 20) break;
+  }
+  function byNew(a, b) {
+    return Number(b.addedAt || b.createdAt || 0) - Number(a.addedAt || a.createdAt || 0);
+  }
+  week.sort(byNew);
+  fallback.sort(byNew);
+  var pool = (week.length ? week : fallback).slice(0, 16);
+  if (!pool.length) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap._adminEnabled = true;
+  wrap._customMode = false;
+  wrap.classList.add('cv-tw-wrap');
+  wrap.style.display = 'block';
+
+  var label = week.length ? "This Week's" : 'New Uploads';
+  var html = ''
+    + '<div class="cv-tw-head">'
+    +   '<div class="cv-tw-title">✨ ' + label + ' <span class="cv-tw-count">' + pool.length + '</span></div>'
+    +   '<div class="cv-tw-nav">'
+    +     '<button type="button" class="cv-tw-btn" id="cv-tw-prev" aria-label="Prev">‹</button>'
+    +     '<button type="button" class="cv-tw-btn" id="cv-tw-next" aria-label="Next">›</button>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="cv-tw-viewport">'
+    +   '<div class="cv-tw-track" id="cv-tw-track">';
+
+  for (var j = 0; j < pool.length; j++) {
+    var mv = pool[j];
+    var key = mv._key || '';
+    var thumb = mv.thumbnail || '';
+    try {
+      if (typeof cvThumb === 'function') thumb = cvThumb(mv.thumbnail) || mv.thumbnail;
+    } catch (e3) {}
+    var slug = mv.seoSlug || (typeof cvSlug === 'function' ? cvSlug(mv.title) : '') || encodeURIComponent(key);
+    var title = mv.title || 'Movie';
+    var year = mv.year ? String(mv.year) : '';
+    var q = '';
+    try {
+      var qm = String(mv.quality || '').match(/\d{3,4}\s*p/i);
+      if (qm) q = qm[0].replace(/\s+/g, '').toUpperCase();
+    } catch (e4) {}
+    var isFresh = false;
+    try {
+      var ats = Number(mv.addedAt || 0);
+      isFresh = ats && (now - ats) < 3 * 24 * 60 * 60 * 1000;
+    } catch (e5) {}
+
+    html += '<a class="cv-tw-card" href="/movie/' + (typeof escHtml === 'function' ? escHtml(slug) : slug)
+      + '" data-key="' + (typeof escHtml === 'function' ? escHtml(key) : key)
+      + '" onclick="event.preventDefault();openModal(\'' + (typeof escJs === 'function' ? escJs(key) : key) + '\')">'
+      + '<div class="cv-tw-poster-wrap">'
+      + (isFresh ? '<span class="cv-tw-badge">NEW</span>' : '')
+      + (q ? '<span class="cv-tw-q">' + q + '</span>' : '')
+      + '<img class="cv-tw-poster" src="' + (typeof escHtml === 'function' ? escHtml(thumb) : thumb)
+      + '" alt="" loading="' + (j < 5 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.style.opacity=.3"/>'
+      + '</div>'
+      + '<div class="cv-tw-card-title">' + (typeof escHtml === 'function' ? escHtml(title) : title) + '</div>'
+      + (year ? '<div class="cv-tw-card-meta">' + year + '</div>' : '')
+      + '</a>';
+  }
+  html += '</div></div>';
+  wrap.innerHTML = html;
+
+  // Auto-slide
+  var track = document.getElementById('cv-tw-track');
+  var offset = 0;
+  function cardStep() {
+    try {
+      var c = track && track.querySelector('.cv-tw-card');
+      if (!c) return 130;
+      var g = 10;
+      return c.offsetWidth + g;
+    } catch (e) { return 130; }
+  }
+  function maxOffset() {
+    if (!track) return 0;
+    var vp = track.parentElement;
+    return Math.max(0, track.scrollWidth - (vp ? vp.clientWidth : 0));
+  }
+  function go(dir) {
+    if (!track) return;
+    var step = cardStep() * (window.innerWidth >= 700 ? 3 : 2);
+    offset += dir * step;
+    var max = maxOffset();
+    if (offset < 0) offset = max;
+    if (offset > max) offset = 0;
+    track.style.transform = 'translateX(-' + offset + 'px)';
+  }
+  var prev = document.getElementById('cv-tw-prev');
+  var next = document.getElementById('cv-tw-next');
+  if (prev) prev.onclick = function(e) { e.preventDefault(); go(-1); restart(); };
+  if (next) next.onclick = function(e) { e.preventDefault(); go(1); restart(); };
+
+  function restart() {
+    if (window._cvTwTimer) clearInterval(window._cvTwTimer);
+    window._cvTwTimer = setInterval(function() {
+      if (document.hidden) return;
+      go(1);
+    }, 4000);
+  }
+  if (window._cvTwTimer) clearInterval(window._cvTwTimer);
+  if (pool.length > 3) restart();
+
+  // Pause on touch
+  try {
+    var vp = wrap.querySelector('.cv-tw-viewport');
+    if (vp && !vp._twTouch) {
+      vp._twTouch = true;
+      vp.addEventListener('touchstart', function() {
+        if (window._cvTwTimer) clearInterval(window._cvTwTimer);
+      }, { passive: true });
+      vp.addEventListener('touchend', function() { restart(); }, { passive: true });
     }
-    if (!featuredList.length) { wrap.style.display = 'none'; return; }
-    wrap.style.display = 'block';
-  }
-
-  featuredIdx = 0;
-
-  // Build dots
-  var dotsEl = document.getElementById('cv-featured-dots');
-  if (dotsEl) {
-    dotsEl.innerHTML = '';
-    if (featuredList.length > 1) {
-      featuredList.forEach(function(_, i) {
-        var d = document.createElement('button');
-        d.className = 'cv-feat-dot' + (i === 0 ? ' active' : '');
-        d.onclick = function(e) { e.stopPropagation(); featuredGoTo(i); };
-        dotsEl.appendChild(d);
-      });
-    }
-  }
-
-  // Show first slide
-  featuredShowSlide(0);
-
-  // Auto-slide timer (6s for custom images, 10s for movies)
-  if (featuredTimer) clearInterval(featuredTimer);
-  if (featuredList.length > 1) {
-    var interval = wrap._customMode ? 6000 : 10000;
-    featuredTimer = setInterval(function() {
-      if (document.hidden) return; // tab background ho to CPU/battery bachao
-      featuredGoTo((featuredIdx + 1) % featuredList.length);
-    }, interval);
-  }
+  } catch (eT) {}
 }
+
 
 function featuredGoTo(idx) {
   var card = document.getElementById('cv-featured-card');
@@ -2743,7 +2827,7 @@ function updateSlidersVisibility(cat) {
 
   if (isHome) {
     // Home — Motd + Trending + hero/featured + MovieBox rows
-    if (trailersWrap) trailersWrap.style.display = '';
+    if (trailersWrap) trailersWrap.style.display = 'none'; // permanent off
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (featuredWrap) {
       buildFeatured();
@@ -7380,6 +7464,12 @@ function trailersRender(movies) {
 }
 
 function loadTrailers() {
+  // PERMANENT OFF — trailers slider removed
+  try {
+    var tw = document.getElementById('cv-trailers-wrap');
+    if (tw) tw.style.display = 'none';
+  } catch (e) {}
+  return;
   if (!document.getElementById('cv-trailers-track')) return;
   trailersSkels();
   // Upcoming movies — Hollywood (EN) + India region upcoming
