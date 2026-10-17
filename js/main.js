@@ -506,7 +506,7 @@ function cvStyleAdvFilters(bar) {
     'flex-direction:row',
     'flex-wrap:nowrap',
     'align-items:center',
-    'justify-content:flex-start',
+    'justify-content:' + (desk ? 'center' : 'flex-start'),
     'gap:' + (mobile ? '6px' : '12px'),
     'width:100%',
     'max-width:100%',
@@ -991,7 +991,7 @@ function _cvOnFirebaseReady() {
     }
 
     // Now Showing (hero poster stack) toggle — default ON agar admin ne set nahi kiya
-    window._cvNsHeroEnabled = (sl.nowShowing !== false && sl.nowShowing !== 'false');
+    window._cvNsHeroEnabled = false; // PERMANENT OFF — Now Showing removed
     if (!window._cvNsHeroEnabled) {
       var nsHeroEl = document.getElementById('cv-ns-hero');
       if (nsHeroEl) nsHeroEl.style.display = 'none';
@@ -2139,99 +2139,24 @@ var _cvNsOffset = 0;
 var _cvNsTimer = null;
 
 function buildNsHero() {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack) return;
-  // Sirf HOME — category/genre pe kabhi na dikhao (traffic UX: jaldi grid)
-  var isHome = (typeof selCat === 'undefined' || !selCat || selCat === 'all')
-    && !(typeof selGenre !== 'undefined' && selGenre);
+  // PERMANENT OFF — Now Showing removed
   try {
-    var path = (location.pathname || '/').toLowerCase();
-    if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0 || path.indexOf('/movie/') === 0) {
-      isHome = false;
+    var hero = document.getElementById('cv-ns-hero');
+    if (hero) {
+      hero.style.display = 'none';
+      hero.innerHTML = '';
     }
-  } catch (eP) {}
-  if (!isHome || window._cvNsHeroEnabled === false) {
-    var heroWrapOff = document.getElementById('cv-ns-hero');
-    if (heroWrapOff) heroWrapOff.style.display = 'none';
-    if (typeof _cvNsTimer !== 'undefined' && _cvNsTimer) { try { clearInterval(_cvNsTimer); _cvNsTimer = null; } catch(e){} }
-    return;
-  }
-  // Agar watchdog ne pehle load-failure state dikha ke ye section chhupa
-  // diya tha, aur ab data der se hi sahi aa gaya, to section wapas dikhao
-  // (lekin cat/genre view me jaan-boojh kar chhupaya gaya ho to waisa hi rehne do).
-  if (window._cvLoadFailureShown) {
-    try {
-      var heroWrap = document.getElementById('cv-ns-hero');
-      var p = new URLSearchParams(location.search);
-      if (heroWrap && !(p.get('cat') || p.get('genre'))) heroWrap.style.display = '';
-    } catch(e) {}
-  }
-  // allData newest-first already (see fetchFirebasePage) — non-adult, has thumbnail
-  var pool = [];
-  for (var i = 0; i < allData.length && pool.length < 12; i++) {
-    var m = allData[i];
-    if (m && m.thumbnail && !cvIsAdultItem(m)) pool.push(m);
-  }
-  if (!pool.length) return;
-  _cvNsPool = pool;
-  _cvNsOffset = 0;
-  _cvNsRender(false);
-
-  if (_cvNsTimer) clearInterval(_cvNsTimer);
-  if (_cvNsPool.length > 1) {
-    _cvNsTimer = setInterval(_cvNsRotate, 3800);
-  }
+    if (typeof _cvNsTimer !== 'undefined' && _cvNsTimer) {
+      clearInterval(_cvNsTimer);
+      _cvNsTimer = null;
+    }
+  } catch (e) {}
+  return;
 }
+function _cvNsPick() { return []; }
+function _cvNsRender() {}
+function _cvNsRotate() {}
 
-function _cvNsPick(offset) {
-  var pool = _cvNsPool, n = pool.length, picks = [];
-  if (!n) return picks;
-  for (var k = 0; k < 3; k++) picks.push(pool[(offset + k) % n]);
-  return picks;
-}
-
-function _cvNsRender(fadeIn) {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack) return;
-  var picks = _cvNsPick(_cvNsOffset);
-  if (!picks.length) return;
-  while (picks.length < 3) picks.push(picks[picks.length - 1]);
-
-  var classes = ['cv-ns-p0', 'cv-ns-p1', 'cv-ns-p2'];
-  var html = '';
-  for (var j = 0; j < 3; j++) {
-    var mv = picks[j];
-    var key = mv._key;
-    var thumb = cvThumb(mv.thumbnail);
-    var isFront = classes[j] === 'cv-ns-p2';
-    var heroSlug = mv.seoSlug || cvSlug(mv.title) || encodeURIComponent(key);
-    html += '<a class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" href="/movie/' + escHtml(heroSlug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(&quot;' + escJs(key) + '&quot;)">' +
-              '<img alt="' + escHtml(mv.title || 'Movie') + '" loading="lazy" src="' + escHtml(thumb) + '"/>' +
-              (isFront ? '<div class="cv-ns-p2-cap">' + escHtml(mv.title || '') + '</div>' : '') +
-            '</a>';
-  }
-  stack.innerHTML = html;
-
-  if (fadeIn) {
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        var posters = stack.querySelectorAll('.cv-ns-poster');
-        for (var p = 0; p < posters.length; p++) posters[p].classList.remove('cv-ns-fading');
-      });
-    });
-  }
-}
-
-function _cvNsRotate() {
-  var stack = document.getElementById('cv-ns-stack');
-  if (!stack || _cvNsPool.length < 2) return;
-  var posters = stack.querySelectorAll('.cv-ns-poster');
-  for (var p = 0; p < posters.length; p++) posters[p].classList.add('cv-ns-fading');
-  setTimeout(function() {
-    _cvNsOffset = (_cvNsOffset + 1) % _cvNsPool.length;
-    _cvNsRender(true);
-  }, 380);
-}
 
 function buildFeatured() {
   // "This Week's" auto-slider — replaces old featured banner
@@ -2330,58 +2255,68 @@ function buildFeatured() {
   html += '</div></div>';
   wrap.innerHTML = html;
 
-  // Auto-slide
+  // Finger swipe (native scroll) + buttons + soft auto-slide
   var track = document.getElementById('cv-tw-track');
-  var offset = 0;
+  var vp = wrap.querySelector('.cv-tw-viewport');
+  if (track) {
+    track.style.transform = '';
+    track.style.willChange = 'auto';
+  }
   function cardStep() {
     try {
       var c = track && track.querySelector('.cv-tw-card');
       if (!c) return 130;
-      var g = 10;
-      return c.offsetWidth + g;
+      return c.offsetWidth + 10;
     } catch (e) { return 130; }
   }
-  function maxOffset() {
-    if (!track) return 0;
-    var vp = track.parentElement;
-    return Math.max(0, track.scrollWidth - (vp ? vp.clientWidth : 0));
-  }
   function go(dir) {
-    if (!track) return;
+    if (!vp) return;
     var step = cardStep() * (window.innerWidth >= 700 ? 3 : 2);
-    offset += dir * step;
-    var max = maxOffset();
-    if (offset < 0) offset = max;
-    if (offset > max) offset = 0;
-    track.style.transform = 'translateX(-' + offset + 'px)';
+    var max = Math.max(0, (track ? track.scrollWidth : 0) - vp.clientWidth);
+    var next = Math.min(max, Math.max(0, vp.scrollLeft + dir * step));
+    if (dir > 0 && vp.scrollLeft >= max - 4) next = 0;
+    if (dir < 0 && vp.scrollLeft <= 4) next = max;
+    try {
+      vp.scrollTo({ left: next, behavior: 'smooth' });
+    } catch (e) { vp.scrollLeft = next; }
   }
   var prev = document.getElementById('cv-tw-prev');
-  var next = document.getElementById('cv-tw-next');
+  var nextBtn = document.getElementById('cv-tw-next');
   if (prev) prev.onclick = function(e) { e.preventDefault(); go(-1); restart(); };
-  if (next) next.onclick = function(e) { e.preventDefault(); go(1); restart(); };
+  if (nextBtn) nextBtn.onclick = function(e) { e.preventDefault(); go(1); restart(); };
 
   function restart() {
     if (window._cvTwTimer) clearInterval(window._cvTwTimer);
     window._cvTwTimer = setInterval(function() {
       if (document.hidden) return;
       go(1);
-    }, 4000);
+    }, 4500);
   }
   if (window._cvTwTimer) clearInterval(window._cvTwTimer);
   if (pool.length > 3) restart();
 
-  // Pause on touch
+  // Pause auto while user swipes / holds
   try {
-    var vp = wrap.querySelector('.cv-tw-viewport');
-    if (vp && !vp._twTouch) {
-      vp._twTouch = true;
-      vp.addEventListener('touchstart', function() {
+    if (vp && !vp._twSwipeBound) {
+      vp._twSwipeBound = true;
+      var _pauseT = null;
+      function pauseAuto() {
         if (window._cvTwTimer) clearInterval(window._cvTwTimer);
+        if (_pauseT) clearTimeout(_pauseT);
+        _pauseT = setTimeout(restart, 5000);
+      }
+      vp.addEventListener('touchstart', pauseAuto, { passive: true });
+      vp.addEventListener('touchmove', pauseAuto, { passive: true });
+      vp.addEventListener('mousedown', pauseAuto);
+      vp.addEventListener('wheel', pauseAuto, { passive: true });
+      vp.addEventListener('scroll', function() {
+        if (_pauseT) clearTimeout(_pauseT);
+        _pauseT = setTimeout(restart, 5000);
       }, { passive: true });
-      vp.addEventListener('touchend', function() { restart(); }, { passive: true });
     }
   } catch (eT) {}
 }
+
 
 
 function featuredGoTo(idx) {
