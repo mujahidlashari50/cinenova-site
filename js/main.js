@@ -152,7 +152,8 @@ function cvOpenInBrowser() {
 // ══════════════════════════════════
 // FIREBASE CONFIG (loaded dynamically - non-blocking)
 // ══════════════════════════════════
-var CV_SCHEMA_VERSION = '2026.09.14-panel-sync';
+var CV_SCHEMA_VERSION = '2026.10.17-theme-advance';
+var CV_THEME_ADVANCE_V2 = true;
 var firebaseConfig = {
   apiKey: "AIzaSyACX5MktMm99R2ThEbfrtwrh5ZAzT5tCM0",
   authDomain: "cinenova-8987c.firebaseapp.com",
@@ -1274,8 +1275,8 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 100;        // pehli paint ke liye
-var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
+var PAGE_SIZE = 150;        // pehli paint — zyada cards turant
+var PAGE_SIZE_BULK = 8000;  // full library bulk (category completeness)
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 30 * 60 * 1000; // 30 min — deleted/merged posts jaldi site se hatain
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -1498,8 +1499,16 @@ function cvLoadCategoryData(val, isGenre) {
       });
     }
 
-    // 3) PERF: category click pe poori library load NA karo (ye hang ka main cause tha).
-    // Indexed query + aliases kaafi hain. Full load sirf search / last-page pe.
+    // 3) Agar library abhi load ho rahi hai to bulk start — category complete ho
+    if (!allLoaded && typeof cvBulkLoadAllMovies === 'function') {
+      try { cvBulkLoadAllMovies(); } catch (eB) {}
+    }
+    // 4) Local full rescan after short delay (aliases + bulk merge)
+    setTimeout(function() {
+      try {
+        if (typeof renderGrid === 'function') renderGrid(true, false);
+      } catch (eR) {}
+    }, 600);
   });
 }
 
@@ -1657,8 +1666,12 @@ function cvBulkLoadAllMovies() {
     try { if (typeof idbClear === 'function') idbClear(); } catch (eIdb) {}
     // Grid pehle (user ko content dikhao) — heavy widgets idle pe
     try {
-      if (typeof renderGrid === 'function') renderGrid(false, true);
+      // Category view pe full library se sahi count
+      if (typeof renderGrid === 'function') renderGrid(true, false);
     } catch (e) {}
+    try {
+      if (typeof buildNsHero === 'function') buildNsHero();
+    } catch (eN) {}
     function _cvIdle(fn, delay) {
       try {
         if ('requestIdleCallback' in window) {
@@ -3892,7 +3905,7 @@ function cvRestorePageFromUrl() {
 // ══════════════════════════════════
 var cvCurrentPage = 1;
 // Mobile pe kam cards = tez first paint + kam scroll jank
-var CV_PAGE_SIZE = (typeof window !== 'undefined' && window.innerWidth < 700) ? 24 : 36;
+var CV_PAGE_SIZE = (typeof window !== 'undefined' && window.innerWidth < 700) ? 30 : 48;
 var cvFilteredList = [];
 try {
   window.addEventListener('resize', function() {
