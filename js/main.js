@@ -559,8 +559,7 @@ function cvSetAdultVerified(uid, email) {
 function cvUpdateAdultBadge() {
   var badge = document.getElementById('cv-adult-verified-badge');
   if (!badge) return;
-  // Always hide — keeps mobile nav clean (adult gate still works)
-  badge.style.display = 'none';
+  badge.style.display = cvIsAdultVerified() ? 'flex' : 'none';
 }
 function cvAdultLogoutPrompt() {
   if (!confirm('18+ verification hata di jaye? Dobara Adult section kholne ke liye verify karna padega.')) return;
@@ -695,7 +694,7 @@ function cvAdultGoogleVerify() {
       renderGrid();
       updateSlidersVisibility('group:adult');
       cvLoadCategoryData('group:adult', false);
-      try { history.replaceState(null, '', (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl('group:adult', false) : '/category/adult-all'); } catch (e) {}
+      try { history.replaceState(null, '', location.pathname + '?cat=group:adult'); } catch (e) {}
 
       if (typeof _cvAdultGateOnSuccess === 'function') {
         var fn = _cvAdultGateOnSuccess;
@@ -1147,71 +1146,6 @@ function cvFetchByIndex(field, value, cb) {
 // user ko poora dataset load hone ka wait nahi karna padta.
 // Panel display-name variants jo Firebase mein save ho sakte hain
 // (slug ke alawa). Indexed query in par bhi chalao taake jaldi mile.
-
-// ═══ Pretty category URLs: /category/south-hindi  (not ?cat=south_hindi)
-var CV_CAT_URL_SLUG = {
-  english_movies: 'english-movies',
-  hindi_dubbed: 'hindi-dubbed',
-  dual_audio: 'dual-audio',
-  south_hindi: 'south-hindi',
-  bollywood_hindi: 'bollywood',
-  anime_hindi: 'anime-hindi',
-  animation_hindi_dubbed: 'animation',
-  webseries_hindi: 'web-series',
-  kdrama_hindi: 'k-drama',
-  philippines: 'philippines',
-  hot_short_hindi: 'hot-short',
-  adult: 'adult',
-  short_films: 'short-films',
-  'group:hollywood': 'hollywood',
-  'group:tollywood': 'tollywood',
-  'group:bollywood': 'bollywood-all',
-  'group:animation': 'animation-all',
-  'group:webseries': 'web-series-all',
-  'group:kdrama': 'k-drama-all',
-  'group:adult': 'adult-all',
-  hollywood: 'hollywood',
-  bollywood: 'bollywood',
-  tollywood: 'tollywood',
-  animation: 'animation',
-  webseries: 'web-series',
-  kdrama: 'k-drama',
-  punjabi: 'punjabi',
-  bengali: 'bengali',
-  tamil_telugu: 'tamil-telugu'
-};
-var CV_URL_SLUG_TO_CAT = {};
-(function() {
-  Object.keys(CV_CAT_URL_SLUG).forEach(function(k) {
-    CV_URL_SLUG_TO_CAT[CV_CAT_URL_SLUG[k]] = k;
-    CV_URL_SLUG_TO_CAT[String(k).replace(/_/g, '-')] = k;
-  });
-})();
-function cvCatToUrlSlug(cat) {
-  if (!cat || cat === 'all' || cat === 'watchlist') return '';
-  if (CV_CAT_URL_SLUG[cat]) return CV_CAT_URL_SLUG[cat];
-  return String(cat).toLowerCase().replace(/^group:/, '').replace(/_/g, '-').replace(/:/g, '-');
-}
-function cvUrlSlugToCat(slug) {
-  if (!slug) return 'all';
-  slug = decodeURIComponent(String(slug)).toLowerCase().replace(/^\/+|\/+$/g, '');
-  if (CV_URL_SLUG_TO_CAT[slug]) return CV_URL_SLUG_TO_CAT[slug];
-  var gmap = { hollywood: 'group:hollywood', tollywood: 'group:tollywood', bollywood: 'group:bollywood',
-    animation: 'group:animation', 'web-series': 'group:webseries', 'k-drama': 'group:kdrama', adult: 'group:adult',
-    'bollywood-all': 'group:bollywood', 'animation-all': 'group:animation', 'web-series-all': 'group:webseries',
-    'k-drama-all': 'group:kdrama', 'adult-all': 'group:adult' };
-  if (gmap[slug]) return gmap[slug];
-  return slug.replace(/-/g, '_');
-}
-function cvBuildFilterUrl(cat, isGenre) {
-  if (isGenre && cat) {
-    return '/genre/' + encodeURIComponent(String(cat).toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-'));
-  }
-  if (!cat || cat === 'all') return '/';
-  if (cat === 'watchlist') return '/?cat=watchlist';
-  return '/category/' + encodeURIComponent(cvCatToUrlSlug(cat));
-}
-
 var CV_CAT_ALIASES = {
   /* SYNC with Admin Panel category slugs — v2026.09.14 */
   english_movies: ['English Movies', 'English-Movies', 'english movies', 'english', 'hollywood'],
@@ -2459,19 +2393,18 @@ function cvPlayComingSoon(m) {
       });
   }
 
-  // 1) INSTANT — cached trailerKey / trailerUrl (panel already saved)
-  if (m.trailerKey && playYtKey(m.trailerKey, m.title)) return;
+  // 1) Direct YouTube already saved
   var direct = cvComingSoonTrailerUrl(m);
   if (direct) {
-    if (typeof playVideo === 'function') {
-      playVideo(direct, (m.title || 'Movie') + ' — Trailer');
-      return;
+    if (typeof playVideo === 'function') playVideo(direct, (m.title || 'Movie') + ' — Trailer');
+    else {
+      var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
+      if (mk) playYtKey(mk[1], m.title);
     }
-    var mk = direct.match(/embed\/([a-zA-Z0-9_-]+)/);
-    if (mk && playYtKey(mk[1], m.title)) return;
+    return;
   }
 
-  // 2) TMDB id → fetch (slower path)
+  // 2) Has TMDB id → trailer
   if (tid) {
     fetchTrailerByTmdbId(tid, m.title || 'Trailer');
     return;
@@ -3165,18 +3098,8 @@ function cvRestoreFromUrl() {
     // ✅ Pretty URL support: /movie/slug-name (naya format)
     var pathMatch = location.pathname.match(/^\/movie\/([^\/]+)\/?$/);
     var movieKey = pathMatch ? decodeURIComponent(pathMatch[1]) : params.get('m');
-    var catPath = location.pathname.match(/^\/category\/([^\/]+)\/?$/i);
-    var genrePath = location.pathname.match(/^\/genre\/([^\/]+)\/?$/i);
     var cat = params.get('cat');
     var genre = params.get('genre');
-    if (!movieKey && catPath) {
-      cat = (typeof cvUrlSlugToCat === 'function') ? cvUrlSlugToCat(catPath[1]) : String(catPath[1]).replace(/-/g, '_');
-      genre = '';
-    }
-    if (!movieKey && genrePath) {
-      genre = decodeURIComponent(genrePath[1]).replace(/-/g, '_');
-      cat = '';
-    }
     var langParam = params.get('lang');
 
     // ✅ BACK BUTTON FIX — jab user seedha (Facebook/Google/WhatsApp se) kisi
@@ -4294,7 +4217,7 @@ function makeCard(m) {
     inner += '<div class="cv-card-no-img">🎬</div>';
   }
   if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
-  if (cat) inner += '<a class="cv-cat-badge cv-new" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g,'-'))) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
+  if (cat) inner += '<a class="cv-cat-badge cv-new" href="?cat=' + encodeURIComponent(cat) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
   if (m.quality) {
     var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
     inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
@@ -4385,8 +4308,8 @@ function openModal(key) {
   var badges = '';
   if (m.year) badges += '<span class="cv-mbadge">📅 ' + m.year + '</span>';
   if (m.rating) badges += '<span class="cv-mbadge">⭐ ' + m.rating + '</span>';
-  if (m.category) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.category||'').toLowerCase(), false) : ('/category/' + String(m.category||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
-  if (m.genre) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.genre||'').toLowerCase(), true) : ('/genre/' + String(m.genre||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
+  if (m.category) badges += '<a class="cv-mbadge" href="?cat=' + encodeURIComponent((m.category||'').toLowerCase()) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
+  if (m.genre) badges += '<a class="cv-mbadge" href="?genre=' + encodeURIComponent((m.genre||'').toLowerCase()) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
   if (m.quality) badges += '<span class="cv-mbadge">' + m.quality + '</span>';
   if (m.size) badges += '<span class="cv-mbadge">💾 ' + m.size + '</span>';
@@ -4420,7 +4343,7 @@ function openModal(key) {
     btns += '<button type="button" class="cv-dl-btn cv-dl-action-watch" onclick="cnGoToWatchWorker(\'' + escJs(_mkey) + '\',\'720p\')">▶ Watch Now</button>';
   } else if (_pmEmbed) {
     btns += '<div class="cv-section-title">▶ Watch Online</div>';
-    btns += '<button type="button" class="cv-dl-btn cv-dl-action-watch" onclick="cnGatedPlayVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
+    btns += '<button type="button" class="cv-dl-btn cv-dl-action-watch" onclick="playVideo(\'' + escJs(_pmEmbed) + '\',\'' + escJs(m.title||'Now Playing') + '\')">▶ Watch Now</button>';
   }
   if (m.trailerUrl) {
     btns += '<button class="cv-dl-btn secondary" onclick="playVideo(\'' + escJs(m.trailerUrl) + '\',\'Trailer: ' + escJs(m.title||'') + '\')">🎬 Watch Trailer</button>';
@@ -4647,13 +4570,11 @@ function openModal(key) {
 }
 
 function closeModal() {
-  // Restore list URL (home OR category) — never force blank home if user was in a category
   try {
-    if (location.pathname.indexOf('/movie/') === 0 || /(^|[?&])m=/.test(location.search || '')) {
-      var listUrl = (typeof cvGetListUrl === 'function') ? cvGetListUrl() : '/';
-      history.replaceState({ cv: 'list' }, '', listUrl || '/');
+    if (location.pathname.indexOf('/movie/') === 0 || location.search.indexOf('?m=') === 0) {
+      history.replaceState(null, '', '/');
     }
-  } catch (e) {}
+  } catch(e){}
   cvResetSEO();
   // Smooth close animation before hiding
   var modal = document.getElementById('cv-modal');
@@ -4969,55 +4890,33 @@ function cvPushState(name, urlParam) {
 
 // ✅ Pretty URL push for movie pages: /movie/slug-name
 function cvPushMovieState(slug) {
-  // Always keep a list entry under the modal so Back stays on-site
-  try {
-    cvCaptureListUrl();
-    if (!cvHistoryCushionDone) {
-      var listUrl = cvGetListUrl();
-      if (location.pathname.indexOf('/movie/') === 0) {
-        history.replaceState({ cv: 'list' }, '', listUrl);
-      } else {
-        history.replaceState({ cv: 'list' }, '', location.pathname + (location.search || '') || '/');
-        cvCaptureListUrl();
-      }
-      cvHistoryCushionDone = true;
-    } else if (location.pathname.indexOf('/movie/') !== 0) {
-      // Update list URL while still on grid
-      cvCaptureListUrl();
-      history.replaceState({ cv: 'list', cat: true }, '', location.pathname + (location.search || '') || '/');
-    }
-  } catch (e) {}
-  // Avoid stacking duplicate modal states for same URL
-  try {
-    if (location.pathname === '/movie/' + slug || location.pathname === '/movie/' + encodeURIComponent(slug)) {
-      if (cvStack[cvStack.length - 1] !== 'modal') cvStack.push('modal');
-      return;
-    }
-  } catch (e2) {}
   cvStack.push('modal');
   var newUrl = '/movie/' + slug;
-  history.pushState({ cv: 'modal', urlParam: 'm=' + slug }, '', newUrl);
+  history.pushState({cv: 'modal', urlParam: 'm=' + slug}, '', newUrl);
 }
 
 function cvGoBack() {
-  // Prefer history.back() so browser URL + popstate stay in sync.
-  // popstate handler closes modal/player UI. Avoid replaceState+back (double step → exit).
+  var didPop = false;
   if (cvStack.length > 0) {
-    var closing = cvStack[cvStack.length - 1];
-    if (closing === 'player' || closing === 'modal') {
-      try { history.back(); } catch (e) {
-        if (closing === 'player') closePlayer();
-        else closeModal();
-        cvStack.pop();
+    var closing = cvStack.pop();
+    didPop = true;
+    var top = cvStack[cvStack.length - 1];
+    if (closing === 'player') {
+      closePlayer();
+      // If modal was open below player, reopen it
+      if (top === 'modal') {
+        document.getElementById('cv-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
       }
-      return;
+    } else if (closing === 'modal') {
+      closeModal();
     }
+  } else {
+    // Stack khaali hai (kabhi pushState hua hi nahi) — phir bhi UI se close
+    // karna hai, lekin history.back() na karo warna bina wajah site exit ho sakti hai
+    closeModal();
   }
-  // No stack entry — close UI only, never history.back() (would exit site)
-  var player = document.getElementById('cv-player');
-  var modal = document.getElementById('cv-modal');
-  if (player && player.classList.contains('open')) closePlayer();
-  else if (modal && modal.classList.contains('open')) closeModal();
+  if (didPop) history.back();
 }
 
 function cvSendContact() {
@@ -5050,34 +4949,17 @@ function cvSendContact() {
 window.addEventListener('popstate', function(e) {
   var player = document.getElementById('cv-player');
   var modal = document.getElementById('cv-modal');
-  if (player && player.classList.contains('open')) {
+  if (player.classList.contains('open')) {
     closePlayer();
-    if (cvStack.length) cvStack.pop();
-    return;
+    cvStack.pop();
+    // If modal was under player, keep its URL
+  } else if (modal.classList.contains('open')) {
+    closeModal();
+    cvStack.pop();
+  } else {
+    // Back/forward navigation — restore filter from URL
+    cvRestoreFromUrl();
   }
-  if (modal && modal.classList.contains('open')) {
-    // URL already moved back by browser — only close UI, do not force '/'
-    try {
-      var modalEl = document.getElementById('cv-modal');
-      if (modalEl) {
-        modalEl.classList.remove('open');
-        modalEl.classList.remove('cv-closing');
-      }
-      document.body.style.overflow = '';
-      if (window._cvModalLiveRef && typeof window._cvModalLiveRef.off === 'function') {
-        try { window._cvModalLiveRef.off(); } catch (e0) {}
-        window._cvModalLiveRef = null;
-      }
-      window._cvModalLiveKey = null;
-      if (typeof cvResetSEO === 'function') cvResetSEO();
-    } catch (e1) {}
-    if (cvStack.length) cvStack.pop();
-    // Restore category/home from current URL (after back)
-    try { if (typeof cvRestoreFromUrl === 'function') cvRestoreFromUrl(); } catch (e2) {}
-    return;
-  }
-  // Back/forward on list — restore filter from URL
-  try { cvRestoreFromUrl(); } catch (e3) {}
 });
 
 
@@ -5107,17 +4989,6 @@ function cvLoadSubSettings(cb) {
     _cvSubSettings = { enabled: false };
     if (cb) cb(_cvSubSettings);
   });
-}
-
-
-function cvIncUserStat(kind) {
-  try {
-    if (typeof firebase === 'undefined' || !firebase.auth) return;
-    var u = firebase.auth().currentUser;
-    if (!u || !db) return;
-    var path = 'users/' + u.uid + '/stats/' + kind;
-    db.ref(path).transaction(function(c) { return (typeof c === 'number' ? c : 0) + 1; }).catch(function(){});
-  } catch (e) {}
 }
 
 function cvIsSubActive(sub) {
@@ -5159,7 +5030,6 @@ function cvFetchUserSub(uid, cb) {
 /** action: 'download' | 'watch' — if allowed runs onOk, else shows paywall */
 function cnGatedPlayVideo(url, title) {
   cnRequireSub('watch', function() {
-    try { cvIncUserStat('watches'); } catch (e) {}
     if (typeof playVideo === 'function') playVideo(url, title);
   });
 }
@@ -5222,33 +5092,6 @@ function cvEnsureFirebaseAuth(cb) {
   document.head.appendChild(s);
 }
 
-
-/** EasyPaisa / JazzCash TID format check */
-function cvValidateTxnId(tid, method) {
-  var raw = String(tid || '').trim();
-  if (!raw) return { ok: false, reason: 'Transaction ID is required' };
-  var clean = raw.replace(/[\s\-]/g, '');
-  if (/^(.)\1{7,}$/.test(clean)) return { ok: false, reason: 'Invalid or fake-looking TID' };
-  if (/^(123456|000000|111111|999999)/.test(clean)) return { ok: false, reason: 'Invalid or fake-looking TID' };
-  if (!/^[A-Za-z0-9]+$/.test(clean)) return { ok: false, reason: 'Only letters and numbers allowed' };
-  var digits = clean.replace(/\D/g, '');
-  var m = (method || '').toLowerCase();
-  if (m === 'jazzcash') {
-    if (digits.length >= 10 && digits.length <= 14 && digits.length === clean.length) {
-      return { ok: true, reason: 'JazzCash format looks OK' };
-    }
-    if (/^JC/i.test(clean) && digits.length >= 8) return { ok: true, reason: 'JazzCash format looks OK' };
-    return { ok: false, reason: 'JazzCash TID is usually 10–14 digits' };
-  }
-  if (m === 'easypaisa') {
-    if (digits.length >= 10 && digits.length <= 14) return { ok: true, reason: 'EasyPaisa format looks OK' };
-    if (/^(EP|TID)/i.test(clean) && digits.length >= 8) return { ok: true, reason: 'EasyPaisa format looks OK' };
-    return { ok: false, reason: 'EasyPaisa TID is usually 10–14 digits' };
-  }
-  if (digits.length >= 10 && digits.length <= 14) return { ok: true, reason: 'Format looks OK' };
-  return { ok: false, reason: 'TID should be 10–14 digits' };
-}
-
 function cvShowSubModal(cfg, user, mode) {
   var old = document.getElementById('cv-sub-modal');
   if (old) old.remove();
@@ -5262,26 +5105,8 @@ function cvShowSubModal(cfg, user, mode) {
       + '<span style="float:right;color:#fbbf24;font-weight:800;">Rs ' + (p.price||0) + '</span>'
       + '<div style="font-size:0.75rem;color:#888;margin-top:4px;">' + (p.days||0) + ' days access</div></button>';
   });
-  var epName = (cfg && cfg.easypaisaName) ? cfg.easypaisaName : 'MUJAHID';
-  var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
-  var jcName = (cfg && cfg.jazzcashName) ? cfg.jazzcashName : 'MUJAHID';
-  var jcNum = (cfg && cfg.jazzcashNumber) ? cfg.jazzcashNumber : '03353613905';
-  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : '';
+  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : 'Admin se contact karke payment confirm karein.';
   var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
-  var payCards = ''
-    + '<div style="display:grid;gap:10px;margin-bottom:12px;">'
-    + '<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);border:1px solid #334155;border-radius:12px;padding:12px 14px;">'
-    + '<div style="font-size:0.72rem;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">EasyPaisa</div>'
-    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(epName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.05rem;font-weight:900;color:#4ade80;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
-    + '</div>'
-    + '<div style="background:linear-gradient(135deg,#1a0a0a,#2a1010);border:1px solid #5c1a1a;border-radius:12px;padding:12px 14px;">'
-    + '<div style="font-size:0.72rem;color:#fca5a5;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">JazzCash</div>'
-    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(jcName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.05rem;font-weight:900;color:#fbbf24;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
-    + '</div></div>'
-    + (note ? '<div style="font-size:0.78rem;color:#aaa;margin-bottom:10px;line-height:1.45;">' + note + '</div>' : '')
-    + (support ? '<div style="margin-bottom:10px;">' + support + '</div>' : '');
   var modal = document.createElement('div');
   modal.id = 'cv-sub-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -5289,19 +5114,13 @@ function cvShowSubModal(cfg, user, mode) {
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
     + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
     + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
-    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">An active subscription is required to watch or download movies.</p>'
+    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">Movies dekhne / download karne ke liye active subscription zaroori hai.</p>'
     + (user ? '<div style="font-size:0.78rem;color:#4ade80;margin-bottom:10px;">Logged in: '+ (user.email||user.uid) +'</div>'
-            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Continue with Google</button></div>')
+            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Google se Login</button></div>')
     + (user ? ('<div style="margin-bottom:12px;">' + planHtml + '</div>'
-      + payCards
-      + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Payment method</label>'
-      + '<select id="cv-sub-method" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;">'
-      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option></select></div>'
-      + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Transaction ID / TID</label>'
-      + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Enter Transaction ID from your payment" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
-      + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">Enter 10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
-      + '<textarea id="cv-sub-note" rows="2" placeholder="Optional note (optional)" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
-      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Submit Payment Request</button>'
+      + '<div style="background:#141414;border:1px solid #222;border-radius:10px;padding:12px;font-size:0.8rem;color:#ccc;line-height:1.55;margin-bottom:12px;"><b style="color:#fbbf24;">Payment</b><br>' + note + '<br>' + support + '</div>'
+      + '<textarea id="cv-sub-note" rows="2" placeholder="Payment reference / JazzCash number / note…" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
+      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Payment Request bhejo</button>'
       + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:8px;"></div>')
       : '')
     + '</div>';
@@ -5342,57 +5161,21 @@ function cvShowSubModal(cfg, user, mode) {
     };
   }
   var reqBtn = document.getElementById('cv-sub-request');
-  var txnInput = document.getElementById('cv-sub-txn');
-  var methodSel = document.getElementById('cv-sub-method');
-  var txnHint = document.getElementById('cv-sub-txn-hint');
-  function refreshTxnHint() {
-    if (!txnInput || !txnHint) return;
-    var method = methodSel ? methodSel.value : 'easypaisa';
-    var v = cvValidateTxnId(txnInput.value, method);
-    if (!String(txnInput.value || '').trim()) {
-      txnHint.style.color = '#666';
-      txnHint.textContent = 'Enter 10–14 digit TID (JazzCash / EasyPaisa)';
-      txnInput.style.borderColor = '#333';
-      return;
-    }
-    if (v.ok) {
-      txnHint.style.color = '#4ade80';
-      txnHint.textContent = '✓ ' + v.reason;
-      txnInput.style.borderColor = '#16a34a';
-    } else {
-      txnHint.style.color = '#f87171';
-      txnHint.textContent = '✗ ' + v.reason + ' — enter a valid TID';
-      txnInput.style.borderColor = '#dc2626';
-    }
-  }
-  if (txnInput) txnInput.addEventListener('input', refreshTxnHint);
-  if (methodSel) methodSel.addEventListener('change', refreshTxnHint);
   if (reqBtn && user) {
     reqBtn.onclick = function() {
       var noteEl = document.getElementById('cv-sub-note');
       var msg = document.getElementById('cv-sub-msg');
-      if (!db) { if (msg) msg.textContent = 'Database not ready. Please refresh and try again.'; return; }
-      var method = methodSel ? methodSel.value : 'easypaisa';
-      var txnId = txnInput ? String(txnInput.value || '').trim() : '';
-      var check = cvValidateTxnId(txnId, method);
-      refreshTxnHint();
-      if (!check.ok) {
-        if (msg) { msg.style.color = '#f87171'; msg.textContent = '❌ ' + check.reason + ' — request not sent.'; }
-        return;
-      }
+      if (!db) { if (msg) msg.textContent = 'DB not ready'; return; }
       var payload = {
         uid: user.uid,
         email: user.email || '',
         plan: selectedPlan,
-        payMethod: method,
-        txnId: txnId,
-        txnValid: true,
         note: (noteEl && noteEl.value) ? noteEl.value.trim() : '',
         status: 'pending',
         createdAt: Date.now()
       };
       db.ref('subRequests').push(payload).then(function() {
-        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request submitted. Your plan will activate after payment verification.'; }
+        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request bhej di — admin approve karega. Payment instructions follow karein.'; }
         reqBtn.disabled = true;
       }).catch(function(e) {
         if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Error: ' + e.message; }
@@ -5432,16 +5215,13 @@ function cnBumpDownloadCount(movieKey) {
 function cnGoToDownloadWorker(movieKey, quality, season, episode) {
   var WORKER_DL_BASE = 'https://www.cinenova.site/dl';
   if (!movieKey) return;
-  cnRequireSub('download', function() {
-    try { cvIncUserStat('downloads'); } catch (e) {}
-    cnBumpDownloadCount(movieKey);
-    var params = new URLSearchParams();
-    params.set('id', movieKey);
-    params.set('q', quality || '480p');
-    if (season) params.set('s', String(season));
-    if (episode) params.set('e', String(episode));
-    window.location.href = WORKER_DL_BASE + '?' + params.toString();
-  });
+  cnBumpDownloadCount(movieKey);
+  var params = new URLSearchParams();
+  params.set('id', movieKey);
+  params.set('q', quality || '480p');
+  if (season) params.set('s', String(season));
+  if (episode) params.set('e', String(episode));
+  window.location.href = WORKER_DL_BASE + '?' + params.toString();
 }
 
 // Movie open / download popup se pehle worker warm — /get pe cache hit
@@ -5577,13 +5357,6 @@ function cnOpenInVlc(httpsUrl, title) {
 function cnGoToWatchWorker(movieKey, quality) {
   if (!movieKey) return;
   cnRequireSub('watch', function() {
-    try { cvIncUserStat('watches'); } catch (e) {}
-    try {
-      cvCaptureListUrl();
-      sessionStorage.setItem('cv_return_from_player', '1');
-      sessionStorage.setItem('cv_return_movie', movieKey);
-      if (cvLastListUrl) sessionStorage.setItem('cv_list_url', cvLastListUrl);
-    } catch (e2) {}
     window.location.href = cnPlayGoUrl(movieKey, quality || '720p', '', '');
   });
 }
@@ -5591,13 +5364,6 @@ function cnGoToWatchWorker(movieKey, quality) {
 function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
   if (!movieKey) return;
   cnRequireSub('watch', function() {
-    try { cvIncUserStat('watches'); } catch (e) {}
-    try {
-      cvCaptureListUrl();
-      sessionStorage.setItem('cv_return_from_player', '1');
-      sessionStorage.setItem('cv_return_movie', movieKey);
-      if (cvLastListUrl) sessionStorage.setItem('cv_list_url', cvLastListUrl);
-    } catch (e2) {}
     window.location.href = cnPlayGoUrl(movieKey, quality || '720p', season || '', episode || '');
   });
 }
@@ -5610,7 +5376,6 @@ function cnGoToWatchWorkerEp(movieKey, season, episode, quality) {
 // DOWNLOAD QUALITY POPUP — sirf Download (Watch yahan nahi)
 // ══════════════════════════════════
 function openDlPopup() {
-  cnRequireSub('download', function() {
   var items = window._cvDlData || [];
   if (!items.length) return;
   var html = '';
@@ -5626,7 +5391,6 @@ function openDlPopup() {
   });
   document.getElementById('cv-dl-popup-options').innerHTML = html;
   document.getElementById('cv-dl-popup').classList.add('open');
-  });
 }
 
 
@@ -5653,7 +5417,7 @@ function closeDlPopup() {
 function cvPlayEp(idx) {
   var url   = (window._cvEpUrls   || [])[idx] || '';
   var label = (window._cvEpLabels || [])[idx] || 'Now Playing';
-  if (url) cnGatedPlayVideo(url, label);
+  if (url) playVideo(url, label);
 }
 
 // Episode download popup helper (uses stored dl registry — no inline JSON)
@@ -5902,13 +5666,11 @@ function cvApplyFilter(cat, isGenre, pillEl) {
     if (!window._cvRestoringFromUrl) {
       try {
         cvPushHistoryCushionIfNeeded();
-        var newUrl = (typeof cvBuildFilterUrl === 'function')
-          ? cvBuildFilterUrl(cat, isGenre)
-          : (cat === 'all' ? '/' : ((isGenre ? '/genre/' : '/category/') + encodeURIComponent(String(cat).replace(/_/g,'-'))));
+        var catParam = (isGenre ? 'genre=' : 'cat=') + encodeURIComponent(cat);
+        var newUrl = cat === 'all' ? location.pathname : location.pathname + '?' + catParam;
         var curUrl = location.pathname + location.search;
         if (newUrl !== curUrl) {
           history.pushState({cv: 'filter', cat: cat, isGenre: isGenre}, '', newUrl);
-          try { cvLastListUrl = newUrl; sessionStorage.setItem('cv_list_url', newUrl); } catch(_e){}
         }
       } catch(e) {}
     }
@@ -5934,19 +5696,14 @@ function cvSyncFilterUrl() {
   if (window._cvRestoringFromUrl) return;
   try {
     cvPushHistoryCushionIfNeeded();
-    var newUrl = '/';
-    if (selGenre !== '') {
-      newUrl = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(selGenre, true) : ('/genre/' + encodeURIComponent(String(selGenre).replace(/_/g,'-')));
-    } else if (selCat && selCat !== 'all') {
-      newUrl = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(selCat, false) : ('/category/' + encodeURIComponent(String(selCat).replace(/_/g,'-')));
-    }
-    if (selLang !== '') {
-      newUrl += (newUrl.indexOf('?') >= 0 ? '&' : '?') + 'lang=' + encodeURIComponent(selLang);
-    }
+    var parts = [];
+    if (selGenre !== '') parts.push('genre=' + encodeURIComponent(selGenre));
+    else if (selCat !== 'all') parts.push('cat=' + encodeURIComponent(selCat));
+    if (selLang !== '') parts.push('lang=' + encodeURIComponent(selLang));
+    var newUrl = parts.length ? (location.pathname + '?' + parts.join('&')) : location.pathname;
     var curUrl = location.pathname + location.search;
     if (newUrl !== curUrl) {
       history.pushState({cv: 'filter', cat: selCat, genre: selGenre, lang: selLang}, '', newUrl);
-      try { cvLastListUrl = newUrl; sessionStorage.setItem('cv_list_url', newUrl); } catch(_e){}
     }
   } catch (e) {}
 }
@@ -5977,9 +5734,9 @@ function cvQuickFilter(cat, lang, btnEl) {
   if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(selCat);
   if (typeof cvSyncFilterUrl === 'function') cvSyncFilterUrl();
   try {
-    var q = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(selCat, false) : ('/category/' + encodeURIComponent(String(selCat).replace(/_/g,'-')));
-    if (selLang) q += (q.indexOf('?') >= 0 ? '&' : '?') + 'lang=' + encodeURIComponent(selLang);
-    history.replaceState(null, '', q);
+    var q = '?cat=' + encodeURIComponent(selCat);
+    if (selLang) q += '&lang=' + encodeURIComponent(selLang);
+    history.replaceState(null, '', location.pathname + q);
   } catch(e) {}
   var grid = document.getElementById('cv-grid');
   if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -7751,7 +7508,7 @@ function cvUpdateSEO(m, slug) {
       '@type': 'ListItem',
       'position': 2,
       'name': m.category.charAt(0).toUpperCase() + m.category.slice(1),
-      'item': (typeof cvBuildFilterUrl === 'function' ? ('https://www.cinenova.site' + cvBuildFilterUrl(String(m.category||'').toLowerCase(), false)) : ('https://www.cinenova.site/category/' + encodeURIComponent(String(m.category||'').toLowerCase().replace(/_/g,'-'))))
+      'item': 'https://www.cinenova.site/?cat=' + encodeURIComponent(m.category)
     });
   }
   bcItems.push({
@@ -7777,7 +7534,7 @@ var CV_CAT_SEO = { hollywood: 'Hollywood', hollywood_dubbed: 'Hollywood Hindi', 
 function cvUpdateCategorySEO(cat, isGenre) {
   if (isGenre || cat === 'all' || !CV_CAT_SEO[cat]) { cvResetSEO(); return; }
   var label = CV_CAT_SEO[cat];
-  var pageUrl = 'https://www.cinenova.site' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + encodeURIComponent(String(cat).replace(/_/g,'-'))));
+  var pageUrl = 'https://www.cinenova.site/?cat=' + cat;
   var richTitle = label + ' Movies - Free HD Download | CineNova';
   var desc = 'Watch and download the latest ' + label + ' movies in HD for free on CineNova. New releases added daily, no login or subscription required.';
   document.title = richTitle;
@@ -7975,229 +7732,4 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
   }
   setTimeout(hide, 12000);
   setTimeout(hide, 20000);
-})();
-
-
-
-
-/* === cv-account-dashboard === */
-(function(){
-  function injectAccCss() {
-    if (document.getElementById('cv-acc-css')) return;
-    var s = document.createElement('style');
-    s.id = 'cv-acc-css';
-    s.textContent = ''
-      + '#cv-nav{display:flex;align-items:center;gap:6px;}'
-      + '#cv-logo{flex:1 1 auto;min-width:0;overflow:hidden;}'
-      + '#cv-nav-icons-wrap{display:flex!important;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;}'
-      + '#cv-account-btn{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;'
-      + 'border-radius:50%!important;border:1px solid rgba(255,255,255,0.14)!important;background:#1a1a1a!important;'
-      + 'color:#fff!important;cursor:pointer!important;display:inline-flex!important;align-items:center!important;'
-      + 'justify-content:center!important;overflow:hidden!important;padding:0!important;flex-shrink:0!important;'
-      + 'visibility:visible!important;opacity:1!important;z-index:5!important;}'
-      + '#cv-account-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}';
-    document.head.appendChild(s);
-  }
-
-  function ensureNavBtn() {
-    injectAccCss();
-    var btn = document.getElementById('cv-account-btn');
-    if (btn) return btn;
-    btn = document.createElement('button');
-    btn.id = 'cv-account-btn';
-    btn.type = 'button';
-    btn.setAttribute('aria-label', 'Account');
-    btn.title = 'Account';
-    btn.innerHTML = '<span style="font-size:0.9rem;line-height:1;">👤</span>';
-    btn.onclick = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      cvOpenAccountPanel();
-    };
-    var icons = document.getElementById('cv-nav-icons-wrap');
-    if (icons) {
-      icons.appendChild(btn);
-      return btn;
-    }
-    var nav = document.getElementById('cv-nav');
-    if (nav) nav.appendChild(btn);
-    return btn;
-  }
-
-  function setBtnUser(user) {
-    var btn = ensureNavBtn();
-    if (!btn) return;
-    if (user && user.photoURL) {
-      btn.innerHTML = '<img src="' + String(user.photoURL).replace(/"/g, '') + '" alt=""/>';
-      btn.title = user.displayName || user.email || 'Account';
-    } else if (user) {
-      var ch = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-      btn.innerHTML = '<span style="font-weight:800;font-size:0.9rem;">' + ch + '</span>';
-      btn.title = user.displayName || user.email || 'Account';
-    } else {
-      btn.innerHTML = '<span style="font-size:0.9rem;line-height:1;">👤</span>';
-      btn.title = 'Login';
-    }
-  }
-
-  function fmtDate(ts) {
-    if (!ts) return '—';
-    try {
-      var d = new Date(Number(ts));
-      if (isNaN(d.getTime())) return '—';
-      return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
-        + ' · ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-    } catch (e) { return '—'; }
-  }
-
-  function daysLeft(exp) {
-    var n = Number(exp || 0) - Date.now();
-    if (n <= 0) return 0;
-    return Math.ceil(n / 86400000);
-  }
-
-  window.cvOpenAccountPanel = function() {
-    var old = document.getElementById('cv-account-panel');
-    if (old) old.remove();
-    ensureNavBtn();
-    cvEnsureFirebaseAuth(function() {
-      var user = null;
-      try { user = firebase.auth().currentUser; } catch (e) {}
-      var panel = document.createElement('div');
-      panel.id = 'cv-account-panel';
-      panel.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;padding:12px;';
-      var box = document.createElement('div');
-      box.style.cssText = 'width:100%;max-width:440px;background:#121212;border:1px solid #2a2a2a;border-radius:18px;padding:18px;max-height:88vh;overflow:auto;';
-
-      if (!user) {
-        box.innerHTML = ''
-          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
-          + '<b style="font-size:1.08rem;">Account</b>'
-          + '<button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:34px;height:34px;border-radius:10px;cursor:pointer;">✕</button></div>'
-          + '<p style="color:#9ca3af;font-size:0.86rem;line-height:1.5;margin:0 0 14px;">Google se login karein — watchlist sync aur account dashboard ke liye.</p>'
-          + '<button type="button" id="cv-acc-google" style="width:100%;padding:13px;background:#e50914;color:#fff;border:0;border-radius:12px;font-weight:800;cursor:pointer;">🔐 Continue with Google</button>';
-        panel.appendChild(box);
-        document.body.appendChild(panel);
-        document.getElementById('cv-acc-x').onclick = function(){ panel.remove(); };
-        panel.onclick = function(e){ if (e.target === panel) panel.remove(); };
-        document.getElementById('cv-acc-google').onclick = function() {
-          var provider = new firebase.auth.GoogleAuthProvider();
-          firebase.auth().signInWithPopup(provider).then(function(res) {
-            var u = res.user;
-            if (u && db) {
-              db.ref('users/' + u.uid).update({
-                email: u.email || '', name: u.displayName || '', photo: u.photoURL || '', lastLogin: Date.now()
-              }).catch(function(){});
-            }
-            setBtnUser(u);
-            panel.remove();
-            cvOpenAccountPanel();
-          }).catch(function(err){ alert('Login fail: ' + (err.message || err)); });
-        };
-        return;
-      }
-
-      box.innerHTML = ''
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
-        + '<b style="font-size:1.08rem;">My Dashboard</b>'
-        + '<button type="button" id="cv-acc-x" style="background:#222;border:0;color:#aaa;width:34px;height:34px;border-radius:10px;cursor:pointer;">✕</button></div>'
-        + '<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">'
-        + (user.photoURL
-            ? '<img src="' + String(user.photoURL).replace(/"/g,'') + '" style="width:52px;height:52px;border-radius:50%;object-fit:cover;"/>'
-            : '<div style="width:52px;height:52px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;">' + (user.displayName || 'U').charAt(0).toUpperCase() + '</div>')
-        + '<div style="min-width:0;"><div style="font-weight:800;font-size:0.98rem;">' + (user.displayName || 'User') + '</div>'
-        + '<div style="font-size:0.75rem;color:#888;word-break:break-all;">' + (user.email || '') + '</div></div></div>'
-        + '<div id="cv-acc-subbox" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:14px;margin-bottom:10px;font-size:0.84rem;color:#ddd;">Loading…</div>'
-        + '<div id="cv-acc-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;"></div>'
-        + '<button type="button" id="cv-acc-plans" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:12px;font-weight:800;cursor:pointer;margin-bottom:8px;display:none;">💎 Get / Renew Plan</button>'
-        + '<button type="button" id="cv-acc-logout" style="width:100%;padding:12px;background:#1f1f1f;color:#eee;border:1px solid #333;border-radius:12px;font-weight:600;cursor:pointer;">Logout</button>';
-      panel.appendChild(box);
-      document.body.appendChild(panel);
-      document.getElementById('cv-acc-x').onclick = function(){ panel.remove(); };
-      panel.onclick = function(e){ if (e.target === panel) panel.remove(); };
-      document.getElementById('cv-acc-logout').onclick = function() {
-        firebase.auth().signOut().then(function(){ setBtnUser(null); panel.remove(); });
-      };
-
-      var plansBtn = document.getElementById('cv-acc-plans');
-      plansBtn.onclick = function() {
-        panel.remove();
-        cvLoadSubSettings(function(cfg) {
-          cvShowSubModal(cfg || { enabled: true, plans: {} }, user, 'subscribe');
-        });
-      };
-
-      // Load sub + stats
-      cvLoadSubSettings(function(cfg) {
-        var subOn = !!(cfg && cfg.enabled);
-        cvFetchUserSub(user.uid, function(sub) {
-          var el = document.getElementById('cv-acc-subbox');
-          if (!el) return;
-          if (!subOn) {
-            el.innerHTML = '<div style="color:#9ca3af;line-height:1.45;">Account connected. Movies browse karein — watchlist is login se sync rehti hai.</div>';
-            plansBtn.style.display = 'none';
-          } else if (cvIsSubActive(sub)) {
-            var left = daysLeft(sub.expiresAt);
-            var planDays = sub.durationDays || sub.days || '';
-            el.innerHTML = ''
-              + '<div style="color:#4ade80;font-weight:900;margin-bottom:8px;font-size:0.95rem;">✅ PLAN ACTIVE</div>'
-              + '<div style="display:grid;gap:6px;">'
-              + '<div>Plan: <b>' + (sub.planLabel || sub.plan || '—') + '</b>' + (planDays ? ' <span style="color:#888;">(' + planDays + ' days)</span>' : '') + '</div>'
-              + '<div>Activated: <b>' + fmtDate(sub.activatedAt || sub.startedAt || sub.updatedAt) + '</b></div>'
-              + '<div>Expires: <b style="color:#fbbf24;">' + fmtDate(sub.expiresAt) + '</b></div>'
-              + '<div>Days left: <b>' + left + '</b></div>'
-              + '</div>';
-            plansBtn.style.display = 'block';
-            plansBtn.textContent = '💎 Renew Plan';
-          } else {
-            el.innerHTML = ''
-              + '<div style="color:#fbbf24;font-weight:900;margin-bottom:8px;">⚠ No active subscription</div>'
-              + '<div style="color:#9ca3af;line-height:1.45;">Watch aur Download ke liye pehle plan purchase karein. Popup band karne se access nahi milega.</div>';
-            plansBtn.style.display = 'block';
-            plansBtn.textContent = '💎 Buy Subscription';
-          }
-        });
-
-        // stats
-        if (!db) return;
-        db.ref('users/' + user.uid + '/stats').once('value').then(function(snap) {
-          var st = snap.val() || {};
-          var boxS = document.getElementById('cv-acc-stats');
-          if (!boxS) return;
-          var dl = st.downloads || 0;
-          var wt = st.watches || 0;
-          boxS.innerHTML = ''
-            + '<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;text-align:center;">'
-            + '<div style="font-size:1.25rem;font-weight:900;color:#fff;">' + dl + '</div>'
-            + '<div style="font-size:0.72rem;color:#888;margin-top:4px;">Downloads</div></div>'
-            + '<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;text-align:center;">'
-            + '<div style="font-size:1.25rem;font-weight:900;color:#fff;">' + wt + '</div>'
-            + '<div style="font-size:0.72rem;color:#888;margin-top:4px;">Online watches</div></div>';
-        }).catch(function(){});
-      });
-    });
-  };
-
-  function boot() {
-    injectAccCss();
-    ensureNavBtn();
-    try {
-      cvEnsureFirebaseAuth(function() {
-        try {
-          firebase.auth().onAuthStateChanged(function(user) {
-            ensureNavBtn();
-            setBtnUser(user || null);
-          });
-        } catch (e) {
-          ensureNavBtn();
-        }
-      });
-    } catch (e2) {
-      ensureNavBtn();
-    }
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  setTimeout(boot, 800);
-  setTimeout(boot, 2500);
 })();
