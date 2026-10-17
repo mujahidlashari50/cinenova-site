@@ -603,6 +603,32 @@ function cvInitAdvanceFilters() {
   } catch (eMove) {}
   cvStyleAdvFilters(bar);
   cvRefreshAdvanceFilterOptions();
+  cvUpdateAdvFiltersVisibility();
+}
+
+/** Home pe Year/Quality bar hide — sirf category/genre pe dikhao */
+function cvUpdateAdvFiltersVisibility() {
+  try {
+    var bar = document.getElementById('cv-adv-filters');
+    if (!bar) return;
+    var onHome = (!selCat || selCat === 'all') && !selGenre && !(typeof searchQ === 'string' && searchQ.trim());
+    try {
+      var path = (location.pathname || '/').toLowerCase();
+      if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0) onHome = false;
+    } catch (e) {}
+    if (onHome) {
+      bar.style.display = 'none';
+      // Home pe filters clear
+      if (typeof selYear !== 'undefined') selYear = '';
+      _cvAdvQuality = '';
+      var ySel = document.getElementById('cv-filter-year');
+      var qSel = document.getElementById('cv-filter-quality');
+      if (ySel) ySel.value = '';
+      if (qSel) qSel.value = '';
+    } else {
+      bar.style.display = 'flex';
+    }
+  } catch (e2) {}
 }
 function cvApplyAdvanceFilters() {
   try {
@@ -710,9 +736,29 @@ function cvNormalizeCategory(raw) {
 }
 
 function cvIsAdultItem(m) {
-  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m && m.category) : ((m && m.category) || '').toLowerCase();
-  return !!(m && ['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0);
+  if (!m) return false;
+  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m.category) : String(m.category || '').toLowerCase();
+  if (['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0) return true;
+  try {
+    if (m.isAdult === true || m.adult === true || m.nsfw === true) return true;
+    var tt = String(m.title || '').toLowerCase();
+    if (!tt) return false;
+    if (/(18\+|xxx|nsfw|erotic|unrated\s*hot|hot\s*web|sexy\s+throwback)/i.test(tt)) return true;
+    if (/(sex\s*(and|&)?\s*games|seriously\s*single|desi\s*handsome|andekha\s*ishq)/i.test(tt)) return true;
+    if (/(vivamax|hotfm|hot\s*short)/i.test(tt)) return true;
+  } catch (e) {}
+  return false;
 }
+
+function cvCleanTitle(title) {
+  var s = String(title || '');
+  s = s.replace(/\b(full\s*movie(\s*download)?|movie\s*full(\s*movie)?|free\s*download|download|watch\s*online)\b/gi, ' ');
+  s = s.replace(/\s*[|\u2013\u2014\-]\s*cinenova.*$/i, '');
+  s = s.replace(/\(\s*\)/g, '');
+  s = s.replace(/\s{2,}/g, ' ').trim();
+  return s || String(title || 'Movie');
+}
+
 function cvIsAdultVerified() {
   try { return localStorage.getItem('cv_adult_verified') === '1'; } catch (e) { return false; }
 }
@@ -2223,7 +2269,7 @@ function buildNsHero() {
       else thumb = mv.thumbnail || '';
     } catch (e3) { thumb = mv.thumbnail || ''; }
     var slug = mv.seoSlug || (typeof cvSlug === 'function' ? cvSlug(mv.title) : '') || encodeURIComponent(key);
-    var title = mv.title || 'Movie';
+    var title = (typeof cvCleanTitle === 'function' ? cvCleanTitle(mv.title) : (mv.title || 'Movie'));
     var year = mv.year ? String(mv.year) : '';
     var q = '';
     try {
@@ -2457,7 +2503,7 @@ function featuredShowSlide(idx) {
   }
 
   // Title
-  if (titleEl) titleEl.textContent = m.title || 'Untitled';
+  if (titleEl) titleEl.textContent = (typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Untitled'));
 
   // Description
   if (descEl) {
@@ -2474,12 +2520,15 @@ function featuredShowSlide(idx) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
     if (m.rating)   metaParts.push({t:'rating',v:'★ ' + m.rating});
-    if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
-    if (m.language) metaParts.push({t:'lang',v:m.language});
+    if (m.genre)    metaParts.push({t:'genre',v:String(m.genre).charAt(0).toUpperCase()+String(m.genre).slice(1)});
+    if (m.category && typeof cvCategoryLabel === 'function') {
+      var cl = cvCategoryLabel(m.category);
+      if (cl && cl.indexOf('_') === -1) metaParts.push({t:'cat',v:cl});
+    }
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
     metaEl.innerHTML = metaParts.map(function(p,i) {
       return (i>0?'<span class="cv-feat-meta-dot"></span>':'')+
-        '<span class="cv-feat-meta-item">'+escHtml(p.v)+'</span>';
+        '<span class="cv-feat-meta-item">'+escHtml(String(p.v))+'</span>';
     }).join('');
   }
 
@@ -2579,7 +2628,7 @@ function cvMbCardHtml(m) {
   var key = m._key || '';
   var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(key);
   var thumb = cvMbThumb(m);
-  var title = (m.title || 'Movie').substring(0, 60);
+  var title = (typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Movie')).substring(0, 60);
   var img = thumb
     ? '<img class="cv-mb-poster" src="' + escHtml(thumb) + '" alt="" loading="lazy" decoding="async" width="148" height="222"/>'
     : '<div class="cv-mb-poster" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>';
@@ -3056,7 +3105,7 @@ function buildTsSlider() {
         : '<div class="cv-badge">SOON</div>';
       return '<div class="cv-card cv-cs-card" style="flex-shrink:0;width:' + cvTsCardW + 'px;cursor:pointer" data-cs-idx="' + idx + '">'
         + imgHtml + dateBadge
-        + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
+        + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml((typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Untitled'))) + '</div>'
         + '<div class="cv-card-meta">' + escHtml(m.category || 'Coming Soon') + '</div></div>'
         + '</div>';
     }
@@ -4989,7 +5038,7 @@ function openModal(key) {
   var bkBtn = document.getElementById('cv-modal-bookmark');
   if (bkBtn) bkBtn.classList.toggle('cv-bookmarked', cvIsInWatchlist(key));
 
-  document.getElementById('cv-modal-title').textContent = m.title || 'Untitled';
+  document.getElementById('cv-modal-title').textContent = (typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Untitled'));
 
   // Image with overlay
   var imgWrap = document.getElementById('cv-modal-img-wrap');
@@ -6496,6 +6545,7 @@ window.cvSyncCatDropdowns = function(selCat){
 })();
 
 function cvApplyFilter(cat, isGenre, pillEl) {
+  try { setTimeout(cvUpdateAdvFiltersVisibility, 50); } catch (eVis) {}
     // Adult category — verification ke bina aage mat badhne do
     if (!isGenre && (cat === 'adult' || cat === 'group:adult' || cat === 'short_films' || cat === 'philippines' || cat === 'hot_short_hindi' || cat === 'adult_hindi' || cat === 'adult_english' || cat === 'hot_series' || cat === 'vivamax') && !cvIsAdultVerified()) {
       showAdultGate();
