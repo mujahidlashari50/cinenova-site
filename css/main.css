@@ -1723,3 +1723,150 @@ html.cv-scroll-lock body {
 body.cv-cat-view #cv-ns-hero {
   display: none !important;
 }
+
+
+/* ═══════════════════════════════════════════
+   THEME ADVANCE V2 — next level + speed
+═══════════════════════════════════════════ */
+
+:root {
+  --cv-ease: cubic-bezier(.22, 1, .36, 1);
+  --cv-card-bg: #16161c;
+  --cv-elev: 0 8px 28px rgba(0,0,0,.45);
+}
+
+/* Nav glass — light on desktop only */
+@media (min-width: 769px) {
+  #cv-nav.scrolled {
+    background: rgba(10,10,12,.92) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+}
+
+/* Category pills — premium */
+.cv-pill {
+  transition: background .18s var(--cv-ease), color .18s, border-color .18s, transform .15s !important;
+}
+.cv-pill.active {
+  box-shadow: 0 4px 18px rgba(229,9,20,.45) !important;
+}
+@media (hover:hover) {
+  .cv-pill:hover { transform: translateY(-1px); }
+}
+
+/* Grid cards — sharper MovieBox */
+#cv-grid {
+  gap: 10px 8px !important;
+  padding: 10px 12px 28px !important;
+}
+@media (min-width: 700px) {
+  #cv-grid {
+    gap: 14px 12px !important;
+    padding: 14px 4% 36px !important;
+  }
+}
+#cv-grid .cv-card,
+#cv-grid > a.cv-card {
+  background: var(--cv-card-bg) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  content-visibility: auto;
+  contain-intrinsic-size: 120px 250px;
+  transition: border-color .2s var(--cv-ease), transform .2s var(--cv-ease) !important;
+}
+@media (hover:hover) and (min-width: 769px) {
+  #cv-grid .cv-card:hover {
+    border-color: rgba(229,9,20,.45) !important;
+    transform: translateY(-4px) !important;
+    box-shadow: var(--cv-elev) !important;
+  }
+}
+#cv-grid .cv-card-img-wrap {
+  border-radius: 0 !important;
+}
+#cv-grid .cv-card-title {
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+#cv-grid .cv-card-info {
+  padding: 7px 8px 9px !important;
+}
+
+/* Skeleton shimmer softer */
+.cv-skel, .tmdb-skel-img, .cv-ns-skel, .cv-uh-skel {
+  background: linear-gradient(90deg, #1a1a1a 25%, #242428 50%, #1a1a1a 75%) !important;
+  background-size: 200% 100% !important;
+  animation: cv-skel-shine 1.2s ease infinite !important;
+}
+
+/* Section headers */
+.cv-section-title,
+.cv-mb-row-title,
+#cv-ns-hero-title {
+  letter-spacing: -0.02em !important;
+}
+
+/* Pagination modern */
+.cv-page-btn {
+  border-radius: 10px !important;
+  min-width: 36px !important;
+  font-weight: 700 !important;
+}
+.cv-page-btn.active {
+  box-shadow: 0 4px 16px rgba(229,9,20,.4) !important;
+}
+
+/* Modal polish */
+#cv-modal-box {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+
+/* New This Week already present — slight elev */
+.cv-ntw-poster-wrap {
+  border: 1px solid rgba(255,255,255,.08);
+  transition: transform .2s var(--cv-ease), box-shadow .2s;
+}
+@media (hover:hover) {
+  .cv-ntw-card:hover .cv-ntw-poster-wrap {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.5);
+  }
+}
+
+/* Mobile speed: no heavy blur */
+@media (max-width: 768px) {
+  #cv-nav.scrolled,
+  #cv-cats,
+  .cv-bottom-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  #cv-grid .cv-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  html, body {
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Empty / loading state */
+.cv-empty {
+  padding: 48px 20px !important;
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.cv-empty a { color: #e50914; font-weight: 700; }
+
+/* Status toast */
+#cv-status-bar {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
