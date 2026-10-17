@@ -1920,16 +1920,25 @@ body.cv-cat-view #cv-ns-hero {
   margin-top: 4px !important;
 }
 
-/* Home: Year/Quality filter bar hidden */
-body.cv-on-home #cv-adv-filters,
-html.cv-on-home #cv-adv-filters {
+/* Year/Quality: default HIDDEN — no flash on home */
+#cv-adv-filters {
   display: none !important;
   height: 0 !important;
   overflow: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
-body.cv-cat-view #cv-adv-filters {
+/* Only category/genre pages */
+html.cv-cat-view #cv-adv-filters.cv-adv-visible,
+body.cv-cat-view #cv-adv-filters.cv-adv-visible {
   display: flex !important;
+  height: auto !important;
+  overflow: visible !important;
+  margin: 0 !important;
+  padding: 8px 12px 6px !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
