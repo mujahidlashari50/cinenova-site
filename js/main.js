@@ -3,23 +3,6 @@ document.documentElement.style.background='#141414';
 document.documentElement.style.color='#e5e5e5';
 try{document.body.classList.add('cv-booting');}catch(e){}
 
-/* Boot home class ASAP — filters never flash */
-(function(){
-  try {
-    var p = (location.pathname||'/').toLowerCase();
-    var q = location.search || '';
-    var isCat = p.indexOf('/category/')===0 || p.indexOf('/genre/')===0 || /[?&]cat=/.test(q);
-    if (isCat) {
-      document.documentElement.classList.add('cv-cat-view');
-      document.documentElement.classList.remove('cv-on-home');
-    } else {
-      document.documentElement.classList.add('cv-on-home');
-      document.documentElement.classList.remove('cv-cat-view');
-    }
-  } catch(e){}
-})();
-
-
 /* === script === */
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -109,14 +92,14 @@ function cvOpenInBrowser() {
     var o=document.getElementById('cv-subcat-overlay');
     if(d){d.classList.add('open');d.setAttribute('aria-hidden','false');}
     if(o) o.classList.add('open');
-    try{cvScrollLock();}catch(e){}
+    try{document.body.style.overflow='hidden';}catch(e){}
   }
   function closeSubcatDrawer(){
     var d=document.getElementById('cv-subcat-drawer');
     var o=document.getElementById('cv-subcat-overlay');
     if(d){d.classList.remove('open');d.setAttribute('aria-hidden','true');}
     if(o) o.classList.remove('open');
-    try{cvScrollUnlock();}catch(e){}
+    try{document.body.style.overflow='';}catch(e){}
   }
   function bind(){
     var tog=document.getElementById('cv-subcat-toggle');
@@ -169,8 +152,7 @@ function cvOpenInBrowser() {
 // ══════════════════════════════════
 // FIREBASE CONFIG (loaded dynamically - non-blocking)
 // ══════════════════════════════════
-var CV_SCHEMA_VERSION = '2026.10.17-theme-advance';
-var CV_THEME_ADVANCE_V2 = true;
+var CV_SCHEMA_VERSION = '2026.09.14-panel-sync';
 var firebaseConfig = {
   apiKey: "AIzaSyACX5MktMm99R2ThEbfrtwrh5ZAzT5tCM0",
   authDomain: "cinenova-8987c.firebaseapp.com",
@@ -388,68 +370,6 @@ function showStatus(msg, color) {
 // STATE
 // ══════════════════════════════════
 var allData = [];
-
-// Category pretty-URL: body class ASAP (featured/coming-soon hide before paint)
-(function(){
-  try {
-    var p = (location.pathname || '/').toLowerCase();
-    if (p.indexOf('/category/') === 0 || p.indexOf('/genre/') === 0) {
-      document.documentElement.classList.add('cv-cat-view');
-      if (document.body) {
-        document.body.classList.add('cv-cat-view');
-        document.body.classList.remove('cv-on-home');
-      } else {
-        document.addEventListener('DOMContentLoaded', function(){
-          document.body.classList.add('cv-cat-view');
-          document.body.classList.remove('cv-on-home');
-        });
-      }
-    }
-  } catch (e) {}
-})();
-
-
-// ══ Mobile scroll lock helpers (modal/player only) ══
-function cvScrollLock() {
-  try {
-    document.documentElement.classList.add('cv-scroll-lock');
-    try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
-  } catch (e) {}
-}
-function cvScrollUnlock() {
-  try {
-    // Sirf tab unlock jab koi modal/player open na ho
-    var modal = document.getElementById('cv-modal');
-    var player = document.getElementById('cv-player');
-    var dl = document.getElementById('cv-dl-popup');
-    var search = document.getElementById('cv-search-overlay');
-    var still =
-      (modal && modal.classList.contains('open')) ||
-      (player && player.classList.contains('open')) ||
-      (dl && dl.classList.contains('open')) ||
-      (search && search.classList.contains('open') && getComputedStyle(search).display !== 'none');
-    if (still) return;
-    document.documentElement.classList.remove('cv-scroll-lock');
-    try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-  } catch (e) {}
-}
-// Safety: page load + har 3s soft check (stuck lock hatao)
-(function(){
-  function safeUnlock(){ try { cvScrollUnlock(); } catch(e){} }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', safeUnlock);
-  else safeUnlock();
-  setTimeout(safeUnlock, 800);
-  setTimeout(safeUnlock, 2500);
-  try {
-    document.addEventListener('visibilitychange', function(){
-      if (!document.hidden) safeUnlock();
-    });
-  } catch(e){}
-})();
-
 var selCat = 'all';
 var selGenre = ''; // genre filter: '' means no genre filter
 var selLang = '';  // language badge filter: '' = off, 'english' ya 'hindi' — sirf badge-grid se set hota hai, koi alag UI nahi
@@ -465,201 +385,61 @@ var searchQ = '';
 var cvFirstResponseReceived = false;
 
 // ══════════════════════════════════
-// Year / Quality filter bar (professional)
+// MovieBox-style Year / Quality filter bar
 // ══════════════════════════════════
 var _cvAdvQuality = '';
-function cvMovieYear(m) {
-  if (!m) return '';
-  var y = String(m.year || m.releaseYear || m.release_date || '').replace(/\D/g, '').substring(0, 4);
-  if (/^(19|20)\d{2}$/.test(y)) return y;
-  var t = String(m.title || m.name || '');
-  var tm = t.match(/\b((?:19|20)\d{2})\b/);
-  return tm ? tm[1] : '';
-}
-function cvRefreshAdvanceFilterOptions() {
-  var ySel = document.getElementById('cv-filter-year');
-  var qSel = document.getElementById('cv-filter-quality');
-  if (!ySel || !qSel) return;
-  var data = (typeof allData !== 'undefined' && allData) ? allData : [];
-  var years = {};
-  data.forEach(function(m) {
-    if (!m) return;
-    var y = cvMovieYear(m);
-    if (y) years[y] = (years[y] || 0) + 1;
-  });
-  var prevY = ySel.value || '';
-  var prevQ = qSel.value || '';
-  ySel.innerHTML = '<option value="">Year — All</option>';
-  Object.keys(years).sort().reverse().forEach(function(y) {
-    var o = document.createElement('option');
-    o.value = y;
-    o.textContent = y + ' (' + years[y] + ')';
-    ySel.appendChild(o);
-  });
-  // Site pe mostly 1080p — sirf 1080p option
-  qSel.innerHTML = '<option value="">Quality — All</option>'
-    + '<option value="1080p">1080p</option>';
-  if (prevY && years[prevY]) ySel.value = prevY;
-  else { ySel.value = ''; if (typeof selYear !== 'undefined') selYear = ''; }
-  if (prevQ === '1080p') qSel.value = '1080p';
-  else { qSel.value = ''; _cvAdvQuality = ''; }
-}
-function cvStyleAdvFilters(bar) {
-  if (!bar) return;
-  var w = (typeof window !== 'undefined') ? window.innerWidth : 900;
-  var mobile = w < 600;
-  var desk = w >= 900;
-  // padding = movie grid jaisa (cards ke left edge se align)
-  var padL = mobile ? '10px' : (desk ? '20px' : '14px');
-  var padR = padL;
-  try {
-    var grid = document.getElementById('cv-grid');
-    if (grid) {
-      var cs = window.getComputedStyle(grid);
-      if (cs.paddingLeft) padL = cs.paddingLeft;
-      if (cs.paddingRight) padR = cs.paddingRight;
-    }
-  } catch (eP) {}
-  bar.style.cssText = [
-    'display:flex',
-    'flex-direction:row',
-    'flex-wrap:nowrap',
-    'align-items:center',
-    'justify-content:flex-start',
-    'gap:' + (mobile ? '6px' : '12px'),
-    'width:100%',
-    'max-width:100%',
-    'box-sizing:border-box',
-    'padding:10px ' + padR + ' 8px ' + padL,
-    'margin:0',
-    'background:transparent',
-    'overflow-x:auto',
-    '-webkit-overflow-scrolling:touch'
-  ].join(';');
-  var selCss = [
-    'flex:0 0 auto',
-    'width:' + (mobile ? 'auto' : (desk ? '150px' : '130px')),
-    'min-width:' + (mobile ? '88px' : '120px'),
-    'max-width:' + (mobile ? '130px' : '160px'),
-    'background:#161616',
-    'color:#eee',
-    'border:1px solid #2a2a2a',
-    'border-radius:999px',
-    'padding:' + (mobile ? '8px 24px 8px 10px' : '10px 32px 10px 14px'),
-    'font-size:' + (mobile ? '0.72rem' : '0.85rem'),
-    'font-weight:600',
-    'cursor:pointer',
-    'appearance:none',
-    '-webkit-appearance:none'
-  ].join(';');
-  var btnCss = [
-    'flex:0 0 auto',
-    'background:#161616',
-    'color:#999',
-    'border:1px solid #2a2a2a',
-    'border-radius:999px',
-    'padding:' + (mobile ? '8px 12px' : '10px 16px'),
-    'font-size:' + (mobile ? '0.72rem' : '0.82rem'),
-    'font-weight:700',
-    'cursor:pointer',
-    'white-space:nowrap'
-  ].join(';');
-  bar.querySelectorAll('select.cv-adv-select').forEach(function(el) {
-    el.style.cssText = selCss;
-  });
-  bar.querySelectorAll('button.cv-adv-reset').forEach(function(el) {
-    el.style.cssText = btnCss;
-  });
-}
 function cvInitAdvanceFilters() {
+  if (document.getElementById('cv-adv-filters')) return;
   var host = document.getElementById('cv-grid');
   if (!host || !host.parentNode) return;
-  var bar = document.getElementById('cv-adv-filters');
-  if (bar) {
-    try {
-      bar.querySelectorAll('.cv-adv-label').forEach(function(n){ n.remove(); });
-      var inner = bar.querySelector('.cv-adv-filters-inner');
-      if (inner) {
-        while (inner.firstChild) bar.insertBefore(inner.firstChild, inner);
-        inner.remove();
-      }
-    } catch (eClr) {}
-  }
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'cv-adv-filters';
-    bar.className = 'cv-adv-filters';
-    bar.style.display = 'none';
-    bar.setAttribute('hidden', 'hidden');
-    bar.innerHTML =
-      '<select id="cv-filter-year" class="cv-adv-select" aria-label="Year"><option value="">Year — All</option></select>' +
-      '<select id="cv-filter-quality" class="cv-adv-select" aria-label="Quality"><option value="">Quality — All</option></select>' +
-      '<button type="button" class="cv-adv-reset" id="cv-filter-reset">Reset</button>';
-    host.parentNode.insertBefore(bar, host);
-    var ySel = document.getElementById('cv-filter-year');
-    var qSel = document.getElementById('cv-filter-quality');
-    ySel.onchange = function() {
-      if (typeof selYear !== 'undefined') selYear = ySel.value || '';
-      cvApplyAdvanceFilters();
-    };
-    qSel.onchange = function() {
-      _cvAdvQuality = this.value || '';
-      cvApplyAdvanceFilters();
-    };
-    document.getElementById('cv-filter-reset').onclick = function() {
-      if (typeof selYear !== 'undefined') selYear = '';
-      _cvAdvQuality = '';
-      ySel.value = '';
-      qSel.value = '';
-      cvApplyAdvanceFilters();
-    };
-  }
-  // Ensure bar is directly above grid (not stuck elsewhere)
-  try {
-    if (bar.parentNode !== host.parentNode || bar.nextElementSibling !== host) {
-      host.parentNode.insertBefore(bar, host);
-    }
-  } catch (eMove) {}
-  cvStyleAdvFilters(bar);
-  cvRefreshAdvanceFilterOptions();
-  cvUpdateAdvFiltersVisibility();
-}
-
-/** Home pe Year/Quality bar hide — sirf category/genre pe dikhao */
-function cvUpdateAdvFiltersVisibility() {
-  try {
-    var bar = document.getElementById('cv-adv-filters');
-    if (!bar) return;
-    var onHome = (!selCat || selCat === 'all') && !selGenre && !(typeof searchQ === 'string' && searchQ.trim());
-    try {
-      var path = (location.pathname || '/').toLowerCase();
-      if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0) onHome = false;
-    } catch (e) {}
-    if (onHome) {
-      bar.style.display = 'none';
-      bar.setAttribute('hidden', 'hidden');
-      bar.classList.remove('cv-adv-visible');
-      if (typeof selYear !== 'undefined') selYear = '';
-      _cvAdvQuality = '';
-      var ySel = document.getElementById('cv-filter-year');
-      var qSel = document.getElementById('cv-filter-quality');
-      if (ySel) ySel.value = '';
-      if (qSel) qSel.value = '';
-    } else {
-      bar.style.display = 'flex';
-      bar.removeAttribute('hidden');
-      bar.classList.add('cv-adv-visible');
-    }
-  } catch (e2) {}
+  var bar = document.createElement('div');
+  bar.id = 'cv-adv-filters';
+  bar.className = 'cv-adv-filters';
+  bar.innerHTML =
+    '<select id="cv-filter-year" class="cv-adv-select" aria-label="Year"><option value="">Year — All</option></select>' +
+    '<select id="cv-filter-quality" class="cv-adv-select" aria-label="Quality">' +
+    '<option value="">Quality — All</option>' +
+    '<option value="480p">480p</option><option value="720p">720p</option>' +
+    '<option value="1080p">1080p</option><option value="4k">4K</option></select>' +
+    '<button type="button" class="cv-adv-reset" id="cv-filter-reset">Reset</button>';
+  host.parentNode.insertBefore(bar, host);
+  var ySel = document.getElementById('cv-filter-year');
+  var years = {};
+  (typeof allData !== 'undefined' ? allData : []).forEach(function(m) {
+    var y = String(m.year || '').replace(/\D/g, '').substring(0, 4);
+    if (y && y.length === 4) years[y] = 1;
+  });
+  Object.keys(years).sort().reverse().slice(0, 30).forEach(function(y) {
+    var o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    ySel.appendChild(o);
+  });
+  ySel.onchange = function() {
+    if (typeof selYear !== 'undefined') selYear = ySel.value || '';
+    cvApplyAdvanceFilters();
+  };
+  document.getElementById('cv-filter-quality').onchange = function() {
+    _cvAdvQuality = this.value || '';
+    cvApplyAdvanceFilters();
+  };
+  document.getElementById('cv-filter-reset').onclick = function() {
+    if (typeof selYear !== 'undefined') selYear = '';
+    _cvAdvQuality = '';
+    ySel.value = '';
+    document.getElementById('cv-filter-quality').value = '';
+    cvApplyAdvanceFilters();
+  };
 }
 function cvApplyAdvanceFilters() {
   try {
     if (typeof cvTrackEvent === 'function') {
       cvTrackEvent('filter_use', { year: (typeof selYear!=='undefined'?selYear:'') || 'all', quality: _cvAdvQuality || 'all' });
     }
-    if (typeof renderGrid === 'function') renderGrid(true);
+    if (typeof renderGrid === 'function') renderGrid();
     else if (typeof applyFilters === 'function') applyFilters();
-    // visual fallback on current cards
+    else if (typeof filterMovies === 'function') filterMovies();
+    else if (typeof showMovies === 'function') showMovies();
+    // visual fallback
     var grid = document.getElementById('cv-grid');
     if (!grid) return;
     grid.querySelectorAll('.cv-card').forEach(function(card) {
@@ -669,13 +449,11 @@ function cvApplyAdvanceFilters() {
       if (!m) return;
       var show = true;
       if (typeof selYear !== 'undefined' && selYear) {
-        var y = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g,'').substring(0,4);
+        var y = String(m.year || '').replace(/\D/g,'').substring(0,4);
         if (y !== selYear) show = false;
       }
       if (show && _cvAdvQuality) {
-        var blob = (String(m.quality||'') + ' ' + String(m.title||'') + ' ' +
-          (m.download1080p ? '1080p ' : '') + (m.download720p ? '720p ' : '') +
-          (m.download480p ? '480p ' : '') + (m.download4k ? '4k ' : '')).toLowerCase();
+        var blob = (String(m.quality||'') + ' ' + String(m.title||'')).toLowerCase();
         if (_cvAdvQuality === '4k') { if (!/4k|2160/.test(blob)) show = false; }
         else if (blob.indexOf(_cvAdvQuality) < 0) show = false;
       }
@@ -685,9 +463,8 @@ function cvApplyAdvanceFilters() {
 }
 try {
   document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(cvInitAdvanceFilters, 800);
-    setTimeout(cvInitAdvanceFilters, 2500);
-    setTimeout(cvRefreshAdvanceFilterOptions, 6000);
+    setTimeout(cvInitAdvanceFilters, 2000);
+    setTimeout(cvInitAdvanceFilters, 5000);
   });
 } catch (e) {}
 
@@ -758,29 +535,9 @@ function cvNormalizeCategory(raw) {
 }
 
 function cvIsAdultItem(m) {
-  if (!m) return false;
-  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m.category) : String(m.category || '').toLowerCase();
-  if (['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0) return true;
-  try {
-    if (m.isAdult === true || m.adult === true || m.nsfw === true) return true;
-    var tt = String(m.title || '').toLowerCase();
-    if (!tt) return false;
-    if (/(18\+|xxx|nsfw|erotic|unrated\s*hot|hot\s*web|sexy\s+throwback)/i.test(tt)) return true;
-    if (/(sex\s*(and|&)?\s*games|seriously\s*single|desi\s*handsome|andekha\s*ishq)/i.test(tt)) return true;
-    if (/(vivamax|hotfm|hot\s*short)/i.test(tt)) return true;
-  } catch (e) {}
-  return false;
+  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m && m.category) : ((m && m.category) || '').toLowerCase();
+  return !!(m && ['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0);
 }
-
-function cvCleanTitle(title) {
-  var s = String(title || '');
-  s = s.replace(/\b(full\s*movie(\s*download)?|movie\s*full(\s*movie)?|free\s*download|download|watch\s*online)\b/gi, ' ');
-  s = s.replace(/\s*[|\u2013\u2014\-]\s*cinenova.*$/i, '');
-  s = s.replace(/\(\s*\)/g, '');
-  s = s.replace(/\s{2,}/g, ' ').trim();
-  return s || String(title || 'Movie');
-}
-
 function cvIsAdultVerified() {
   try { return localStorage.getItem('cv_adult_verified') === '1'; } catch (e) { return false; }
 }
@@ -835,13 +592,13 @@ function showAdultGate(onSuccess) {
   var checkrow = document.getElementById('cv-adult-gate-checkrow');
   if (checkrow) checkrow.classList.remove('checked');
   gate.classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  document.body.style.overflow = 'hidden';
 }
 
 function hideAdultGate() {
   var gate = document.getElementById('cv-adult-gate');
   if (gate) gate.classList.remove('open');
-  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+  document.body.style.overflow = '';
   _cvAdultGateOnSuccess = null;
 
   // Agar user gate cancel kar de aur wo Adult section se aaya tha, wapis
@@ -1343,8 +1100,8 @@ setTimeout(function() {
 // ══════════════════════════════════
 // OPTIMIZED DATA LOADING — IndexedDB Cache + Firebase Pagination
 // ══════════════════════════════════
-var PAGE_SIZE = 150;        // pehli paint — zyada cards turant
-var PAGE_SIZE_BULK = 8000;  // full library bulk (category completeness)
+var PAGE_SIZE = 100;        // pehli paint ke liye
+var PAGE_SIZE_BULK = 4000;  // ~2880 movies — ek hi request mein baqi sab
 var CACHE_NAME = 'cv_movies_v1';
 var CACHE_TTL = 30 * 60 * 1000; // 30 min — deleted/merged posts jaldi site se hatain
 var lastFirebaseKey = null; // Firebase pagination cursor
@@ -1430,36 +1187,6 @@ var CV_URL_SLUG_TO_CAT = {};
     CV_URL_SLUG_TO_CAT[String(k).replace(/_/g, '-')] = k;
   });
 })();
-
-function cvCategoryLabel(c) {
-  var k = String(c || '').toLowerCase().replace(/[\s\-]+/g, '_');
-  var map = {
-    english_movies: 'Hollywood', hollywood: 'Hollywood',
-    hindi_dubbed: 'Hindi Dub', dual_audio: 'Dual Audio',
-    south_hindi: 'South Hindi', tollywood: 'South Hindi',
-    bollywood_hindi: 'Bollywood', bollywood: 'Bollywood',
-    anime_hindi: 'Anime', animation_hindi_dubbed: 'Animation', animation: 'Animation',
-    webseries_hindi: 'Web Series', webseries: 'Web Series',
-    kdrama_hindi: 'K-Drama', kdrama: 'K-Drama',
-    philippines: 'Philippines', hot_short_hindi: 'Hot Short', adult: 'Adult'
-  };
-  return map[k] || String(c || '').replace(/_/g, ' ');
-}
-/** Short badge text for poster corner */
-function cvCategoryShort(c) {
-  var k = String(c || '').toLowerCase().replace(/[\s\-]+/g, '_');
-  var map = {
-    english_movies: 'ENG', hollywood: 'ENG',
-    hindi_dubbed: 'DUB', dual_audio: 'DUAL',
-    south_hindi: 'SOUTH', tollywood: 'SOUTH',
-    bollywood_hindi: 'BOLLY', bollywood: 'BOLLY',
-    anime_hindi: 'ANIME', animation_hindi_dubbed: 'ANIM', animation: 'ANIM',
-    webseries_hindi: 'SERIES', webseries: 'SERIES',
-    kdrama_hindi: 'KDRAMA', kdrama: 'KDRAMA',
-    philippines: 'ADULT', hot_short_hindi: 'HOT', adult: 'ADULT'
-  };
-  return map[k] || '';
-}
 function cvCatToUrlSlug(cat) {
   if (!cat || cat === 'all' || cat === 'watchlist') return '';
   if (CV_CAT_URL_SLUG[cat]) return CV_CAT_URL_SLUG[cat];
@@ -1567,16 +1294,8 @@ function cvLoadCategoryData(val, isGenre) {
       });
     }
 
-    // 3) Agar library abhi load ho rahi hai to bulk start — category complete ho
-    if (!allLoaded && typeof cvBulkLoadAllMovies === 'function') {
-      try { cvBulkLoadAllMovies(); } catch (eB) {}
-    }
-    // 4) Local full rescan after short delay (aliases + bulk merge)
-    setTimeout(function() {
-      try {
-        if (typeof renderGrid === 'function') renderGrid(true, false);
-      } catch (eR) {}
-    }, 600);
+    // 3) PERF: category click pe poori library load NA karo (ye hang ka main cause tha).
+    // Indexed query + aliases kaafi hain. Full load sirf search / last-page pe.
   });
 }
 
@@ -1731,39 +1450,32 @@ function cvBulkLoadAllMovies() {
     lastFirebaseKey = items.length ? items[items.length - 1]._key : null;
     _cvCatIndex = null;
     _cvCatIndexLen = -1;
+    // Deleted posts (merge/trash) purani IDB cache se wapas na aayein
     try { if (typeof idbClear === 'function') idbClear(); } catch (eIdb) {}
-    // Grid pehle (user ko content dikhao) — heavy widgets idle pe
     try {
-      // Category view pe full library se sahi count
-      if (typeof renderGrid === 'function') renderGrid(true, false);
+      if (typeof renderGrid === 'function') renderGrid(false, true);
     } catch (e) {}
     try {
+      if (typeof buildTrending === 'function') buildTrending();
+      if (typeof buildTsSlider === 'function') buildTsSlider();
+      if (typeof buildFeatured === 'function') buildFeatured();
       if (typeof buildNsHero === 'function') buildNsHero();
-    } catch (eN) {}
-    function _cvIdle(fn, delay) {
-      try {
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(function(){ try { fn(); } catch(e){} }, { timeout: delay || 2000 });
-        } else {
-          setTimeout(function(){ try { fn(); } catch(e){} }, Math.min(delay || 200, 400));
-        }
-      } catch (eI) { setTimeout(function(){ try { fn(); } catch(e){} }, 300); }
-    }
-    _cvIdle(function() {
-      try { if (typeof buildFeatured === 'function') buildFeatured(); } catch (e) {}
-    }, 400);
-    _cvIdle(function() {
-      try { if (typeof buildTrending === 'function') buildTrending(); } catch (e) {}
-      try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e) {}
-      try { if (typeof buildNsHero === 'function') buildNsHero(); } catch (e) {}
-    }, 900);
-    _cvIdle(function() {
-      try { if (typeof idbSaveAll === 'function') idbSaveAll(allData); } catch (e) {}
-    }, 2500);
-    try { if (typeof watchNewMovies === 'function') watchNewMovies(); } catch (e4) {}
+    } catch (e2) {}
+    try {
+      if (typeof idbSaveAll === 'function') {
+        if ('requestIdleCallback' in window) requestIdleCallback(function(){ idbSaveAll(allData); });
+        else setTimeout(function(){ idbSaveAll(allData); }, 500);
+      }
+    } catch (e3) {}
+    try {
+      if (typeof watchNewMovies === 'function') watchNewMovies();
+    } catch (e4) {}
+    try { if (typeof buildTrending === 'function') buildTrending(); } catch (e5) {}
+    try { if (typeof buildTsSlider === 'function') buildTsSlider(); } catch (e6) {}
+    // Search open ho to puri library se results turant dikhao
     try {
       if (typeof searchQ === 'string' && searchQ.trim() && typeof cvRefreshSearchUI === 'function') {
-        _cvIdle(function(){ cvRefreshSearchUI(); }, 600);
+        cvRefreshSearchUI();
       }
     } catch (e7) {}
   }, function(err) {
@@ -1954,29 +1666,22 @@ var newestKey = null;
 var _cvRenderDebounce = null;
 var _cvWatchersAttached = false;
 
-function _cvDebouncedRefresh(forceHomeTop) {
+function _cvDebouncedRefresh() {
   clearTimeout(_cvRenderDebounce);
   _cvRenderDebounce = setTimeout(function() {
     // Re-sort by addedAt before saving/rendering
     allData.sort(function(a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
-    try { if (typeof idbSaveAll === 'function') idbSaveAll(allData); } catch (eIdb) {}
-    // Nayi movie aayi ho to Home page 1 refresh (top pe NEW)
-    var resetPage = false;
-    try {
-      if (forceHomeTop && (!selCat || selCat === 'all') && !selGenre) {
-        cvCurrentPage = 1;
-        resetPage = true;
-      }
-    } catch (eR) {}
-    // silent=false jab naya post top pe dikhana ho, warna anti-blink silent
-    renderGrid(resetPage, !forceHomeTop);
-    try {
-      if (typeof buildTrending === 'function') buildTrending();
-      if (typeof buildTsSlider === 'function') buildTsSlider();
-      if (typeof buildFeatured === 'function') buildFeatured();
-      if (typeof buildNsHero === 'function') buildNsHero();
-      if (typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
-    } catch (eB) {}
+    idbSaveAll(allData);
+    // ✅ ANTI-BLINK FIX: 'true' = silent. Ye ek BACKGROUND data refresh hai
+    // (koi movie add/edit/delete hui kahin aur), user ne khud kuch click
+    // nahi kiya — isliye na to page scroll hona chahiye, na hi poora grid
+    // force-rebuild hona chahiye agar current page ki movies waise ki waise
+    // hain (cvRenderPage/cvPatchCard khud ye decide kar lenge).
+    renderGrid(false, true);
+    buildTrending();
+    buildTsSlider();
+    buildFeatured();
+    buildNsHero();
   }, 300);
 }
 
@@ -2004,23 +1709,12 @@ function watchNewMovies() {
 
   watchQuery.on('child_added', function(snap) {
     var item = snap.val();
-    if (!item) return;
     item._key = snap.key;
     if (initialKeys[item._key]) return; // Skip already-loaded items
     var exists = allData.some(function(m) { return m._key === item._key; });
     if (!exists) {
-      if (!item.addedAt) item.addedAt = Date.now();
       allData.unshift(item);
-      try {
-        _cvCatIndex = null;
-        _cvCatIndexLen = -1;
-      } catch (eIx) {}
-      try {
-        if ((!selCat || selCat === 'all') && !selGenre && typeof cvCurrentPage !== 'undefined') {
-          cvCurrentPage = 1;
-        }
-      } catch (ePg) {}
-      _cvDebouncedRefresh(true);
+      _cvDebouncedRefresh();
     }
   });
 
@@ -2221,110 +1915,90 @@ var _cvNsPool = [];
 var _cvNsOffset = 0;
 var _cvNsTimer = null;
 
-/** New This Week — replaces old Now Showing stack */
 function buildNsHero() {
   var stack = document.getElementById('cv-ns-stack');
-  var hero = document.getElementById('cv-ns-hero');
-  if (!stack || !hero) return;
-
-  // Home only
-  var isHome = (typeof selCat === 'undefined' || !selCat || selCat === 'all')
-    && !(typeof selGenre !== 'undefined' && selGenre);
-  try {
-    var path = (location.pathname || '/').toLowerCase();
-    if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0 || path.indexOf('/movie/') === 0) {
-      isHome = false;
-    }
-  } catch (eP) {}
-  if (!isHome || window._cvNsHeroEnabled === false) {
-    hero.style.display = 'none';
-    if (_cvNsTimer) { try { clearInterval(_cvNsTimer); } catch (e) {} _cvNsTimer = null; }
+  if (!stack) return;
+  if (window._cvNsHeroEnabled === false) {
+    var heroWrapOff = document.getElementById('cv-ns-hero');
+    if (heroWrapOff) heroWrapOff.style.display = 'none';
     return;
   }
-
-  var weekMs = 7 * 24 * 60 * 60 * 1000;
-  var now = Date.now();
-  var week = [];
-  var fallback = [];
-
-  for (var i = 0; i < allData.length; i++) {
+  // Agar watchdog ne pehle load-failure state dikha ke ye section chhupa
+  // diya tha, aur ab data der se hi sahi aa gaya, to section wapas dikhao
+  // (lekin cat/genre view me jaan-boojh kar chhupaya gaya ho to waisa hi rehne do).
+  if (window._cvLoadFailureShown) {
+    try {
+      var heroWrap = document.getElementById('cv-ns-hero');
+      var p = new URLSearchParams(location.search);
+      if (heroWrap && !(p.get('cat') || p.get('genre'))) heroWrap.style.display = '';
+    } catch(e) {}
+  }
+  // allData newest-first already (see fetchFirebasePage) — non-adult, has thumbnail
+  var pool = [];
+  for (var i = 0; i < allData.length && pool.length < 12; i++) {
     var m = allData[i];
-    if (!m || !m.thumbnail || (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m))) continue;
-    var ts = Number(m.addedAt || m.createdAt || m.updatedAt || 0);
-    if (ts && (now - ts) <= weekMs) week.push(m);
-    else fallback.push(m);
-    if (week.length >= 24) break;
+    if (m && m.thumbnail && !cvIsAdultItem(m)) pool.push(m);
   }
-
-  // Newest first
-  function byNew(a, b) {
-    return Number(b.addedAt || b.createdAt || 0) - Number(a.addedAt || a.createdAt || 0);
-  }
-  week.sort(byNew);
-  fallback.sort(byNew);
-
-  var pool = week.length ? week : fallback.slice(0, 16);
-  if (!pool.length) {
-    hero.style.display = 'none';
-    return;
-  }
-
+  if (!pool.length) return;
   _cvNsPool = pool;
-  if (_cvNsTimer) { try { clearInterval(_cvNsTimer); } catch (e2) {} _cvNsTimer = null; }
+  _cvNsOffset = 0;
+  _cvNsRender(false);
 
-  // Title
-  var titleEl = document.getElementById('cv-ns-hero-title');
-  if (titleEl) {
-    titleEl.innerHTML = week.length
-      ? '✨ New This Week <span class="cv-ntw-count">' + Math.min(pool.length, 24) + '</span>'
-      : '✨ New Uploads <span class="cv-ntw-count">' + pool.length + '</span>';
+  if (_cvNsTimer) clearInterval(_cvNsTimer);
+  if (_cvNsPool.length > 1) {
+    _cvNsTimer = setInterval(_cvNsRotate, 3800);
   }
-
-  var html = '';
-  var limit = Math.min(pool.length, 20);
-  for (var j = 0; j < limit; j++) {
-    var mv = pool[j];
-    var key = mv._key || '';
-    var thumb = '';
-    try {
-      if (typeof cvThumb === 'function') thumb = cvThumb(mv.thumbnail) || mv.thumbnail;
-      else thumb = mv.thumbnail || '';
-    } catch (e3) { thumb = mv.thumbnail || ''; }
-    var slug = mv.seoSlug || (typeof cvSlug === 'function' ? cvSlug(mv.title) : '') || encodeURIComponent(key);
-    var title = (typeof cvCleanTitle === 'function' ? cvCleanTitle(mv.title) : (mv.title || 'Movie'));
-    var year = mv.year ? String(mv.year) : '';
-    var q = '';
-    try {
-      var qm = String(mv.quality || '').match(/\d{3,4}\s*p/i);
-      if (qm) q = qm[0].replace(/\s+/g, '').toUpperCase();
-    } catch (e4) {}
-    var isFresh = false;
-    try {
-      var ats = Number(mv.addedAt || 0);
-      isFresh = ats && (now - ats) < 3 * 24 * 60 * 60 * 1000;
-    } catch (e5) {}
-
-    html += '<a class="cv-ntw-card" href="/movie/' + (typeof escHtml === 'function' ? escHtml(slug) : slug) + '" data-key="' + (typeof escHtml === 'function' ? escHtml(key) : key) + '" onclick="event.preventDefault();openModal(\'' + (typeof escJs === 'function' ? escJs(key) : key) + '\')">'
-      + '<div class="cv-ntw-poster-wrap">'
-      + (isFresh ? '<span class="cv-ntw-badge">NEW</span>' : '')
-      + (q ? '<span class="cv-ntw-q">' + q + '</span>' : '')
-      + '<img class="cv-ntw-poster" src="' + (typeof escHtml === 'function' ? escHtml(thumb) : thumb) + '" alt="" loading="' + (j < 4 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.style.opacity=0.3"/>'
-      + '</div>'
-      + '<div class="cv-ntw-card-title">' + (typeof escHtml === 'function' ? escHtml(title) : title) + '</div>'
-      + (year ? '<div class="cv-ntw-card-meta">' + year + '</div>' : '')
-      + '</a>';
-  }
-
-  stack.className = 'cv-ntw-track';
-  stack.innerHTML = html;
-  hero.style.display = '';
-  hero.classList.add('cv-ntw-active');
 }
 
-function _cvNsPick(offset) { return []; }
-function _cvNsRender(fadeIn) {}
-function _cvNsRotate() {}
+function _cvNsPick(offset) {
+  var pool = _cvNsPool, n = pool.length, picks = [];
+  if (!n) return picks;
+  for (var k = 0; k < 3; k++) picks.push(pool[(offset + k) % n]);
+  return picks;
+}
 
+function _cvNsRender(fadeIn) {
+  var stack = document.getElementById('cv-ns-stack');
+  if (!stack) return;
+  var picks = _cvNsPick(_cvNsOffset);
+  if (!picks.length) return;
+  while (picks.length < 3) picks.push(picks[picks.length - 1]);
+
+  var classes = ['cv-ns-p0', 'cv-ns-p1', 'cv-ns-p2'];
+  var html = '';
+  for (var j = 0; j < 3; j++) {
+    var mv = picks[j];
+    var key = mv._key;
+    var thumb = cvThumb(mv.thumbnail);
+    var isFront = classes[j] === 'cv-ns-p2';
+    var heroSlug = mv.seoSlug || cvSlug(mv.title) || encodeURIComponent(key);
+    html += '<a class="cv-ns-poster ' + classes[j] + (fadeIn ? ' cv-ns-fading' : '') + '" href="/movie/' + escHtml(heroSlug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(&quot;' + escJs(key) + '&quot;)">' +
+              '<img alt="' + escHtml(mv.title || 'Movie') + '" loading="lazy" src="' + escHtml(thumb) + '"/>' +
+              (isFront ? '<div class="cv-ns-p2-cap">' + escHtml(mv.title || '') + '</div>' : '') +
+            '</a>';
+  }
+  stack.innerHTML = html;
+
+  if (fadeIn) {
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        var posters = stack.querySelectorAll('.cv-ns-poster');
+        for (var p = 0; p < posters.length; p++) posters[p].classList.remove('cv-ns-fading');
+      });
+    });
+  }
+}
+
+function _cvNsRotate() {
+  var stack = document.getElementById('cv-ns-stack');
+  if (!stack || _cvNsPool.length < 2) return;
+  var posters = stack.querySelectorAll('.cv-ns-poster');
+  for (var p = 0; p < posters.length; p++) posters[p].classList.add('cv-ns-fading');
+  setTimeout(function() {
+    _cvNsOffset = (_cvNsOffset + 1) % _cvNsPool.length;
+    _cvNsRender(true);
+  }, 380);
+}
 
 function buildFeatured() {
   var wrap = document.getElementById('cv-featured-wrap');
@@ -2525,7 +2199,7 @@ function featuredShowSlide(idx) {
   }
 
   // Title
-  if (titleEl) titleEl.textContent = (typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Untitled'));
+  if (titleEl) titleEl.textContent = m.title || 'Untitled';
 
   // Description
   if (descEl) {
@@ -2542,15 +2216,12 @@ function featuredShowSlide(idx) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
     if (m.rating)   metaParts.push({t:'rating',v:'★ ' + m.rating});
-    if (m.genre)    metaParts.push({t:'genre',v:String(m.genre).charAt(0).toUpperCase()+String(m.genre).slice(1)});
-    if (m.category && typeof cvCategoryLabel === 'function') {
-      var cl = cvCategoryLabel(m.category);
-      if (cl && cl.indexOf('_') === -1) metaParts.push({t:'cat',v:cl});
-    }
+    if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
+    if (m.language) metaParts.push({t:'lang',v:m.language});
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
     metaEl.innerHTML = metaParts.map(function(p,i) {
       return (i>0?'<span class="cv-feat-meta-dot"></span>':'')+
-        '<span class="cv-feat-meta-item">'+escHtml(String(p.v))+'</span>';
+        '<span class="cv-feat-meta-item">'+escHtml(p.v)+'</span>';
     }).join('');
   }
 
@@ -2595,228 +2266,6 @@ function featuredShowSlide(idx) {
   })(m._key);
 }
 
-
-
-function cvIsPwaApp() {
-  try {
-    if (window.matchMedia('(display-mode: standalone)').matches) return true;
-    if (window.navigator.standalone === true) return true;
-    if (document.referrer && document.referrer.indexOf('android-app://') === 0) return true;
-  } catch (e) {}
-  return false;
-}
-function cvApplyPwaShell() {
-  try {
-    if (cvIsPwaApp()) document.body.classList.add('cv-pwa-app');
-    else document.body.classList.remove('cv-pwa-app');
-  } catch (e) {}
-}
-cvApplyPwaShell();
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', cvApplyPwaShell);
-} else {
-  setTimeout(cvApplyPwaShell, 0);
-}
-
-// ══════════════════════════════════
-// MovieBox-style HOME ROWS + BOTTOM NAV
-// ══════════════════════════════════
-function cvMbIsAdult(m) {
-  try { return typeof cvIsAdultItem === 'function' && cvIsAdultItem(m); } catch (e) { return false; }
-}
-function cvMbMatchCat(m, catKey) {
-  if (!m || !catKey) return false;
-  var c = String(m.category || '').toLowerCase().replace(/[\s\-]+/g, '_');
-  if (c === catKey) return true;
-  if (catKey === 'bollywood_hindi' && (c === 'bollywood' || c === 'bollywood_hindi')) return true;
-  if (catKey === 'south_hindi' && (c === 'south_hindi' || c === 'tollywood' || c === 'south')) return true;
-  if (catKey === 'webseries_hindi' && (c === 'webseries' || c === 'webseries_hindi' || c === 'web_series')) return true;
-  if (catKey === 'hindi_dubbed' && (c === 'hindi_dubbed' || c === 'hollywood_hindi')) return true;
-  if (catKey === 'english_movies' && (c === 'english_movies' || c === 'hollywood' || c === 'english')) return true;
-  if (catKey === 'dual_audio' && c === 'dual_audio') return true;
-  if (catKey === 'animation_hindi_dubbed' && (c === 'animation' || c === 'animation_hindi_dubbed')) return true;
-  if (catKey === 'kdrama_hindi' && (c === 'kdrama' || c === 'kdrama_hindi')) return true;
-  return false;
-}
-function cvMbThumb(m) {
-  var t = (m && (m.thumbnail || m.poster)) || '';
-  if (!t) return '';
-  try {
-    if (typeof cvThumb === 'function') return cvThumb(t) || t;
-  } catch (e) {}
-  return t;
-}
-function cvMbCardHtml(m) {
-  var key = m._key || '';
-  var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(key);
-  var thumb = cvMbThumb(m);
-  var title = (typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Movie')).substring(0, 60);
-  var img = thumb
-    ? '<img class="cv-mb-poster" src="' + escHtml(thumb) + '" alt="" loading="lazy" decoding="async" width="148" height="222"/>'
-    : '<div class="cv-mb-poster" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>';
-  return '<a class="cv-mb-card" href="/movie/' + escHtml(slug) + '" data-key="' + escHtml(key) + '" onclick="event.preventDefault();openModal(\'' + escJs(key) + '\')">' +
-    img + '<div class="cv-mb-card-title">' + escHtml(title) + '</div></a>';
-}
-function cvMbBuildRow(title, list, moreCat) {
-  if (!list || !list.length) return '';
-  var moreBtn = '';
-  if (moreCat) {
-    moreBtn = '<button type="button" class="cv-mb-row-more" onclick="cvMbOpenCat(\'' + escJs(moreCat) + '\')">More ›</button>';
-  }
-  var cards = list.map(cvMbCardHtml).join('');
-  return '<section class="cv-mb-row">' +
-    '<div class="cv-mb-row-head"><div class="cv-mb-row-title">' + escHtml(title) + '</div>' + moreBtn + '</div>' +
-    '<div class="cv-mb-track-wrap"><div class="cv-mb-track">' + cards + '</div></div></section>';
-}
-function cvMbOpenCat(cat) {
-  try {
-    var pill = document.querySelector('.cv-pill[data-cat="' + cat + '"]');
-    if (pill) { pill.click(); return; }
-  } catch (e) {}
-  try {
-    if (typeof filterByCat === 'function') { filterByCat(cat); return; }
-  } catch (e2) {}
-  try {
-    selCat = cat; selGenre = '';
-    if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(cat);
-    if (typeof renderGrid === 'function') renderGrid(true);
-    if (typeof history !== 'undefined' && typeof cvBuildFilterUrl === 'function') {
-      history.pushState({}, '', cvBuildFilterUrl(cat, false));
-    }
-  } catch (e3) {}
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-function cvBuildMovieBoxHome() {
-  var host = document.getElementById('cv-mb-home');
-  if (!host) return;
-  function cvMbSetReady(on) {
-    try {
-      if (on) document.body.classList.add('cv-mb-ready');
-      else document.body.classList.remove('cv-mb-ready');
-    } catch (e) {}
-  }
-  // Normal website: never MovieBox rows — only installed PWA app
-  if (typeof cvIsPwaApp === 'function' && !cvIsPwaApp()) {
-    host.style.display = 'none';
-    host.innerHTML = '';
-    cvMbSetReady(false);
-    return;
-  }
-  var isHome = (typeof selCat === 'undefined' || selCat === 'all' || !selCat) && !(typeof selGenre !== 'undefined' && selGenre);
-  if (!isHome) {
-    host.style.display = 'none';
-    host.innerHTML = '';
-    cvMbSetReady(false);
-    return;
-  }
-  var data = (typeof allData !== 'undefined' && allData) ? allData : [];
-  if (!data.length) {
-    host.innerHTML = '';
-    cvMbSetReady(false); // data nahi — normal grid dikhao
-    return;
-  }
-  function take(filterFn, n) {
-    var out = [];
-    for (var i = 0; i < data.length && out.length < n; i++) {
-      var m = data[i];
-      if (!m || cvMbIsAdult(m)) continue;
-      if (m.published === false || m.status === 'draft') continue;
-      if (filterFn && !filterFn(m)) continue;
-      out.push(m);
-    }
-    return out;
-  }
-  var recent = take(null, 16);
-  var bolly = take(function(m){ return cvMbMatchCat(m, 'bollywood_hindi'); }, 14);
-  var south = take(function(m){ return cvMbMatchCat(m, 'south_hindi'); }, 14);
-  var dubbed = take(function(m){ return cvMbMatchCat(m, 'hindi_dubbed'); }, 14);
-  var dual = take(function(m){ return cvMbMatchCat(m, 'dual_audio'); }, 12);
-  var series = take(function(m){ return cvMbMatchCat(m, 'webseries_hindi'); }, 12);
-  var english = take(function(m){ return cvMbMatchCat(m, 'english_movies'); }, 12);
-  var anim = take(function(m){ return cvMbMatchCat(m, 'animation_hindi_dubbed'); }, 10);
-  var kdrama = take(function(m){ return cvMbMatchCat(m, 'kdrama_hindi'); }, 10);
-  // Top downloads
-  var topDl = data.filter(function(m) {
-    return m && !cvMbIsAdult(m) && m.published !== false && m.status !== 'draft' && (m.downloadCount || 0) > 0;
-  }).slice().sort(function(a,b){ return (b.downloadCount||0) - (a.downloadCount||0); }).slice(0, 14);
-
-  var html = '';
-  html += cvMbBuildRow('Recently Added', recent, null);
-  if (topDl.length >= 4) html += cvMbBuildRow('🔥 Top Downloads', topDl, null);
-  if (bolly.length) html += cvMbBuildRow('Bollywood', bolly, 'bollywood_hindi');
-  if (south.length) html += cvMbBuildRow('South Hindi', south, 'south_hindi');
-  if (dubbed.length) html += cvMbBuildRow('Hindi Dubbed', dubbed, 'hindi_dubbed');
-  if (dual.length) html += cvMbBuildRow('Dual Audio', dual, 'dual_audio');
-  if (english.length) html += cvMbBuildRow('English / Hollywood', english, 'english_movies');
-  if (series.length) html += cvMbBuildRow('Web Series', series, 'webseries_hindi');
-  if (kdrama.length) html += cvMbBuildRow('K-Drama', kdrama, 'kdrama_hindi');
-  if (anim.length) html += cvMbBuildRow('Animation', anim, 'animation_hindi_dubbed');
-
-  host.innerHTML = html;
-  cvMbSetReady(!!html && html.length > 40);
-  if (!html || html.length < 40) { host.style.display = 'none'; return; }
-
-  host.style.display = '';
-}
-function cvBottomNav(action) {
-  try {
-    document.querySelectorAll('.cv-bnav-item').forEach(function(el) {
-      el.classList.toggle('active', el.getAttribute('data-bnav') === action);
-    });
-  } catch (e) {}
-  if (action === 'home') {
-    try {
-      var homePill = document.querySelector('.cv-pill[data-cat="all"]') || document.querySelector('.cv-pill[data-cat=""]');
-      if (homePill) homePill.click();
-      else {
-        selCat = 'all'; selGenre = '';
-        if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility('all');
-        if (typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
-        if (typeof history !== 'undefined') history.pushState({}, '', '/');
-      }
-    } catch (eH) {}
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-  if (action === 'movies') {
-    // open categories strip
-    var cats = document.getElementById('cv-cats') || document.getElementById('cv-cats-wrap');
-    if (cats) cats.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    try {
-      var sub = document.getElementById('cv-subcat-toggle');
-      if (sub) sub.click();
-    } catch (eM) {}
-    return;
-  }
-  if (action === 'search') {
-    try {
-      var mob = document.getElementById('cv-search-mobile') || document.getElementById('cv-search');
-      var ov = document.getElementById('cv-search-overlay');
-      if (ov) ov.classList.add('open');
-      if (mob) { mob.focus(); }
-      else if (document.getElementById('cv-search')) document.getElementById('cv-search').focus();
-    } catch (eS) {}
-    return;
-  }
-  if (action === 'list') {
-    try {
-      var wl = document.getElementById('cv-pill-watchlist') || document.querySelector('.cv-pill[data-cat="watchlist"]');
-      if (wl) wl.click();
-      else if (typeof filterByCat === 'function') filterByCat('watchlist');
-    } catch (eL) {}
-    return;
-  }
-  if (action === 'account') {
-    try {
-      var btn = document.getElementById('cv-header-mylist-btn') || document.querySelector('[onclick*="login"], .cv-nav-user, #cv-nav-account');
-      if (typeof openAuthModal === 'function') openAuthModal();
-      else if (typeof showLogin === 'function') showLogin();
-      else if (btn) btn.click();
-      else window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (eA) {}
-  }
-}
-
 // ══════════════════════════════════
 // SLIDER & TMDB VISIBILITY (category based)
 // ══════════════════════════════════
@@ -2833,13 +2282,10 @@ function updateSlidersVisibility(cat) {
   try {
     document.body.classList.toggle('cv-on-home', !!isHome);
     document.body.classList.toggle('cv-cat-view', !isHome);
-    document.documentElement.classList.toggle('cv-on-home', !!isHome);
-    document.documentElement.classList.toggle('cv-cat-view', !isHome);
   } catch (eCls) {}
-  try { if (typeof cvUpdateAdvFiltersVisibility === 'function') cvUpdateAdvFiltersVisibility(); } catch (eAf) {}
 
   if (isHome) {
-    // Home — Motd + Trending + hero/featured + MovieBox rows
+    // Home — Motd + Trending + hero/featured
     if (trailersWrap) trailersWrap.style.display = '';
     if (nsHero) nsHero.style.display = (window._cvNsHeroEnabled === true) ? '' : 'none';
     if (featuredWrap) {
@@ -2853,13 +2299,8 @@ function updateSlidersVisibility(cat) {
       if (typeof cvBuildMotd === 'function') cvBuildMotd();
       if (typeof buildTsSlider === 'function') buildTsSlider();
     } catch (eH) {}
-    try { if (typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome(); } catch (eMb) {}
   } else {
     // Category — Motd + Trending hide (sirf grid)
-    try {
-      var _mbh = document.getElementById('cv-mb-home');
-      if (_mbh) { _mbh.style.display = 'none'; _mbh.innerHTML = ''; }
-    } catch (eMb2) {}
     if (trailersWrap) trailersWrap.style.display = 'none';
     if (nsHero) nsHero.style.display = 'none';
     if (featuredWrap) {
@@ -2962,7 +2403,7 @@ function cvPlayComingSoon(m) {
       }
       var player = document.getElementById('cv-player');
       if (player) player.classList.add('open');
-      try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+      document.body.style.overflow = 'hidden';
       if (typeof cvPushState === 'function') cvPushState('player');
       return true;
     } catch (e2) { return false; }
@@ -2979,7 +2420,7 @@ function cvPlayComingSoon(m) {
       if (loading) loading.classList.add('show');
       var player = document.getElementById('cv-player');
       if (player) player.classList.add('open');
-      try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+      document.body.style.overflow = 'hidden';
       if (typeof cvPushState === 'function') cvPushState('player');
     } catch (e0) {}
 
@@ -3081,27 +2522,6 @@ function buildTsSlider() {
   }
   if (!wrap || !track) return;
 
-  // Panel master switch: settings/comingSoonEnabled === false → hide forever until ON
-  if (window._cvComingSoonSiteOff === true) {
-    wrap.style.display = 'none';
-    return;
-  }
-  if (window._cvComingSoonSiteOff === undefined && typeof db !== 'undefined' && db) {
-    db.ref('settings/comingSoonEnabled').once('value').then(function(snap) {
-      var v = snap.val();
-      window._cvComingSoonSiteOff = (v === false || v === 'false' || v === 0);
-      if (window._cvComingSoonSiteOff) {
-        wrap.style.display = 'none';
-        return;
-      }
-      buildTsSlider();
-    }).catch(function() {
-      window._cvComingSoonSiteOff = false;
-      buildTsSlider();
-    });
-    return;
-  }
-
   // Title: Trending → Coming Soon
   try {
     var titleSpan = wrap.querySelector('span[style*="font-weight:800"], span[style*="font-weight: 800"]');
@@ -3130,7 +2550,7 @@ function buildTsSlider() {
         : '<div class="cv-badge">SOON</div>';
       return '<div class="cv-card cv-cs-card" style="flex-shrink:0;width:' + cvTsCardW + 'px;cursor:pointer" data-cs-idx="' + idx + '">'
         + imgHtml + dateBadge
-        + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml((typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Untitled'))) + '</div>'
+        + '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>'
         + '<div class="cv-card-meta">' + escHtml(m.category || 'Coming Soon') + '</div></div>'
         + '</div>';
     }
@@ -3252,24 +2672,6 @@ function cvTsSetupDrag(track, cardStep) {
   track.addEventListener('mouseleave', function() { if (!dragging) return; dragging = false; cvTsSnap(track, track._cvCardStep); cvTsAutoPlay(track, track._cvCardStep); });
   track.addEventListener('click', function(e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
-
-
-// Live Coming Soon master switch
-(function() {
-  try {
-    if (typeof db === 'undefined' || !db) return;
-    db.ref('settings/comingSoonEnabled').on('value', function(snap) {
-      var v = snap.val();
-      window._cvComingSoonSiteOff = (v === false || v === 'false' || v === 0);
-      var wrap = document.getElementById('cv-ts-wrap');
-      if (window._cvComingSoonSiteOff) {
-        if (wrap) wrap.style.display = 'none';
-      } else if (typeof buildTsSlider === 'function') {
-        try { buildTsSlider(); } catch (e) {}
-      }
-    });
-  } catch (eCs) {}
-})();
 
 // ══════════════════════════════════
 // MOVIE OF THE DAY — Firebase 'motd' node se manual override check karta hai,
@@ -3913,7 +3315,6 @@ function cvRestoreFromUrl() {
       var allPill = document.querySelector('.cv-pill[data-cat="all"]');
       if (allPill) allPill.classList.add('active');
       cvApplyLangFromUrl();
-      try { if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility('genre'); } catch (eVisG) {}
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
       cvLoadCategoryData(decoded, true);
@@ -3926,22 +3327,13 @@ function cvRestoreFromUrl() {
       // Category filter link
       var decoded = decodeURIComponent(cat);
       var pill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
-      if (pill) {
-        pill.click();
-        cvApplyLangFromUrl();
-        try { if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(decoded); } catch (eVisP) {}
-        renderGrid();
-        cvRestorePageFromUrl();
-        window._cvRestoringFromUrl = false;
-        return;
-      }
+      if (pill) { pill.click(); cvApplyLangFromUrl(); renderGrid(); cvRestorePageFromUrl(); window._cvRestoringFromUrl = false; return; }
       // Manual set
       selCat = decoded; selGenre = '';
       document.querySelectorAll('.cv-pill').forEach(function(p){ p.classList.remove('active'); });
       var targetPill = document.querySelector('.cv-pill[data-cat="' + decoded + '"]');
       if (targetPill) targetPill.classList.add('active');
       cvApplyLangFromUrl();
-      try { if (typeof updateSlidersVisibility === 'function') updateSlidersVisibility(decoded); } catch (eVisC) {}
       renderGrid();
       requestAnimationFrame(cvScrollToCatSection);
       cvLoadCategoryData(decoded, false);
@@ -3978,18 +3370,8 @@ function cvRestorePageFromUrl() {
 // PAGINATION STATE
 // ══════════════════════════════════
 var cvCurrentPage = 1;
-// Mobile pe kam cards = tez first paint + kam scroll jank
-var CV_PAGE_SIZE = (typeof window !== 'undefined' && window.innerWidth < 700) ? 30 : 48;
+var CV_PAGE_SIZE = 36;
 var cvFilteredList = [];
-try {
-  window.addEventListener('resize', function() {
-    var n = window.innerWidth < 700 ? 24 : 36;
-    if (n !== CV_PAGE_SIZE) {
-      CV_PAGE_SIZE = n;
-      try { if (typeof cvScheduleRender === 'function') cvScheduleRender(false, true); } catch (e) {}
-    }
-  }, { passive: true });
-} catch (ePs) {}
 var cvPendingGoToPage = null; // jab user aisa page maange jo abhi Firebase se load nahi hua
 
 var _cvRenderTimer = null;
@@ -3997,13 +3379,12 @@ var _cvRenderPending = null;
 function cvScheduleRender(resetPage, silent) {
   _cvRenderPending = { resetPage: resetPage, silent: silent };
   if (_cvRenderTimer) return;
-  var _cvSchedMs = (typeof window !== 'undefined' && window.innerWidth < 700) ? 90 : 50;
   _cvRenderTimer = setTimeout(function() {
     _cvRenderTimer = null;
     var p = _cvRenderPending || {};
     _cvRenderPending = null;
     renderGrid(p.resetPage, p.silent);
-  }, _cvSchedMs);
+  }, 60);
 }
 
 // Category index — filter O(n) har baar poori list pe na chale repeatedly
@@ -4028,16 +3409,6 @@ function cvGetCatBucket(cat) {
 }
 
 function renderGrid(resetPage, silent) {
-  try { if (typeof cvRefreshAdvanceFilterOptions === 'function' && allData && allData.length) cvRefreshAdvanceFilterOptions(); } catch (eAf) {}
-
-  try {
-    // Silent/background refresh pe heavy MovieBox rows mat banao (scroll freeze)
-    if (!silent) {
-      var _isH = (typeof selCat === 'undefined' || !selCat || selCat === 'all') && !(typeof selGenre !== 'undefined' && selGenre);
-      if (_isH && typeof cvBuildMovieBoxHome === 'function') cvBuildMovieBoxHome();
-    }
-  } catch (eRgMb) {}
-
   if (resetPage !== false) cvCurrentPage = 1; // category/search change pe page reset
   cvBuildFilteredList();
   cvRenderPage(silent);
@@ -4332,7 +3703,7 @@ function openMyListModal() {
   if (errEl) errEl.textContent = '';
   cvRefreshMyListModalUI();
   modal.classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  document.body.style.overflow = 'hidden';
 }
 
 function cvMyListModalLogout() {
@@ -4349,7 +3720,7 @@ function cvMyListModalLogout() {
 function closeMyListModal() {
   var modal = document.getElementById('cv-mylist-modal');
   if (modal) modal.classList.remove('open');
-  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+  document.body.style.overflow = '';
 }
 
 function cvMyListModalContinueGuest() {
@@ -4383,13 +3754,13 @@ function cvOpenReportModal() {
   if (reasons) reasons.style.display = 'flex';
   if (success) success.style.display = 'none';
   modal.classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  document.body.style.overflow = 'hidden';
 }
 
 function closeReportModal() {
   var modal = document.getElementById('cv-report-modal');
   if (modal) modal.classList.remove('open');
-  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+  document.body.style.overflow = '';
 }
 
 function cvSubmitReport(reason) {
@@ -4430,17 +3801,6 @@ function cvWatchlistTryAutoSync() {
   });
 }
 
-
-function cvMovieMatchesQuality(m, qWant) {
-  if (!qWant) return true;
-  var blob = (String(m.quality || '') + ' ' + String(m.title || '') + ' ' +
-    (m.download1080p ? '1080p ' : '') + (m.download720p ? '720p ' : '') +
-    (m.download480p ? '480p ' : '') + (m.download4k ? '4k ' : '') +
-    (m.download2160p ? '4k ' : '')).toLowerCase();
-  if (qWant === '4k') return /4k|2160/.test(blob);
-  return blob.indexOf(String(qWant).toLowerCase()) >= 0;
-}
-
 function cvBuildFilteredList() {
   var q = searchQ.toLowerCase().trim();
   NOW_TS = Date.now();
@@ -4453,11 +3813,12 @@ function cvBuildFilteredList() {
       if (!wl[m._key]) return false;
       if (cvIsAdultItem(m) && !adultUnlocked) return false;
       if (selYear) {
-        var my = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g, '').substring(0, 4);
+        var my = String(m.year || '').replace(/\D/g, '').substring(0, 4);
+        if (!my) {
+          var tm = String(m.title || '').match(/\b((?:19|20)\d{2})\b/);
+          my = tm ? tm[1] : '';
+        }
         if (my !== String(selYear)) return false;
-      }
-      if (typeof _cvAdvQuality !== 'undefined' && _cvAdvQuality && typeof cvMovieMatchesQuality === 'function') {
-        if (!cvMovieMatchesQuality(m, _cvAdvQuality)) return false;
       }
       if (!q) return true;
       return cvTitleMatchesSearch(m, q);
@@ -4465,8 +3826,8 @@ function cvBuildFilteredList() {
     return;
   }
 
-  // PERF: simple category (no search/genre/year/lang/quality) — index se fast list
-  if (!q && !selGenre && !selYear && !selLang && !(typeof _cvAdvQuality !== 'undefined' && _cvAdvQuality) && selCat && selCat !== 'all' && selCat !== 'watchlist'
+  // PERF: simple category (no search/genre/year/lang) — index se fast list
+  if (!q && !selGenre && !selYear && !selLang && selCat && selCat !== 'all' && selCat !== 'watchlist'
       && String(selCat).indexOf('group:') !== 0
       && typeof cvGetCatBucket === 'function') {
     var bucket = cvGetCatBucket(
@@ -4475,15 +3836,16 @@ function cvBuildFilteredList() {
     if (bucket && bucket.length) {
       var adultUnlockedFast = adultUnlocked;
       cvFilteredList = bucket.filter(function(m) {
-        if (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m) && !adultUnlockedFast) return false;
+        if (cvIsAdultItem(m) && !adultUnlockedFast) return false;
         if (m.published === false) return false;
         return true;
       });
-      cvFilteredList.sort(function(a, b) {
-        var ta = a.addedAt || 0, tb = b.addedAt || 0;
-        if (tb !== ta) return tb - ta;
-        return String(b._key || '').localeCompare(String(a._key || ''));
-      });
+      // still apply sort
+      try {
+        if (typeof cvInterleaveByCategory === 'function' && selCat === 'all') {
+          /* n/a */
+        }
+      } catch (e) {}
       return;
     }
   }
@@ -4502,7 +3864,7 @@ function cvBuildFilteredList() {
     // ya kisi bhi dusri category mein kabhi shaamil nahi hota.
     // Adult family: adult, adult_hindi, adult_english, hot_series, vivamax, short_films, philippines, hot_short_hindi
     var adultCats = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1, short_films:1, philippines:1, hot_short_hindi:1};
-    var isAdultItem = !!adultCats[cat] || (typeof cvIsAdultItem === 'function' && cvIsAdultItem(m));
+    var isAdultItem = !!adultCats[cat];
     var isAllAdult = (selCat === 'adult' || selCat === 'group:adult');
     if (isAdultItem) {
       // Top "Adult" / "All Adult" (group:adult) → all adult family (if unlocked)
@@ -4543,7 +3905,11 @@ function cvBuildFilteredList() {
     if (selGenre !== '') {
       if (genre !== selGenre) return false;
       if (selYear) {
-        var myG = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g, '').substring(0, 4);
+        var myG = String(m.year || '').replace(/\D/g, '').substring(0, 4);
+        if (!myG) {
+          var tmG = String(m.title || '').match(/\b((?:19|20)\d{2})\b/);
+          myG = tmG ? tmG[1] : '';
+        }
         if (myG !== String(selYear)) return false;
       }
       if (!q) return true;
@@ -4555,12 +3921,12 @@ function cvBuildFilteredList() {
     if (!catMatch) return false;
     // Year filter (2026 / 2025 / 2024…)
     if (selYear) {
-      var my = (typeof cvMovieYear === 'function') ? cvMovieYear(m) : String(m.year || '').replace(/\D/g, '').substring(0, 4);
+      var my = String(m.year || '').replace(/\D/g, '').substring(0, 4);
+      if (!my || my.length !== 4) {
+        var tm = String(m.title || '').match(/\b((?:19|20)\d{2})\b/);
+        my = tm ? tm[1] : '';
+      }
       if (my !== String(selYear)) return false;
-    }
-    // Quality filter (1080p / 720p / …)
-    if (typeof _cvAdvQuality !== 'undefined' && _cvAdvQuality && typeof cvMovieMatchesQuality === 'function') {
-      if (!cvMovieMatchesQuality(m, _cvAdvQuality)) return false;
     }
     if (!q) return true;
     // Sirf TITLE se search — category/genre pe match nahi (warna galat movies)
@@ -4574,14 +3940,9 @@ function cvBuildFilteredList() {
       return ((b.addedAt || 0) - (a.addedAt || 0));
     });
   } else if (selCat === 'all') {
-    // HOME: hamesha NEWEST pehle (addedAt). Mix interleave hata diya —
-    // warna nayi uploads top pe nahi dikhti thin.
-    cvFilteredList.sort(function(a, b) {
-      var ta = a.addedAt || 0, tb = b.addedAt || 0;
-      if (tb !== ta) return tb - ta;
-      // Firebase push key chronological fallback
-      return String(b._key || '').localeCompare(String(a._key || ''));
-    });
+    // HOME MIX: har category se 1-1 post (round-robin) — HDFun-style mixed feed.
+    // Bulk import ke baad bhi pehla page ek hi category se nahi bharega.
+    cvFilteredList = cvInterleaveByCategory(cvFilteredList);
   }
 }
 
@@ -4650,29 +4011,10 @@ function cvInterleaveByCategory(list) {
   if (order.length < 2) {
     return groups[order[0]].slice();
   }
-
-  // NEW uploads pehle (top) — user ko turant dikhe
-  // Phir baaki category mix (round-robin) taake home ek category se na bhare
-  var NEW_TOP = 24; // pehle 24 newest home ke top pe
-  var byNew = list.filter(function(m) {
-    return family(normCat(m)) !== 'adult';
-  }).slice().sort(function(a, b) {
-    var ta = a.addedAt || 0, tb = b.addedAt || 0;
-    // Firebase push key fallback (newer key = later in time roughly)
-    if (!ta && a._key) ta = 0;
-    if (!tb && b._key) tb = 0;
-    if (tb !== ta) return tb - ta;
-    // push ids are chronological — larger string often newer for same timestamp
-    return String(b._key || '').localeCompare(String(a._key || ''));
-  });
-  var pinned = byNew.slice(0, NEW_TOP);
-  var pinnedKeys = {};
-  pinned.forEach(function(m) { if (m && m._key) pinnedKeys[m._key] = 1; });
-
-  // Round-robin rest (skip already pinned)
+  // Round-robin: 1 post per category, cycle — first page multi-category
   var idxs = {};
   order.forEach(function(c) { idxs[c] = 0; });
-  var out = pinned.slice();
+  var out = [];
   var remaining = 0;
   order.forEach(function(c) { remaining += groups[c].length; });
   var lastFam = '';
@@ -4685,15 +4027,10 @@ function cvInterleaveByCategory(list) {
       var g = groups[cat];
       var j = idxs[cat];
       if (j < g.length) {
-        var item = g[j];
+        out.push(g[j]);
         idxs[cat] = j + 1;
-        remaining--;
-        if (item && item._key && pinnedKeys[item._key]) {
-          progressed = true;
-          break;
-        }
-        out.push(item);
         lastFam = cat;
+        remaining--;
         progressed = true;
         break;
       }
@@ -4768,17 +4105,6 @@ function cvRenderPage(silent) {
   var cardMap = {};
   for (var i = 0; i < pageItems.length; i++) {
     var card = makeCard(pageItems[i]);
-    // First row images: eager load for faster LCP (mobile + desktop)
-    if (i < 6) {
-      try {
-        var im = card.querySelector('img.cv-card-img');
-        if (im) {
-          im.loading = 'eager';
-          im.setAttribute('fetchpriority', 'high');
-          im.decoding = 'async';
-        }
-      } catch (eImg) {}
-    }
     cardMap[pageItems[i]._key] = card;
     frag.appendChild(card);
   }
@@ -4962,48 +4288,20 @@ function makeCard(m) {
   var isNew = m.addedAt && (NOW_TS - m.addedAt) < NEW_THRESHOLD;
   var thumb = cvThumb(m.thumbnail || '');
   var inner = '';
-
-  // Build overlay badges that live INSIDE poster wrap
-  var overlays = '';
-  if (m.rating) overlays += '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>';
-  if (m.quality) {
-    var _qm = String(m.quality).match(/\d{3,4}\s*p/i);
-    var _qp = _qm ? _qm[0].replace(/\s+/g, '').toUpperCase() : String(m.quality).split(/[|/·,]/)[0].trim().substring(0, 6);
-    if (_qp) overlays += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
-  }
-  if (cat) {
-    var catShort = (typeof cvCategoryShort === 'function') ? cvCategoryShort(m.category) : '';
-    var catLab = (typeof cvCategoryLabel === 'function') ? cvCategoryLabel(m.category) : (m.category || cat);
-    var catShow = catShort || catLab;
-    var catHref = (typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g, '-'));
-    if (catShow) {
-      overlays += '<a class="cv-cat-badge" href="' + catHref + '" title="' + escHtml(catLab) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();">' + escHtml(catShow) + '</a>';
-    }
-  }
-
   if (thumb) {
-    inner += '<div class="cv-card-img-wrap">' +
-      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
-      '<div class="cv-card-no-img" style="display:none">🎬</div>' +
-      (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') +
-      overlays +
-      '</div>';
+    inner += '<div class="cv-card-img-wrap"><img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')"><div class="cv-card-no-img" style="display:none">🎬</div>' + (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') + '</div>';
   } else {
-    inner += '<div class="cv-card-img-wrap cv-card-no-img-wrap"><div class="cv-card-no-img">🎬</div>' + overlays + '</div>';
+    inner += '<div class="cv-card-no-img">🎬</div>';
   }
-
-  // Meta under poster — year · quality · downloads (always visible when present)
-  var metaParts = [];
-  if (m.year) metaParts.push(escHtml(String(m.year).replace(/\D/g,'').substring(0,4) || m.year));
+  if (m.rating) inner += '<div class="cv-badge">⭐ ' + m.rating + '</div>';
+  if (cat) inner += '<a class="cv-cat-badge cv-new" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl(cat, false) : ('/category/' + String(cat).replace(/_/g,'-'))) + '" onclick="event.stopPropagation();event.preventDefault();var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs(cat) + '\\"]\');if(p)p.click();" style="text-decoration:none;cursor:pointer">' + escHtml(m.category) + '</a>';
   if (m.quality) {
-    var _qm2 = String(m.quality).match(/\d{3,4}\s*p/i);
-    metaParts.push(escHtml(_qm2 ? _qm2[0].replace(/\s+/g,'').toUpperCase() : String(m.quality).split(/[|/]/)[0].trim()));
+    var _qp = String(m.quality).split(/[\\/|,]/)[0].trim().substring(0, 8);
+    inner += '<span class="cv-q-pill">' + escHtml(_qp) + '</span>';
   }
-  if (m.downloadCount) metaParts.push('⬇ ' + cvFormatCount(m.downloadCount));
-  else if (m.views) metaParts.push('👁 ' + cvFormatCount(m.views));
-
   inner += '<div class="cv-card-info"><div class="cv-card-title">' + escHtml(m.title || 'Untitled') + '</div>' +
-           '<div class="cv-card-meta">' + (metaParts.join(' · ') || '') + '</div></div>';
+           '<div class="cv-card-meta">' + (m.year || '') + (m.quality ? ' · ' + m.quality : '') + (m.downloadCount ? ' · ⬇ ' + cvFormatCount(m.downloadCount) : '') + '</div></div>';
+
   div.innerHTML = inner;
   return div;
 }
@@ -5062,7 +4360,7 @@ function openModal(key) {
   var bkBtn = document.getElementById('cv-modal-bookmark');
   if (bkBtn) bkBtn.classList.toggle('cv-bookmarked', cvIsInWatchlist(key));
 
-  document.getElementById('cv-modal-title').textContent = (typeof cvCleanTitle === 'function' ? cvCleanTitle(m.title) : (m.title || 'Untitled'));
+  document.getElementById('cv-modal-title').textContent = m.title || 'Untitled';
 
   // Image with overlay
   var imgWrap = document.getElementById('cv-modal-img-wrap');
@@ -5316,8 +4614,8 @@ function openModal(key) {
   }
 
   document.getElementById('cv-modal').classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
-  try { document.getElementById('cv-modal-box').scrollTop = 0; } catch (eScr) {}
+  if (window.innerWidth < 769) document.body.style.overflow = 'hidden';
+  else document.getElementById('cv-modal-box').scrollTop = 0;
   if (!isRerender) { var _mSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key); cvPushMovieState(_mSlug); cvUpdateSEO(m, _mSlug); }
 
   // ── REALTIME: Admin edit → auto update (sirf fresh open pe listener lagao) ──
@@ -5365,11 +4663,11 @@ function closeModal() {
     setTimeout(function() {
       modal.classList.remove('open');
       modal.classList.remove('closing');
-      try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+      document.body.style.overflow = '';
     }, 210);
   } else {
     if (modal) modal.classList.remove('open');
-    try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+    document.body.style.overflow = '';
   }
   // Reset lightbox screenshots ref so stale data doesn't persist
   window._cvCurrentSsUrls = [];
@@ -5621,7 +4919,7 @@ function playVideo(url, title) {
 
   document.getElementById('cv-modal').classList.remove('open');
   document.getElementById('cv-player').classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  document.body.style.overflow = 'hidden';
   cvPushState('player');
 }
 
@@ -5635,7 +4933,7 @@ function closePlayer() {
   var loading = document.getElementById('cv-player-loading');
   if (loading) loading.classList.remove('show');
   document.getElementById('cv-player').classList.remove('open');
-  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+  document.body.style.overflow = '';
 }
 
 // Player close button
@@ -5765,7 +5063,7 @@ window.addEventListener('popstate', function(e) {
         modalEl.classList.remove('open');
         modalEl.classList.remove('cv-closing');
       }
-      try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+      document.body.style.overflow = '';
       if (window._cvModalLiveRef && typeof window._cvModalLiveRef.off === 'function') {
         try { window._cvModalLiveRef.off(); } catch (e0) {}
         window._cvModalLiveRef = null;
@@ -6569,7 +5867,6 @@ window.cvSyncCatDropdowns = function(selCat){
 })();
 
 function cvApplyFilter(cat, isGenre, pillEl) {
-  try { setTimeout(cvUpdateAdvFiltersVisibility, 50); } catch (eVis) {}
     // Adult category — verification ke bina aage mat badhne do
     if (!isGenre && (cat === 'adult' || cat === 'group:adult' || cat === 'short_films' || cat === 'philippines' || cat === 'hot_short_hindi' || cat === 'adult_hindi' || cat === 'adult_english' || cat === 'hot_series' || cat === 'vivamax') && !cvIsAdultVerified()) {
       showAdultGate();
@@ -7150,7 +6447,7 @@ function tmdbPlayTrailer(tmdbId, mediaType, title) {
   if (loading) loading.classList.add('show');
 
   document.getElementById('cv-player').classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  document.body.style.overflow = 'hidden';
   cvPushState('player');
 
   fetch('https://api.themoviedb.org/3/' + mediaType + '/' + tmdbId + '/videos?api_key=' + TMDB_KEY + '&language=en-US')
@@ -7536,7 +6833,7 @@ function openLightbox(url, allUrls) {
   var lb = document.getElementById('cv-lightbox');
   if (!lb) return;
   lb.classList.add('open');
-  try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
+  document.body.style.overflow = 'hidden';
   cvLbShow(false);
 }
 
@@ -7610,7 +6907,7 @@ function cvLbGoto(i) {
 function closeLightbox() {
   var lb = document.getElementById('cv-lightbox');
   if (lb) lb.classList.remove('open');
-  try{cvScrollUnlock();}catch(e){document.body.style.overflow='';}
+  document.body.style.overflow = '';
 }
 
 // Click background to close
@@ -8240,82 +7537,19 @@ function cvFindBySlug(slug) {
       || allData.find(function(m) { return cvSlug(m.title) === slug; });
 }
 
-
-// ── Home SEO: WebSite SearchAction + FAQ (rich results / sitelinks)
-function cvInjectHomeJsonLd() {
-  try {
-    var webEl = document.getElementById('cv-jsonld-website');
-    if (!webEl) {
-      webEl = document.createElement('script');
-      webEl.type = 'application/ld+json';
-      webEl.id = 'cv-jsonld-website';
-      document.head.appendChild(webEl);
-    }
-    webEl.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      'name': 'CineNova',
-      'url': 'https://www.cinenova.site/',
-      'potentialAction': {
-        '@type': 'SearchAction',
-        'target': 'https://www.cinenova.site/?q={search_term_string}',
-        'query-input': 'required name=search_term_string'
-      }
-    });
-
-    var faqEl = document.getElementById('cv-jsonld-faq');
-    if (!faqEl) {
-      faqEl = document.createElement('script');
-      faqEl.type = 'application/ld+json';
-      faqEl.id = 'cv-jsonld-faq';
-      document.head.appendChild(faqEl);
-    }
-    faqEl.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      'mainEntity': [
-        {
-          '@type': 'Question',
-          'name': 'How to download movies from CineNova?',
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': 'Open any movie page on CineNova.site, choose 480p, 720p or 1080p quality, and use the direct download links. No signup required for free downloads when subscription is off.'
-          }
-        },
-        {
-          '@type': 'Question',
-          'name': 'Does CineNova offer Bollywood and South Hindi movies?',
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': 'Yes. CineNova has Bollywood, Hollywood Hindi dubbed, South Indian Hindi dubbed, dual audio, web series, animation and more — updated daily in HD.'
-          }
-        },
-        {
-          '@type': 'Question',
-          'name': 'What video qualities are available?',
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': 'Most movies are available in 480p, 720p and 1080p HD. Some titles also include dual audio or higher quality when available.'
-          }
-        }
-      ]
-    });
-  } catch (eFaq) {}
-}
-
 // ══════════════════════════════════════════════════════
 // ── SEO DYNAMIC UPDATE — Movie modal ke liye ──
 // ══════════════════════════════════════════════════════
 var _cvDefaultSEO = {
-  title:       'Free HD Movie Download 480p 720p 1080p | Bollywood Hollywood South | CineNova',
-  desc:        'Download latest Bollywood, Hollywood Hindi dubbed & South Indian movies free in 480p, 720p, 1080p. Web series, dual audio & new releases daily on CineNova.site — direct links, no signup.',
-  ogTitle:     'Free HD Movie Download 480p 720p 1080p | CineNova.site',
-  ogDesc:      'Latest Bollywood, Hollywood Hindi dubbed & South movies free download. 480p 720p 1080p direct links. Updated daily.',
+  title:       'CineNova',
+  desc:        'Watch free HD movies, web series & latest releases on CineNova. No login, no subscription \u2014 Hollywood, Bollywood, Tollywood & more. Updated daily!',
+  ogTitle:     'CineNova',
+  ogDesc:      'Watch free HD movies, web series & latest releases. No login, no subscription!',
   ogImage:     'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png',
   ogUrl:       'https://www.cinenova.site/',
   ogType:      'website',
-  twTitle:     'Free HD Movie Download | CineNova.site',
-  twDesc:      'Bollywood, Hollywood Hindi dubbed & South movies free in HD. Direct download links daily.',
+  twTitle:     'CineNova',
+  twDesc:      'Watch free HD movies, web series. No login, no subscription!',
   twImage:     'https://i.ibb.co/YFLDLSzS/cinenova-icon-512.png',
   canonical:   'https://www.cinenova.site/',
   robots:      'index, follow'
@@ -8336,26 +7570,14 @@ function cvUpdateSEO(m, slug) {
   var finalSlug = m.seoSlug || slug;
   var pageUrl   = 'https://www.cinenova.site/movie/' + finalSlug;
 
-  // ✅ Firebase seoTitle OR high-CTR auto title (Download + quality keywords)
-  var catLab = '';
-  try {
-    if (m.category && typeof cvCategoryLabel === 'function') catLab = cvCategoryLabel(m.category) || '';
-  } catch (eCat) {}
-  var _qpSeo = '';
-  try {
-    var _qmSeo = String(m.quality || '').match(/\d{3,4}\s*p/i);
-    if (_qmSeo) _qpSeo = _qmSeo[0].replace(/\s+/g, '').toUpperCase();
-  } catch (eQ) {}
-  var richTitle = m.seoTitle || (title + year + (_qpSeo ? ' ' + _qpSeo : '') + ' Full Movie Download | CineNova');
-  if (!m.seoTitle && richTitle.length > 68) {
-    richTitle = title + year + ' Full Movie Download | CineNova';
-  }
+  // ✅ Firebase seoTitle use karo agar available ho — warna auto generate
+  var richTitle = m.seoTitle || (title + year + quality + ' - CineNova');
 
-  // ✅ Firebase seoDesc OR intent-rich description
+  // ✅ Firebase seoDesc use karo agar available ho — warna description ya auto
   var desc = m.seoDesc
     || (m.description
-          ? (m.description.substring(0, 140) + (m.description.length > 140 ? '...' : '') + ' Download free HD on CineNova.')
-          : ('Download ' + title + year + ' full movie in 480p, 720p & 1080p free on CineNova.site. Direct links, ' + (catLab || 'HD') + ' — no signup.'));
+          ? m.description.substring(0, 155) + (m.description.length > 155 ? '...' : '')
+          : 'Watch ' + title + year + ' free on CineNova. No login, no subscription required.');
 
   // ✅ Firebase seoKeywords — meta keywords tag update
   var keywords = m.seoKeywords || (title + (m.year ? ', ' + m.year : '') + (m.language ? ', ' + m.language : '') + ', free movie, cinenova');
@@ -8575,7 +7797,6 @@ function cvUpdateCategorySEO(cat, isGenre) {
 function cvResetSEO() {
   document.title = _cvDefaultSEO.title;
   cvSetMeta('cv-meta-desc', 'content', _cvDefaultSEO.desc);
-  if (typeof cvInjectHomeJsonLd === 'function') cvInjectHomeJsonLd();
   cvSetMeta('cv-og-type',   'content', _cvDefaultSEO.ogType);
   cvSetMeta('cv-og-url',    'content', _cvDefaultSEO.ogUrl);
   cvSetMeta('cv-og-title',  'content', _cvDefaultSEO.ogTitle);
@@ -8957,142 +8178,7 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
     });
   };
 
-  
-// ── PWA: service worker + install (native prompt only) ──
-var _cvDeferredPrompt = null;
-function cvIsStandalone() {
-  try {
-    return window.matchMedia('(display-mode: standalone)').matches
-      || window.navigator.standalone === true;
-  } catch (e) { return false; }
-}
-function cvIsIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent || '')
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
-function cvRegisterPWA() {
-  try {
-    if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
-      try { if (reg && reg.update) reg.update(); } catch (eU) {}
-    }).catch(function() {});
-  } catch (eSw) {}
-}
-function cvRemovePwaBanner() {
-  var b = document.getElementById('cv-pwa-banner');
-  if (b) b.remove();
-}
-function cvShowPwaInstallBanner() {
-  try {
-    if (cvIsStandalone()) return;
-    if (localStorage.getItem('cv_pwa_dismiss') === '1') return;
-    if (document.getElementById('cv-pwa-banner')) return;
-
-    // Android/Desktop: sirf jab Chrome native install event de
-    // iOS: always show Add to Home instructions (no beforeinstallprompt)
-    if (!_cvDeferredPrompt && !cvIsIOS()) return;
-
-    var bar = document.createElement('div');
-    bar.id = 'cv-pwa-banner';
-    bar.setAttribute('role', 'dialog');
-    bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:16px;z-index:99999;display:flex;align-items:center;gap:10px;padding:12px 14px;background:#1a1a1a;border:1px solid #333;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.5);font-family:inherit;color:#eee;';
-
-    if (cvIsIOS() && !_cvDeferredPrompt) {
-      bar.innerHTML = '<img src="https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png" width="40" height="40" alt="" style="border-radius:8px;flex-shrink:0"/>'
-        + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.9rem">Add CineNova to Home</div>'
-        + '<div style="font-size:0.72rem;color:#aaa;margin-top:2px;line-height:1.35">Share (□↑) → <b>Add to Home Screen</b></div></div>'
-        + '<button type="button" id="cv-pwa-dismiss-btn" style="background:rgba(255,255,255,0.08);border:0;color:#ccc;border-radius:8px;padding:8px 12px;font-weight:600;cursor:pointer;font-size:0.8rem">OK</button>';
-      document.body.appendChild(bar);
-      document.getElementById('cv-pwa-dismiss-btn').onclick = function() {
-        try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
-        cvRemovePwaBanner();
-      };
-      return;
-    }
-
-    bar.innerHTML = '<img src="https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png" width="40" height="40" alt="" style="border-radius:8px;flex-shrink:0"/>'
-      + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.9rem">Install CineNova App</div>'
-      + '<div style="font-size:0.72rem;color:#aaa;margin-top:2px">Home screen pe real app icon</div></div>'
-      + '<button type="button" id="cv-pwa-install-btn" style="background:#e50914;color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:0.82rem;white-space:nowrap">Install</button>'
-      + '<button type="button" id="cv-pwa-dismiss-btn" aria-label="Close" style="background:transparent;border:0;color:#888;font-size:1.25rem;cursor:pointer;padding:4px 6px;line-height:1">×</button>';
-    document.body.appendChild(bar);
-
-    document.getElementById('cv-pwa-dismiss-btn').onclick = function() {
-      try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
-      cvRemovePwaBanner();
-    };
-
-    document.getElementById('cv-pwa-install-btn').onclick = function() {
-      var btn = document.getElementById('cv-pwa-install-btn');
-      if (!_cvDeferredPrompt) {
-        // Event expire / missing — user ko Chrome menu batao
-        var tip = bar.querySelector('div div:last-child');
-        if (tip) tip.innerHTML = 'Chrome <b>⋮</b> → <b>Install app</b> pe click karo';
-        if (btn) { btn.textContent = 'OK'; btn.onclick = function(){ cvRemovePwaBanner(); }; }
-        return;
-      }
-      var promptEvent = _cvDeferredPrompt;
-      _cvDeferredPrompt = null; // can only use once
-      if (btn) { btn.disabled = true; btn.textContent = '...'; }
-      try {
-        promptEvent.prompt();
-        Promise.resolve(promptEvent.userChoice).then(function(choice) {
-          var outcome = choice && choice.outcome;
-          if (outcome === 'accepted') {
-            try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e2) {}
-            cvRemovePwaBanner();
-          } else {
-            // User dismissed native dialog — allow later via menu
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = 'Install';
-            }
-            var tip2 = bar.querySelector('div div:last-child');
-            if (tip2) tip2.textContent = 'Cancel hua — Chrome ⋮ → Install app se try karo';
-          }
-        }).catch(function() {
-          if (btn) { btn.disabled = false; btn.textContent = 'Install'; }
-        });
-      } catch (ePrompt) {
-        if (btn) { btn.disabled = false; btn.textContent = 'Install'; }
-        var tip3 = bar.querySelector('div div:last-child');
-        if (tip3) tip3.innerHTML = 'Chrome <b>⋮</b> → <b>Install app</b>';
-      }
-    };
-  } catch (eB) {}
-}
-
-// MUST listen early — before SW delay
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  _cvDeferredPrompt = e;
-  // Clear old dismiss so banner can show when Chrome is ready
-  try { if (localStorage.getItem('cv_pwa_dismiss') === '1') { /* keep dismissed */ } } catch (eD) {}
-  setTimeout(cvShowPwaInstallBanner, 800);
-});
-window.addEventListener('appinstalled', function() {
-  _cvDeferredPrompt = null;
-  try { localStorage.setItem('cv_pwa_dismiss', '1'); } catch (e) {}
-  cvRemovePwaBanner();
-  try { if (typeof toast === 'function') toast('✅ CineNova install ho gaya'); } catch (eT) {}
-});
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(cvRegisterPWA, 600);
-    // iOS only — show add tip once
-    setTimeout(function() {
-      if (cvIsIOS() && !cvIsStandalone()) cvShowPwaInstallBanner();
-    }, 5000);
-  });
-} else {
-  setTimeout(cvRegisterPWA, 600);
-  setTimeout(function() {
-    if (cvIsIOS() && !cvIsStandalone()) cvShowPwaInstallBanner();
-  }, 5000);
-}
-
-
-function boot() {
+  function boot() {
     injectAccCss();
     ensureNavBtn();
     try {
