@@ -1870,3 +1870,20 @@ body.cv-cat-view #cv-featured-wrap {
   .cv-tw-viewport { padding: 8px 4% 16px !important; }
   .cv-tw-track { gap: 14px !important; }
 }
+
+
+/* HOME HIDE ADV FILTERS */
+body.cv-on-home #cv-adv-filters,
+html.cv-on-home #cv-adv-filters {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  visibility: hidden !important;
+}
+body.cv-cat-view #cv-adv-filters {
+  display: flex !important;
+  visibility: visible !important;
+  height: auto !important;
+}
