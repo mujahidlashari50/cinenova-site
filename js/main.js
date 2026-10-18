@@ -601,7 +601,27 @@ function cvInitAdvanceFilters() {
   } catch (eMove) {}
   cvStyleAdvFilters(bar);
   cvRefreshAdvanceFilterOptions();
+  try { cvUpdateAdvFiltersVisibility(); } catch (eV) {}
 }
+function cvUpdateAdvFiltersVisibility() {
+  try {
+    var bar = document.getElementById('cv-adv-filters');
+    if (!bar) return;
+    var onHome = (!selCat || selCat === 'all') && !selGenre;
+    try {
+      var path = (location.pathname || '/').toLowerCase();
+      if (path.indexOf('/category/') === 0 || path.indexOf('/genre/') === 0) onHome = false;
+    } catch (e) {}
+    if (onHome) {
+      bar.style.display = 'none';
+      bar.setAttribute('hidden', 'hidden');
+    } else {
+      bar.style.display = 'flex';
+      bar.removeAttribute('hidden');
+    }
+  } catch (e2) {}
+}
+
 function cvApplyAdvanceFilters() {
   try {
     if (typeof cvTrackEvent === 'function') {
@@ -708,8 +728,15 @@ function cvNormalizeCategory(raw) {
 }
 
 function cvIsAdultItem(m) {
-  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m && m.category) : ((m && m.category) || '').toLowerCase();
-  return !!(m && ['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0);
+  if (!m) return false;
+  var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m.category) : String(m.category || '').toLowerCase();
+  if (['adult','short_films','philippines','hot_short_hindi','adult_hindi','adult_english','hot_series','vivamax'].indexOf(cat) >= 0) return true;
+  try {
+    if (m.isAdult === true || m.adult === true || m.nsfw === true) return true;
+    var tt = String(m.title || '').toLowerCase();
+    if (/(18\+|xxx|nsfw|erotic|sex\s*(and|&)?\s*games|seriously\s*single|vivamax|hot\s*short)/i.test(tt)) return true;
+  } catch (e) {}
+  return false;
 }
 function cvIsAdultVerified() {
   try { return localStorage.getItem('cv_adult_verified') === '1'; } catch (e) { return false; }
@@ -2751,6 +2778,7 @@ function updateSlidersVisibility(cat) {
     document.body.classList.toggle('cv-on-home', !!isHome);
     document.body.classList.toggle('cv-cat-view', !isHome);
   } catch (eCls) {}
+  try { if (typeof cvUpdateAdvFiltersVisibility === 'function') cvUpdateAdvFiltersVisibility(); } catch (eAf) {}
 
   if (isHome) {
     // Home — Motd + Trending + hero/featured + MovieBox rows
@@ -3309,28 +3337,54 @@ function cvMotdShowKeys(keys, rotateSec) {
 
 function cvMotdAutoPickAndShow() {
   var list = (typeof allData !== 'undefined' && allData) ? allData : [];
-  function nonAdult(x) { return x && !cvIsAdultItem(x); }
-  // 1) Most downloaded
-  var pool = list.filter(function(x) { return nonAdult(x) && (x.downloadCount || 0) > 0; });
-  pool.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
-  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
-  // 2) Trending flag
-  pool = list.filter(function(x) { return nonAdult(x) && x.trending; });
-  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
-  // 3) Featured / banner
-  pool = list.filter(function(x) { return nonAdult(x) && (x.featured || x.isFeatured || x.banner); });
-  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
-  // 4) Newest with poster (by year then any)
-  pool = list.filter(function(x) { return nonAdult(x) && (x.thumbnail || x.poster); });
-  pool.sort(function(a, b) {
+  function nonAdult(x) {
+    return x && x._key && (x.thumbnail || x.poster) && !(typeof cvIsAdultItem === 'function' && cvIsAdultItem(x)) && x.published !== false;
+  }
+  // Mix pool: downloads + trending + featured + newest
+  var seen = {};
+  var ranked = [];
+  function pushPool(arr, weight) {
+    (arr || []).forEach(function(m, i) {
+      if (!m || !m._key || seen[m._key]) return;
+      seen[m._key] = 1;
+      ranked.push({ m: m, score: weight - i });
+    });
+  }
+  var byDl = list.filter(function(x) { return nonAdult(x) && (x.downloadCount || 0) > 0; });
+  byDl.sort(function(a, b) { return (b.downloadCount || 0) - (a.downloadCount || 0); });
+  pushPool(byDl.slice(0, 12), 1000);
+
+  var byTrend = list.filter(function(x) { return nonAdult(x) && x.trending; });
+  pushPool(byTrend.slice(0, 8), 800);
+
+  var byFeat = list.filter(function(x) { return nonAdult(x) && (x.featured || x.isFeatured || x.banner); });
+  pushPool(byFeat.slice(0, 6), 700);
+
+  var byNew = list.filter(nonAdult);
+  byNew.sort(function(a, b) {
+    var ta = a.addedAt || 0, tb = b.addedAt || 0;
+    if (tb !== ta) return tb - ta;
     var ya = parseInt(a.year, 10) || 0, yb = parseInt(b.year, 10) || 0;
-    if (yb !== ya) return yb - ya;
-    return String(b._key || '').localeCompare(String(a._key || ''));
+    return yb - ya;
   });
-  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
-  // 5) Any non-adult
-  pool = list.filter(nonAdult);
-  if (pool[0]) { cvMotdRenderMovie(pool[0]); return; }
+  pushPool(byNew.slice(0, 16), 500);
+
+  ranked.sort(function(a, b) { return b.score - a.score; });
+  var keys = ranked.slice(0, 8).map(function(x) { return x.m._key; });
+
+  // Cache movies so rotate doesn't wait on fetch
+  ranked.slice(0, 8).forEach(function(x) {
+    try { _cvMotdCache[x.m._key] = x.m; } catch (e) {}
+  });
+
+  if (keys.length >= 2) {
+    cvMotdShowKeys(keys, 8); // rotate every 8s
+    return;
+  }
+  if (keys.length === 1) {
+    cvMotdRenderMovie(ranked[0].m);
+    return;
+  }
   cvMotdHide();
 }
 
