@@ -3,6 +3,27 @@ document.documentElement.style.background='#141414';
 document.documentElement.style.color='#e5e5e5';
 try{document.body.classList.add('cv-booting');}catch(e){}
 
+/* Anti-scrape / anti-AI surface (best-effort — public HTML fully lock nahi hota) */
+(function cvAntiScrapeInit(){
+  try {
+    document.documentElement.setAttribute('data-nosnippet', 'true');
+  } catch(e){}
+  // Disable drag on posters (casual scrape)
+  try {
+    document.addEventListener('dragstart', function(e) {
+      if (e.target && e.target.tagName === 'IMG') e.preventDefault();
+    }, true);
+  } catch(e2){}
+  // Block common headless bot UAs from heavy UI (soft)
+  try {
+    var ua = navigator.userAgent || '';
+    if (/GPTBot|ClaudeBot|CCBot|Google-Extended|Bytespider|PetalBot|DataForSeo|Scrapy/i.test(ua)) {
+      document.documentElement.classList.add('cv-bot-ua');
+    }
+  } catch(e3){}
+})();
+
+
 /* === script === */
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -727,6 +748,76 @@ function cvNormalizeCategory(raw) {
   return slug;
 }
 
+
+function cvAllowAdultContent() {
+  // Section OFF → kabhi adult mat dikhao (verified ho to bhi)
+  if (window._cvAdultSectionEnabled === false) return false;
+  try { return localStorage.getItem('cv_adult_verified') === '1'; } catch (e) { return false; }
+}
+function cvIsAdultSectionEnabled() {
+  return window._cvAdultSectionEnabled !== false;
+}
+function cvApplyAdultSectionVisibility() {
+  var on = cvIsAdultSectionEnabled();
+  try {
+    document.documentElement.classList.toggle('cv-adult-off', !on);
+    document.body.classList.toggle('cv-adult-off', !on);
+  } catch (e) {}
+  // Hide every adult nav / pill / dropdown
+  try {
+    var sel = [
+      '.cv-pill[data-cat="adult"]',
+      '.cv-pill[data-cat="group:adult"]',
+      '.cv-pill[data-cat="philippines"]',
+      '.cv-pill[data-cat="hot_short_hindi"]',
+      '.cv-pill[data-cat="adult_hindi"]',
+      '.cv-pill[data-cat="adult_english"]',
+      '.cv-pill[data-cat="hot_series"]',
+      '.cv-pill[data-cat="vivamax"]',
+      '.cv-pill[data-cat="short_films"]',
+      '.cv-subcat-adult',
+      '.cv-cat-sub-item[data-cat="group:adult"]',
+      '[data-group="adult"]',
+      '#cv-nav-adult',
+      '.cv-adult-nav',
+      'a[href*="category/adult"]',
+      'a[href*="category/philippines"]',
+      'a[href*="category/hot-short"]',
+      'a[href*="category/vivamax"]'
+    ].join(',');
+    document.querySelectorAll(sel).forEach(function(el) {
+      el.style.display = on ? '' : 'none';
+      if (!on) el.setAttribute('hidden', 'hidden');
+      else el.removeAttribute('hidden');
+    });
+  } catch (e2) {}
+  // Footer adult links
+  try {
+    document.querySelectorAll('a[href*="/category/adult"], a[href*="philippines"], a[href*="hot-short"], a[href*="vivamax"]').forEach(function(a) {
+      if (!on) { a.style.display = 'none'; a.setAttribute('hidden','hidden'); }
+      else { a.style.display = ''; a.removeAttribute('hidden'); }
+    });
+  } catch (e3) {}
+  // If currently viewing adult cat while OFF → force home
+  if (!on) {
+    var adultCats = {adult:1,'group:adult':1,philippines:1,hot_short_hindi:1,short_films:1,adult_hindi:1,adult_english:1,hot_series:1,vivamax:1};
+    if (adultCats[selCat]) {
+      try {
+        if (typeof cvApplyFilter === 'function') cvApplyFilter('all');
+        else if (typeof applyFilter === 'function') applyFilter('all');
+        else { selCat = 'all'; if (typeof renderGrid === 'function') renderGrid(true); }
+      } catch (e4) {}
+    }
+    try { hideAdultGate(); } catch (e5) {}
+  }
+  // Re-render grid without adult
+  try {
+    if (typeof renderGrid === 'function') renderGrid(true, true);
+    if (typeof buildFeatured === 'function') buildFeatured();
+    if (typeof cvBuildMotd === 'function' && window._cvMotdEnabled) cvBuildMotd();
+  } catch (e6) {}
+}
+
 function cvIsAdultItem(m) {
   if (!m) return false;
   var cat = typeof cvNormalizeCategory === 'function' ? cvNormalizeCategory(m.category) : String(m.category || '').toLowerCase();
@@ -1016,6 +1107,11 @@ function _cvOnFirebaseReady() {
       setTimeout(function(){ try { cvBuildMotd(); } catch(e){} }, 1500);
       setTimeout(function(){ try { cvBuildMotd(); } catch(e){} }, 4000);
     }
+
+    // Adult Section master switch — panel OFF = website se ZERO adult leak
+    window._cvAdultSectionEnabled = (sl.adultSection !== false && sl.adultSection !== 'false' && sl.adultSection !== 0);
+    try { cvApplyAdultSectionVisibility(); } catch (eAd) {}
+
 
     // Now Showing (hero poster stack) toggle — default ON agar admin ne set nahi kiya
     window._cvNsHeroEnabled = false; // PERMANENT OFF — Now Showing removed
@@ -4412,7 +4508,7 @@ function cvMovieMatchesQuality(m, qWant) {
 function cvBuildFilteredList() {
   var q = searchQ.toLowerCase().trim();
   NOW_TS = Date.now();
-  var adultUnlocked = cvIsAdultVerified();
+  var adultUnlocked = (typeof cvIsAdultSectionEnabled === 'function' ? cvIsAdultSectionEnabled() : true) && cvIsAdultVerified();
 
   // My List — sirf watchlist me saved movies dikhao (category/genre logic skip)
   if (selCat === 'watchlist') {
@@ -6539,7 +6635,7 @@ window.cvSyncCatDropdowns = function(selCat){
 
 function cvApplyFilter(cat, isGenre, pillEl) {
     // Adult category — verification ke bina aage mat badhne do
-    if (!isGenre && (cat === 'adult' || cat === 'group:adult' || cat === 'short_films' || cat === 'philippines' || cat === 'hot_short_hindi' || cat === 'adult_hindi' || cat === 'adult_english' || cat === 'hot_series' || cat === 'vivamax') && !cvIsAdultVerified()) {
+    if (!isGenre && (cat === 'adult' || cat === 'group:adult' || cat === 'short_films' || cat === 'philippines' || cat === 'hot_short_hindi' || cat === 'adult_hindi' || cat === 'adult_english' || cat === 'hot_series' || cat === 'vivamax') && (!(typeof cvIsAdultSectionEnabled === 'function' ? cvIsAdultSectionEnabled() : true) || !cvIsAdultVerified())) {
       showAdultGate();
       return;
     }
