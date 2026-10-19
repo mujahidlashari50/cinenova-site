@@ -1889,7 +1889,7 @@ body.cv-cat-view #cv-adv-filters {
 }
 
 
-/* Adult section OFF — zero visual leak */
+/* Adult section OFF — zero visual leak (mobile drawer + desktop) */
 html.cv-adult-off .cv-pill[data-cat="adult"],
 html.cv-adult-off .cv-pill[data-cat="group:adult"],
 html.cv-adult-off .cv-pill[data-cat="philippines"],
@@ -1900,17 +1900,29 @@ html.cv-adult-off .cv-pill[data-cat="hot_series"],
 html.cv-adult-off .cv-pill[data-cat="vivamax"],
 html.cv-adult-off .cv-pill[data-cat="short_films"],
 html.cv-adult-off .cv-subcat-adult,
+html.cv-adult-off .cv-subcat-item.cv-subcat-adult,
+html.cv-adult-off .cv-subcat-item[data-cat="group:adult"],
+html.cv-adult-off .cv-subcat-item[data-cat="philippines"],
+html.cv-adult-off .cv-subcat-item[data-cat="hot_short_hindi"],
+html.cv-adult-off .cv-cat-parent-adult,
+html.cv-adult-off .cv-cat-parent[data-group="adult"],
 html.cv-adult-off [data-group="adult"],
 html.cv-adult-off #cv-nav-adult,
 html.cv-adult-off .cv-adult-nav,
 html.cv-adult-off a[href*="/category/adult"],
-html.cv-adult-off a[href*="philippines"],
-html.cv-adult-off a[href*="hot-short"],
-html.cv-adult-off a[href*="vivamax"],
+html.cv-adult-off a[href*="/category/philippines"],
+html.cv-adult-off a[href*="/category/hot-short"],
+html.cv-adult-off a[href*="/category/vivamax"],
 html.cv-adult-off #cv-adult-gate,
 body.cv-adult-off .cv-pill[data-cat="adult"],
 body.cv-adult-off .cv-pill[data-cat="group:adult"],
 body.cv-adult-off .cv-subcat-adult,
+body.cv-adult-off .cv-subcat-item.cv-subcat-adult,
+body.cv-adult-off .cv-subcat-item[data-cat="group:adult"],
+body.cv-adult-off .cv-subcat-item[data-cat="philippines"],
+body.cv-adult-off .cv-subcat-item[data-cat="hot_short_hindi"],
+body.cv-adult-off .cv-cat-parent-adult,
+body.cv-adult-off .cv-cat-parent[data-group="adult"],
 body.cv-adult-off [data-group="adult"] {
   display: none !important;
   visibility: hidden !important;
@@ -1920,4 +1932,15 @@ body.cv-adult-off [data-group="adult"] {
   pointer-events: none !important;
   position: absolute !important;
   left: -9999px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  opacity: 0 !important;
 }
+/* Mobile drawer: hide ADULT group header when section OFF */
+html.cv-adult-off .cv-subcat-group,
+body.cv-adult-off .cv-subcat-group {
+  /* JS sets hidden on Adult header; CSS backup for text match via attribute if added */
+}
+
+
