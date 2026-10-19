@@ -1,35 +1,55 @@
-// ── robots.txt ──
-if (url.pathname === '/robots.txt') {
-  const robotsTxt = `User-agent: *
+User-agent: *
 Allow: /
-
-# Search only
-Disallow: /*?q=
-Disallow: /*&q=
-
-# OLD category/genre query URLs — permanently retired
-Disallow: /*?cat=
-Disallow: /*?genre=
-
-# Adult (pretty path)
+Disallow: /admin
+Disallow: /panel
+Disallow: /admin-panel
+Disallow: /*?*cat=adult*
 Disallow: /category/adult
-Disallow: /category/adult-all
 Disallow: /category/philippines
 Disallow: /category/hot-short
-Disallow: /category/short-films
+Disallow: /category/vivamax
 
-# Pretty public paths
-Allow: /category/
-Allow: /genre/
-Allow: /movie/
+# AI / training crawlers — block
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: Omgili
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
 
 Sitemap: https://www.cinenova.site/sitemap.xml
-`;
-  return new Response(robotsTxt, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400',
-      'Access-Control-Allow-Origin': '*'
-    }
-  });
-}
