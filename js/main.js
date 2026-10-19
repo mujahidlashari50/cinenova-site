@@ -763,7 +763,7 @@ function cvApplyAdultSectionVisibility() {
     document.documentElement.classList.toggle('cv-adult-off', !on);
     document.body.classList.toggle('cv-adult-off', !on);
   } catch (e) {}
-  // Hide every adult nav / pill / dropdown
+  // Hide every adult nav / pill / mobile drawer / dropdown
   try {
     var sel = [
       '.cv-pill[data-cat="adult"]',
@@ -776,7 +776,13 @@ function cvApplyAdultSectionVisibility() {
       '.cv-pill[data-cat="vivamax"]',
       '.cv-pill[data-cat="short_films"]',
       '.cv-subcat-adult',
+      '.cv-subcat-item.cv-subcat-adult',
+      '.cv-subcat-item[data-cat="group:adult"]',
+      '.cv-subcat-item[data-cat="philippines"]',
+      '.cv-subcat-item[data-cat="hot_short_hindi"]',
       '.cv-cat-sub-item[data-cat="group:adult"]',
+      '.cv-cat-parent-adult',
+      '.cv-cat-parent[data-group="adult"]',
       '[data-group="adult"]',
       '#cv-nav-adult',
       '.cv-adult-nav',
@@ -789,6 +795,15 @@ function cvApplyAdultSectionVisibility() {
       el.style.display = on ? '' : 'none';
       if (!on) el.setAttribute('hidden', 'hidden');
       else el.removeAttribute('hidden');
+    });
+    // Mobile drawer group header "🔞 ADULT"
+    document.querySelectorAll('.cv-subcat-group').forEach(function(g) {
+      var tx = (g.textContent || '').toLowerCase();
+      if (tx.indexOf('adult') >= 0 || tx.indexOf('18+') >= 0) {
+        g.style.display = on ? '' : 'none';
+        if (!on) g.setAttribute('hidden', 'hidden');
+        else g.removeAttribute('hidden');
+      }
     });
   } catch (e2) {}
   // Footer adult links
