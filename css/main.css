@@ -1887,3 +1887,37 @@ body.cv-cat-view #cv-adv-filters {
   visibility: visible !important;
   height: auto !important;
 }
+
+
+/* Adult section OFF — zero visual leak */
+html.cv-adult-off .cv-pill[data-cat="adult"],
+html.cv-adult-off .cv-pill[data-cat="group:adult"],
+html.cv-adult-off .cv-pill[data-cat="philippines"],
+html.cv-adult-off .cv-pill[data-cat="hot_short_hindi"],
+html.cv-adult-off .cv-pill[data-cat="adult_hindi"],
+html.cv-adult-off .cv-pill[data-cat="adult_english"],
+html.cv-adult-off .cv-pill[data-cat="hot_series"],
+html.cv-adult-off .cv-pill[data-cat="vivamax"],
+html.cv-adult-off .cv-pill[data-cat="short_films"],
+html.cv-adult-off .cv-subcat-adult,
+html.cv-adult-off [data-group="adult"],
+html.cv-adult-off #cv-nav-adult,
+html.cv-adult-off .cv-adult-nav,
+html.cv-adult-off a[href*="/category/adult"],
+html.cv-adult-off a[href*="philippines"],
+html.cv-adult-off a[href*="hot-short"],
+html.cv-adult-off a[href*="vivamax"],
+html.cv-adult-off #cv-adult-gate,
+body.cv-adult-off .cv-pill[data-cat="adult"],
+body.cv-adult-off .cv-pill[data-cat="group:adult"],
+body.cv-adult-off .cv-subcat-adult,
+body.cv-adult-off [data-group="adult"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
