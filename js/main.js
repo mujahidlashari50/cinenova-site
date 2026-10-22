@@ -5931,32 +5931,6 @@ var _cvSubCache = null; // { uid, sub, checkedAt }
 var _cvSubSettingsAt = 0;
 
 
-function cvRenderPayBucket(cfg) {
-  var el = document.getElementById('cv-pay-bucket');
-  if (!el) return;
-  var on = cfg && (cfg.enabled === true || cfg.enabled === 'true' || cfg.enabled === 1);
-  if (!on) {
-    el.classList.remove('show');
-    el.style.display = 'none';
-    el.setAttribute('aria-hidden', 'true');
-    return;
-  }
-  // Public cards: logo + QR only (no personal numbers)
-  var epQr = document.getElementById('cv-pay-ep-qr');
-  var jcQr = document.getElementById('cv-pay-jc-qr');
-  var bankQr = document.getElementById('cv-pay-bank-qr');
-  if (epQr && cfg.easypaisaQr) epQr.src = cfg.easypaisaQr;
-  if (jcQr && cfg.jazzcashQr) jcQr.src = cfg.jazzcashQr;
-  if (bankQr && cfg.bankQr) bankQr.src = cfg.bankQr;
-  var bankLabel = document.getElementById('cv-pay-bank-label');
-  if (bankLabel) bankLabel.textContent = (cfg.bankName && String(cfg.bankName).trim()) || 'Raqami Islamic Digital Bank';
-  var bankCard = document.getElementById('cv-pay-bank-card');
-  if (bankCard) bankCard.style.display = 'flex';
-  el.classList.add('show');
-  el.style.display = 'block';
-  el.setAttribute('aria-hidden', 'false');
-}
-
 
 function cvLoadSubSettings(cb) {
   if (_cvSubSettings && (Date.now() - _cvSubSettingsAt) < 60000) {
@@ -5971,7 +5945,6 @@ function cvLoadSubSettings(cb) {
   db.ref('settings/subscription').once('value').then(function(snap) {
     _cvSubSettings = snap.val() || { enabled: false };
     _cvSubSettingsAt = Date.now();
-    try { cvRenderPayBucket(_cvSubSettings); } catch (eR) {}
     if (cb) cb(_cvSubSettings);
   }).catch(function() {
     _cvSubSettings = { enabled: false };
@@ -9495,16 +9468,4 @@ function boot() {
 })();
 
 
-/* boot pay bucket when site ready */
-(function(){
-  function bootPay(){
-    try {
-      if (typeof cvLoadSubSettings === 'function') cvLoadSubSettings(function(cfg){
-        try { cvRenderPayBucket(cfg); } catch(e){}
-      });
-    } catch(e){}
-  }
-  if (document.readyState === 'complete') setTimeout(bootPay, 800);
-  else window.addEventListener('load', function(){ setTimeout(bootPay, 800); });
-  document.addEventListener('cv-data-ready', bootPay);
-})();
+
