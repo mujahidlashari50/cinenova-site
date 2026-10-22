@@ -1,4 +1,4 @@
-/* === cv-critical-boot === */
+/* === cv-critical-boot + CWV mobile fix === */
 html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:0;}
 #cv-cats,.cv-pill,#cv-years,.cv-year-pill,#cv-nav{
   background-color:rgba(20,20,20,.95);
@@ -14,31 +14,43 @@ html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:
 .cv-pill.active,.cv-year-pill.active{
   background:#e50914!important;color:#fff!important;border-color:#e50914!important;
 }
-#cv-nav{background:linear-gradient(180deg,rgba(0,0,0,.85),transparent)!important}
-/* hide unstyled flash of late style blocks */
-body.cv-booting #cv-grid,
-body.cv-booting #cv-ns-hero{opacity:0}
-body.cv-ready #cv-grid,
-body.cv-ready #cv-ns-hero{opacity:1;transition:opacity .2s ease}
+#cv-nav{background:linear-gradient(180deg,rgba(0,0,0,.85),transparent)!important;min-height:56px}
 
-/* === CWV critical v2: space reserved before main.css loads === */
+/* CLS: reserve banner space only when shown */
+#cv-iab-banner{min-height:0}
+#cv-ann-bar{min-height:0}
+
+/* Grid + skeleton — first paint without waiting Firebase */
 #cv-grid{
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:8px;
   min-height:0;
   align-items:start;
+  padding:0 10px;
 }
 @media(min-width:700px){
-  #cv-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;min-height:0}
+  #cv-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 }
-/* skel size from aspect-ratio only */
-.cv-skel-img,
-.cv-card-img-wrap{
+.cv-skel{display:flex;flex-direction:column;gap:6px}
+.cv-skel-img,.cv-card-img-wrap{
   aspect-ratio:2/3;
   width:100%;
-  background:#1a1a1a;
+  background:linear-gradient(90deg,#1a1a1a 25%,#252525 50%,#1a1a1a 75%);
+  background-size:200% 100%;
+  animation:cvSkel 1.2s ease-in-out infinite;
+  border-radius:8px;
   display:block;
 }
-#cv-ns-hero{min-height:340px}
-@media(min-width:900px){#cv-ns-hero{min-height:400px}}
+.cv-skel-bar{height:12px;border-radius:4px;background:#1f1f1f;width:90%}
+.cv-skel-bar.short{width:55%;height:10px}
+@keyframes cvSkel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.cv-skel-img{animation:none}}
+
+/* LCP area */
+#cv-ns-hero,#cv-motd,#cv-week-slider{min-height:0}
+#cv-featured-banner,.cv-featured-wrap{min-height:120px}
+
+/* font swap already on google fonts link */
+body.cv-booting #cv-grid .cv-skel{opacity:1}
+body.cv-ready .cv-skel{display:none}
