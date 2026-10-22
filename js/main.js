@@ -5929,10 +5929,10 @@ function cvRenderPayBucket(cfg) {
     el.setAttribute('aria-hidden', 'true');
     return;
   }
-  var epName = cfg.easypaisaName || 'MUJAHID';
-  var epNum = cfg.easypaisaNumber || '03353613905';
-  var jcName = cfg.jazzcashName || 'MUJAHID';
-  var jcNum = cfg.jazzcashNumber || '03353613905';
+  var epName = (cfg && cfg.easypaisaName) ? cfg.easypaisaName : 'MUJAHID';
+  var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
+  var jcName = (cfg && cfg.jazzcashName) ? cfg.jazzcashName : 'MUJAHID';
+  var jcNum = (cfg && cfg.jazzcashNumber) ? cfg.jazzcashNumber : '03353613905';
   var n1 = document.getElementById('cv-pay-ep-name');
   var n2 = document.getElementById('cv-pay-ep-num');
   var n3 = document.getElementById('cv-pay-jc-name');
@@ -5941,54 +5941,59 @@ function cvRenderPayBucket(cfg) {
   if (n2) n2.textContent = epNum;
   if (n3) n3.textContent = jcName;
   if (n4) n4.textContent = jcNum;
-  var plansEl = document.getElementById('cv-pay-plans');
-  if (plansEl) {
-    var html = '';
-    var plans = cfg.plans || {};
-    ['weekly','monthly','yearly'].forEach(function(k) {
-      var p = plans[k];
-      if (!p) return;
-      html += '<span class="cv-pay-plan-chip">' + (p.label || k) + ' <b>Rs ' + (p.price || 0) + '</b></span>';
-    });
-    plansEl.innerHTML = html;
+  var bankCard = document.getElementById('cv-pay-bank-card');
+  var bankName = (cfg && cfg.bankName) ? String(cfg.bankName).trim() : '';
+  var bankTitle = (cfg && cfg.bankTitle) ? String(cfg.bankTitle).trim() : '';
+  var bankAcc = (cfg && cfg.bankAccount) ? String(cfg.bankAccount).trim() : '';
+  var bankIban = (cfg && cfg.bankIban) ? String(cfg.bankIban).trim() : '';
+  if (bankCard) {
+    if (bankAcc || bankIban) {
+      bankCard.style.display = '';
+      var bl = document.getElementById('cv-pay-bank-label');
+      var bti = document.getElementById('cv-pay-bank-title');
+      var bac = document.getElementById('cv-pay-bank-acc');
+      var bib = document.getElementById('cv-pay-bank-iban');
+      if (bl) bl.textContent = bankName || 'Bank';
+      if (bti) bti.textContent = bankTitle || '—';
+      if (bac) bac.textContent = bankAcc || (bankIban || '—');
+      if (bib) {
+        if (bankIban && bankAcc) {
+          bib.style.display = 'block';
+          bib.textContent = 'IBAN: ' + bankIban;
+        } else {
+          bib.style.display = 'none';
+          bib.textContent = '';
+        }
+      }
+    } else {
+      bankCard.style.display = 'none';
+    }
   }
   el.classList.add('show');
   el.style.display = 'block';
   el.setAttribute('aria-hidden', 'false');
-  // copy buttons
   el.querySelectorAll('.cv-pay-copy').forEach(function(btn) {
     btn.onclick = function() {
       var id = btn.getAttribute('data-target');
       var node = id ? document.getElementById(id) : null;
-      var txt = node ? node.textContent.trim() : '';
+      var txt = node ? String(node.textContent || '').trim() : '';
       if (!txt) return;
+      var done = function() {
+        var prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function(){ btn.textContent = prev || 'Copy'; }, 1400);
+      };
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(function() {
-          btn.textContent = 'Copied';
-          setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
-        }).catch(function(){});
+        navigator.clipboard.writeText(txt).then(done).catch(function(){});
       } else {
         try {
           var ta = document.createElement('textarea');
           ta.value = txt; document.body.appendChild(ta); ta.select();
-          document.execCommand('copy'); ta.remove();
-          btn.textContent = 'Copied';
-          setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
+          document.execCommand('copy'); ta.remove(); done();
         } catch (e) {}
       }
     };
   });
-  var cta = document.getElementById('cv-pay-cta');
-  if (cta) {
-    cta.onclick = function() {
-      cvLoadSubSettings(function(cfg2) {
-        cvGetCurrentUser(function(user) {
-          if (!user) cvShowSubModal(cfg2 || cfg, null, 'login');
-          else cvShowSubModal(cfg2 || cfg, user, 'subscribe');
-        });
-      });
-    };
-  }
 }
 
 function cvLoadSubSettings(cb) {
@@ -6203,7 +6208,7 @@ function cvShowSubModal(cfg, user, mode) {
       + payCards
       + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Payment method</label>'
       + '<select id="cv-sub-method" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;">'
-      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option></select></div>'
+      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option><option value="bank">Bank Transfer</option></select></div>'
       + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Transaction ID / TID</label>'
       + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Enter Transaction ID from your payment" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
       + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">Enter 10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
