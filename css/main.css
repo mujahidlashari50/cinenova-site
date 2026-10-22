@@ -2247,3 +2247,31 @@ body.cv-ready #cv-grid{
 /* no QR / scan / numbers on public */
 .cv-pay-qr,.cv-pay-scan,.cv-pay-meta,.cv-pay-name,.cv-pay-num,.cv-pay-copy{display:none!important}
 
+
+
+/* SEO strip — subtle footer line */
+.cv-seo-pro{
+  padding:14px 5% 10px;
+  border-top:1px solid rgba(255,255,255,.05);
+  background:transparent;
+}
+.cv-seo-pro-inner{max-width:900px;margin:0 auto}
+.cv-seo-pro-text{
+  font-size:.7rem;line-height:1.6;color:#555;margin:0;
+  text-align:center;
+}
+.cv-seo-pro-brand{color:#777;font-weight:700}
+.cv-seo-pro-text b{color:#666;font-weight:600}
+.cv-seo-pro-links{
+  display:inline-flex;flex-wrap:wrap;gap:4px 10px;
+  justify-content:center;margin-left:4px;
+}
+.cv-seo-pro-links a{
+  color:#666;text-decoration:none;font-size:.68rem;
+}
+.cv-seo-pro-links a:hover{color:#e50914}
+@media(max-width:540px){
+  .cv-seo-pro{padding:12px 4% 8px}
+  .cv-seo-pro-text{font-size:.65rem}
+  .cv-seo-pro-links{display:flex;margin:8px 0 0;width:100%}
+}
