@@ -2175,58 +2175,6 @@ body.cv-ready #cv-grid{
 
 
 
-/* === Pay QR cards compact pro === */
-#cv-pay-bucket{display:none;padding:8px 12px 14px}
-#cv-pay-bucket.show{display:block!important}
-.cv-pay-row{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-  align-items:stretch;
-}
-@media(max-width:720px){
-  .cv-pay-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-}
-@media(max-width:420px){
-  .cv-pay-row{grid-template-columns:1fr;max-width:220px;margin:0 auto}
-}
-.cv-pay-card{
-  border-radius:12px;
-  padding:10px 10px 8px;
-  border:1px solid rgba(255,255,255,.1);
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  min-height:0;
-}
-.cv-pay-ep{background:linear-gradient(165deg,#0c1f14,#122a1a);border-color:rgba(0,166,81,.35)}
-.cv-pay-jc{background:linear-gradient(165deg,#1a0f22,#241430);border-color:rgba(255,198,10,.3)}
-.cv-pay-bank{background:linear-gradient(165deg,#0c1220,#152238);border-color:rgba(59,130,246,.35);display:flex!important}
-.cv-pay-brand{display:flex;align-items:center;justify-content:center;min-height:22px;width:100%}
-.cv-pay-logo-svg{height:18px;width:auto;max-width:100%}
-.cv-pay-bank-name{
-  font-size:.68rem;font-weight:800;color:#93c5fd;text-align:center;
-  line-height:1.25;letter-spacing:.02em;
-}
-.cv-pay-qr{
-  width:min(132px,100%);
-  height:auto;aspect-ratio:1;
-  border-radius:8px;
-  background:#fff;
-  padding:6px;
-  object-fit:contain;
-  display:block;
-}
-@media(max-width:720px){
-  .cv-pay-qr{width:min(100px,100%);padding:4px;border-radius:6px}
-  .cv-pay-card{padding:8px 6px 6px}
-  .cv-pay-bank-name{font-size:.58rem}
-  .cv-pay-logo-svg{height:15px}
-}
-.cv-pay-scan{
-  font-size:.62rem;color:#888;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
-}
-/* hide any old name/num rows if leftover */
-.cv-pay-meta,.cv-pay-name,.cv-pay-num-row,.cv-pay-num,.cv-pay-copy,.cv-pay-title,.cv-pay-iban{display:none!important}
-
 /* Movie modal full screen all devices */
 #cv-modal{
   align-items:stretch!important;
@@ -2251,3 +2199,51 @@ body.cv-ready #cv-grid{
 @media(max-width:720px){
   .cv-pay-raqami-logo{height:22px;max-width:110px}
 }
+
+/* === Pay logo buckets only === */
+#cv-pay-bucket{display:none;padding:10px 14px 16px}
+#cv-pay-bucket.show{display:block!important}
+.cv-pay-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  align-items:stretch;
+}
+@media(max-width:640px){
+  .cv-pay-row{grid-template-columns:1fr;max-width:280px;margin:0 auto;gap:10px}
+}
+.cv-pay-card{
+  border-radius:14px;
+  padding:18px 16px;
+  border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  min-height:72px;
+}
+.cv-pay-ep{
+  background:linear-gradient(160deg,#0a1a10 0%,#0f2a18 100%);
+  border-color:rgba(0,166,81,.4);
+}
+.cv-pay-jc{
+  background:linear-gradient(160deg,#140c18 0%,#1e1228 100%);
+  border-color:rgba(255,198,10,.35);
+}
+.cv-pay-bank{
+  background:linear-gradient(160deg,#0a1018 0%,#121c2c 100%);
+  border-color:rgba(59,130,246,.35);
+  display:flex!important;
+}
+.cv-pay-logo-full{width:100%;max-width:180px;height:36px}
+.cv-pay-logo-img-full{
+  max-width:170px;max-height:44px;width:auto;height:auto;
+  object-fit:contain;display:block;
+  /* white bg logos read better on dark */
+  background:#fff;border-radius:8px;padding:6px 10px;
+}
+@media(max-width:640px){
+  .cv-pay-card{min-height:64px;padding:14px}
+  .cv-pay-logo-full{height:32px;max-width:160px}
+  .cv-pay-logo-img-full{max-height:40px;max-width:150px}
+}
+/* no QR / scan / numbers on public */
+.cv-pay-qr,.cv-pay-scan,.cv-pay-meta,.cv-pay-name,.cv-pay-num,.cv-pay-copy{display:none!important}
+
