@@ -9515,15 +9515,6 @@ function boot() {
 })();
 
 
-
-    var inp = document.getElementById('cv-req-title');
-    if (inp) setTimeout(function(){ inp.focus(); }, 300);
-  } else if (typeof window.location !== 'undefined') {
-    window.location.href = '/p/contact-us.html';
-  }
-});
-
-
 /* boot pay bucket when site ready */
 (function(){
   function bootPay(){
