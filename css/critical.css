@@ -54,3 +54,8 @@ html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:
 /* font swap already on google fonts link */
 body.cv-booting #cv-grid .cv-skel{opacity:1}
 body.cv-ready .cv-skel{display:none}
+
+#cv-seo-wrap{opacity:0;max-height:0;overflow:hidden}
+body.cv-ready #cv-seo-wrap{opacity:1;max-height:none;overflow:visible}
+#cv-grid{min-height:min(70vh,560px)}
+body.cv-ready #cv-grid{min-height:0}
