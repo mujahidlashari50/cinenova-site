@@ -2013,3 +2013,39 @@ body.cv-adult-off .cv-subcat-group {
     z-index:3;
   }
 }
+
+
+/* === CWV Mobile Fix Oct 2026 === */
+.cv-card-img-wrap,.cv-card-img{
+  aspect-ratio:2/3;
+  width:100%;
+  height:auto;
+  object-fit:cover;
+  background:#1a1a1a;
+  display:block;
+}
+/* Below-fold cards: less layout/paint work */
+#cv-grid .cv-card:nth-child(n+9){
+  content-visibility:auto;
+  contain-intrinsic-size:auto 280px;
+}
+@media(min-width:700px){
+  #cv-grid .cv-card:nth-child(n+16){
+    content-visibility:auto;
+    contain-intrinsic-size:auto 320px;
+  }
+}
+/* CLS: fixed nav */
+#cv-nav{min-height:56px}
+#cv-bottom-nav{contain:layout style}
+/* Install / ann banners — no big jump when closed */
+#cv-iab-banner:not(.show),[hidden]#cv-iab-banner{display:none!important}
+#cv-push-banner,[id*="install"]:not(.show){max-height:none}
+img.cv-card-img,img.cv-slide-img,img.cv-tw-poster,img.cv-mb-poster{
+  content-visibility:auto;
+}
+/* Reduce heavy paint on mobile */
+@media(max-width:480px){
+  #cv-grid .cv-card{will-change:auto}
+  .cv-card:hover{transform:none!important}
+}
