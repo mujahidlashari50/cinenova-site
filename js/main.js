@@ -5918,6 +5918,79 @@ var _cvSubSettings = null;
 var _cvSubCache = null; // { uid, sub, checkedAt }
 var _cvSubSettingsAt = 0;
 
+
+function cvRenderPayBucket(cfg) {
+  var el = document.getElementById('cv-pay-bucket');
+  if (!el) return;
+  var on = cfg && (cfg.enabled === true || cfg.enabled === 'true' || cfg.enabled === 1);
+  if (!on) {
+    el.classList.remove('show');
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    return;
+  }
+  var epName = cfg.easypaisaName || 'MUJAHID';
+  var epNum = cfg.easypaisaNumber || '03353613905';
+  var jcName = cfg.jazzcashName || 'MUJAHID';
+  var jcNum = cfg.jazzcashNumber || '03353613905';
+  var n1 = document.getElementById('cv-pay-ep-name');
+  var n2 = document.getElementById('cv-pay-ep-num');
+  var n3 = document.getElementById('cv-pay-jc-name');
+  var n4 = document.getElementById('cv-pay-jc-num');
+  if (n1) n1.textContent = epName;
+  if (n2) n2.textContent = epNum;
+  if (n3) n3.textContent = jcName;
+  if (n4) n4.textContent = jcNum;
+  var plansEl = document.getElementById('cv-pay-plans');
+  if (plansEl) {
+    var html = '';
+    var plans = cfg.plans || {};
+    ['weekly','monthly','yearly'].forEach(function(k) {
+      var p = plans[k];
+      if (!p) return;
+      html += '<span class="cv-pay-plan-chip">' + (p.label || k) + ' <b>Rs ' + (p.price || 0) + '</b></span>';
+    });
+    plansEl.innerHTML = html;
+  }
+  el.classList.add('show');
+  el.style.display = 'block';
+  el.setAttribute('aria-hidden', 'false');
+  // copy buttons
+  el.querySelectorAll('.cv-pay-copy').forEach(function(btn) {
+    btn.onclick = function() {
+      var id = btn.getAttribute('data-target');
+      var node = id ? document.getElementById(id) : null;
+      var txt = node ? node.textContent.trim() : '';
+      if (!txt) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function() {
+          btn.textContent = 'Copied';
+          setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
+        }).catch(function(){});
+      } else {
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = txt; document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); ta.remove();
+          btn.textContent = 'Copied';
+          setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
+        } catch (e) {}
+      }
+    };
+  });
+  var cta = document.getElementById('cv-pay-cta');
+  if (cta) {
+    cta.onclick = function() {
+      cvLoadSubSettings(function(cfg2) {
+        cvGetCurrentUser(function(user) {
+          if (!user) cvShowSubModal(cfg2 || cfg, null, 'login');
+          else cvShowSubModal(cfg2 || cfg, user, 'subscribe');
+        });
+      });
+    };
+  }
+}
+
 function cvLoadSubSettings(cb) {
   if (_cvSubSettings && (Date.now() - _cvSubSettingsAt) < 60000) {
     if (cb) cb(_cvSubSettings);
@@ -5931,6 +6004,7 @@ function cvLoadSubSettings(cb) {
   db.ref('settings/subscription').once('value').then(function(snap) {
     _cvSubSettings = snap.val() || { enabled: false };
     _cvSubSettingsAt = Date.now();
+    try { cvRenderPayBucket(_cvSubSettings); } catch (eR) {}
     if (cb) cb(_cvSubSettings);
   }).catch(function() {
     _cvSubSettings = { enabled: false };
@@ -6098,23 +6172,27 @@ function cvShowSubModal(cfg, user, mode) {
   var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : '';
   var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
   var payCards = ''
-    + '<div style="display:grid;gap:10px;margin-bottom:12px;">'
-    + '<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);border:1px solid #334155;border-radius:12px;padding:12px 14px;">'
-    + '<div style="font-size:0.72rem;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">EasyPaisa</div>'
-    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(epName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.05rem;font-weight:900;color:#4ade80;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
+    + '<div class="cv-sub-pay-grid">'
+    + '<div class="cv-sub-pay-tile ep">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+    + '<span style="font-size:0.7rem;font-weight:800;color:#4ade80;letter-spacing:0.04em;">EASYPAISA</span>'
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(epNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
+    + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(epName).replace(/</g,'') + '</div>'
+    + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
     + '</div>'
-    + '<div style="background:linear-gradient(135deg,#1a0a0a,#2a1010);border:1px solid #5c1a1a;border-radius:12px;padding:12px 14px;">'
-    + '<div style="font-size:0.72rem;color:#fca5a5;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">JazzCash</div>'
-    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(jcName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.05rem;font-weight:900;color:#fbbf24;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
+    + '<div class="cv-sub-pay-tile jc">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+    + '<span style="font-size:0.7rem;font-weight:800;color:#c4b5fd;letter-spacing:0.04em;">JAZZCASH</span>'
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(jcNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
+    + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(jcName).replace(/</g,'') + '</div>'
+    + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
     + '</div></div>'
     + (note ? '<div style="font-size:0.78rem;color:#aaa;margin-bottom:10px;line-height:1.45;">' + note + '</div>' : '')
     + (support ? '<div style="margin-bottom:10px;">' + support + '</div>' : '');
   var modal = document.createElement('div');
   modal.id = 'cv-sub-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
-  modal.innerHTML = '<div style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;padding:20px;">'
+  modal.style.cssText = 'position:fixed;inset:0;z-index:100050;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;justify-content:center;padding:0;';
+  modal.innerHTML = '<div class="cv-sub-sheet" style="background:#121212;border:1px solid #2a2a2a;border-radius:20px 20px 0 0;max-width:440px;width:100%;max-height:92vh;overflow-y:auto;padding:18px 16px 28px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
     + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
     + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
@@ -6136,15 +6214,31 @@ function cvShowSubModal(cfg, user, mode) {
     + '</div>';
   document.body.appendChild(modal);
   document.getElementById('cv-sub-close').onclick = function(){ modal.remove(); };
+  modal.querySelectorAll('.cv-sub-copy').forEach(function(btn){
+    btn.onclick = function(){
+      var t = btn.getAttribute('data-copy') || '';
+      if (!t) return;
+      var done = function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1200); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(function(){});
+      else { try { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch(e){} }
+    };
+  });
+
   modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
   var selectedPlan = 'monthly';
   modal.querySelectorAll('.cv-sub-plan').forEach(function(btn) {
     btn.onclick = function() {
       selectedPlan = btn.getAttribute('data-plan') || 'monthly';
-      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){ b.style.borderColor = '#333'; });
-      btn.style.borderColor = '#a78bfa';
+      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){
+        b.style.borderColor = '#333';
+        b.classList.remove('selected');
+      });
+      btn.style.borderColor = '#e50914';
+      btn.classList.add('selected');
     };
   });
+  var firstPlan = modal.querySelector('.cv-sub-plan');
+  if (firstPlan) { firstPlan.click(); }
   var loginBtn = document.getElementById('cv-sub-login');
   if (loginBtn) {
     loginBtn.onclick = function() {
@@ -9055,7 +9149,11 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
               + '<div style="display:grid;gap:6px;">'
               + '<div>Plan: <b>' + (sub.planLabel || sub.plan || '—') + '</b>' + (planDays ? ' <span style="color:#888;">(' + planDays + ' days)</span>' : '') + '</div>'
               + '<div>Activated: <b>' + fmtDate(sub.activatedAt || sub.startedAt || sub.updatedAt) + '</b></div>'
-              + '<div>Expires: <b style="color:#fbbf24;">' + fmtDate(sub.expiresAt) + '</b></div>'
+              + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">'
+              + '<div style="background:#0f0f0f;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:#4ade80;">' + left + '</div><div style="font-size:0.68rem;color:#888;">Days left</div></div>'
+              + '<div style="background:#0f0f0f;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:0.85rem;font-weight:800;color:#fbbf24;">' + fmtDate(sub.expiresAt) + '</div><div style="font-size:0.68rem;color:#888;">Expires</div></div></div>'
+              + '<div style="margin-top:8px;font-size:0.75rem;color:#9ca3af;">Plan: <b style="color:#fff;">' + (sub.plan || '—') + '</b>'
+              + (sub.activatedAt ? ' · Active since ' + fmtDate(sub.activatedAt) : '') + '</div>'
               + '<div>Days left: <b>' + left + '</b></div>'
               + '</div>';
             plansBtn.style.display = 'block';
@@ -9417,18 +9515,25 @@ function boot() {
 })();
 
 
-/* Home Request CTA */
-document.addEventListener('click', function(e) {
-  var t = e.target && e.target.closest && e.target.closest('#cv-home-req-open');
-  if (!t) return;
-  e.preventDefault();
-  var wrap = document.getElementById('cv-request-wrap');
-  if (wrap) {
-    wrap.style.display = 'block';
-    wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
     var inp = document.getElementById('cv-req-title');
     if (inp) setTimeout(function(){ inp.focus(); }, 300);
   } else if (typeof window.location !== 'undefined') {
     window.location.href = '/p/contact-us.html';
   }
 });
+
+
+/* boot pay bucket when site ready */
+(function(){
+  function bootPay(){
+    try {
+      if (typeof cvLoadSubSettings === 'function') cvLoadSubSettings(function(cfg){
+        try { cvRenderPayBucket(cfg); } catch(e){}
+      });
+    } catch(e){}
+  }
+  if (document.readyState === 'complete') setTimeout(bootPay, 800);
+  else window.addEventListener('load', function(){ setTimeout(bootPay, 800); });
+  document.addEventListener('cv-data-ready', bootPay);
+})();
