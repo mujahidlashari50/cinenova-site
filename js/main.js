@@ -5443,6 +5443,18 @@ function openModal(key) {
   }
 
   document.getElementById('cv-modal').classList.add('open');
+  try {
+    var _mb = document.getElementById('cv-modal-box');
+    if (_mb) {
+      _mb.style.maxWidth = '100%';
+      _mb.style.width = '100%';
+      _mb.style.height = '100%';
+      _mb.style.maxHeight = '100dvh';
+      _mb.style.borderRadius = '0';
+      _mb.style.margin = '0';
+    }
+  } catch (eF) {}
+
   try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
   try { document.getElementById('cv-modal-box').scrollTop = 0; } catch (eScr) {}
   if (!isRerender) { var _mSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key); cvPushMovieState(_mSlug); cvUpdateSEO(m, _mSlug); }
@@ -5929,72 +5941,22 @@ function cvRenderPayBucket(cfg) {
     el.setAttribute('aria-hidden', 'true');
     return;
   }
-  var epName = (cfg && cfg.easypaisaName) ? cfg.easypaisaName : 'MUJAHID';
-  var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
-  var jcName = (cfg && cfg.jazzcashName) ? cfg.jazzcashName : 'MUJAHID';
-  var jcNum = (cfg && cfg.jazzcashNumber) ? cfg.jazzcashNumber : '03353613905';
-  var n1 = document.getElementById('cv-pay-ep-name');
-  var n2 = document.getElementById('cv-pay-ep-num');
-  var n3 = document.getElementById('cv-pay-jc-name');
-  var n4 = document.getElementById('cv-pay-jc-num');
-  if (n1) n1.textContent = epName;
-  if (n2) n2.textContent = epNum;
-  if (n3) n3.textContent = jcName;
-  if (n4) n4.textContent = jcNum;
+  // Public cards: logo + QR only (no personal numbers)
+  var epQr = document.getElementById('cv-pay-ep-qr');
+  var jcQr = document.getElementById('cv-pay-jc-qr');
+  var bankQr = document.getElementById('cv-pay-bank-qr');
+  if (epQr && cfg.easypaisaQr) epQr.src = cfg.easypaisaQr;
+  if (jcQr && cfg.jazzcashQr) jcQr.src = cfg.jazzcashQr;
+  if (bankQr && cfg.bankQr) bankQr.src = cfg.bankQr;
+  var bankLabel = document.getElementById('cv-pay-bank-label');
+  if (bankLabel) bankLabel.textContent = (cfg.bankName && String(cfg.bankName).trim()) || 'Raqami Islamic Digital Bank';
   var bankCard = document.getElementById('cv-pay-bank-card');
-  var bankName = (cfg && cfg.bankName) ? String(cfg.bankName).trim() : '';
-  var bankTitle = (cfg && cfg.bankTitle) ? String(cfg.bankTitle).trim() : '';
-  var bankAcc = (cfg && cfg.bankAccount) ? String(cfg.bankAccount).trim() : '';
-  var bankIban = (cfg && cfg.bankIban) ? String(cfg.bankIban).trim() : '';
-  if (bankCard) {
-    if (bankAcc || bankIban) {
-      bankCard.style.display = '';
-      var bl = document.getElementById('cv-pay-bank-label');
-      var bti = document.getElementById('cv-pay-bank-title');
-      var bac = document.getElementById('cv-pay-bank-acc');
-      var bib = document.getElementById('cv-pay-bank-iban');
-      if (bl) bl.textContent = bankName || 'Bank';
-      if (bti) bti.textContent = bankTitle || '—';
-      if (bac) bac.textContent = bankAcc || (bankIban || '—');
-      if (bib) {
-        if (bankIban && bankAcc) {
-          bib.style.display = 'block';
-          bib.textContent = 'IBAN: ' + bankIban;
-        } else {
-          bib.style.display = 'none';
-          bib.textContent = '';
-        }
-      }
-    } else {
-      bankCard.style.display = 'none';
-    }
-  }
+  if (bankCard) bankCard.style.display = 'flex';
   el.classList.add('show');
   el.style.display = 'block';
   el.setAttribute('aria-hidden', 'false');
-  el.querySelectorAll('.cv-pay-copy').forEach(function(btn) {
-    btn.onclick = function() {
-      var id = btn.getAttribute('data-target');
-      var node = id ? document.getElementById(id) : null;
-      var txt = node ? String(node.textContent || '').trim() : '';
-      if (!txt) return;
-      var done = function() {
-        var prev = btn.textContent;
-        btn.textContent = 'Copied';
-        setTimeout(function(){ btn.textContent = prev || 'Copy'; }, 1400);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(done).catch(function(){});
-      } else {
-        try {
-          var ta = document.createElement('textarea');
-          ta.value = txt; document.body.appendChild(ta); ta.select();
-          document.execCommand('copy'); ta.remove(); done();
-        } catch (e) {}
-      }
-    };
-  });
 }
+
 
 function cvLoadSubSettings(cb) {
   if (_cvSubSettings && (Date.now() - _cvSubSettingsAt) < 60000) {
@@ -6174,6 +6136,10 @@ function cvShowSubModal(cfg, user, mode) {
   var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
   var jcName = (cfg && cfg.jazzcashName) ? cfg.jazzcashName : 'MUJAHID';
   var jcNum = (cfg && cfg.jazzcashNumber) ? cfg.jazzcashNumber : '03353613905';
+  var bankName = (cfg && cfg.bankName) ? cfg.bankName : 'Raqami Islamic Digital Bank';
+  var bankTitle = (cfg && cfg.bankTitle) ? cfg.bankTitle : 'Mujahid';
+  var bankAcc = (cfg && cfg.bankAccount) ? cfg.bankAccount : '020857992780';
+  var bankIban = (cfg && cfg.bankIban) ? cfg.bankIban : 'PK36RQMI0000020857992780';
   var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : '';
   var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
   var payCards = ''
@@ -6191,6 +6157,15 @@ function cvShowSubModal(cfg, user, mode) {
     + '<button type="button" class="cv-sub-copy" data-copy="' + String(jcNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
     + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(jcName).replace(/</g,'') + '</div>'
     + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
+    + '</div>'
+    + '<div class="cv-sub-pay-tile" style="grid-column:1/-1;background:linear-gradient(145deg,#0c1220,#152238);border:1px solid rgba(59,130,246,.35);border-radius:12px;padding:12px;">'
+    + '<div style="font-size:0.7rem;font-weight:800;color:#93c5fd;letter-spacing:0.04em;margin-bottom:6px;">BANK TRANSFER</div>'
+    + '<div style="font-size:0.78rem;color:#aaa;">Bank: <b style="color:#fff;">' + String(bankName).replace(/</g,'') + '</b></div>'
+    + '<div style="font-size:0.78rem;color:#aaa;">Title: <b style="color:#fff;">' + String(bankTitle).replace(/</g,'') + '</b></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">'
+    + '<span style="font-size:0.95rem;font-weight:900;color:#fff;">' + String(bankAcc).replace(/</g,'') + '</span>'
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(bankAcc).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
+    + (bankIban ? '<div style="font-size:0.72rem;color:#93c5fd;margin-top:6px;word-break:break-all;">IBAN: ' + String(bankIban).replace(/</g,'') + ' <button type="button" class="cv-sub-copy" data-copy="' + String(bankIban).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>' : '')
     + '</div></div>'
     + (note ? '<div style="font-size:0.78rem;color:#aaa;margin-bottom:10px;line-height:1.45;">' + note + '</div>' : '')
     + (support ? '<div style="margin-bottom:10px;">' + support + '</div>' : '');
