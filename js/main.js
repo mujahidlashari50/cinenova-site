@@ -425,8 +425,15 @@ var allData = [];
 // ══ Mobile scroll lock helpers (modal/player only) ══
 function cvScrollLock() {
   try {
+    if (document.documentElement.classList.contains('cv-scroll-lock')) return;
+    var sb = window.innerWidth - document.documentElement.clientWidth;
+    if (sb < 0) sb = 0;
     document.documentElement.classList.add('cv-scroll-lock');
+    document.documentElement.style.setProperty('--cv-sbw', sb + 'px');
     document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = sb ? (sb + 'px') : '';
+    // prevent iOS/Android body bounce shift
+    document.body.style.touchAction = 'none';
   } catch (e) {}
 }
 function cvScrollUnlock() {
@@ -442,10 +449,13 @@ function cvScrollUnlock() {
       (search && search.classList.contains('open') && getComputedStyle(search).display !== 'none');
     if (still) return;
     document.documentElement.classList.remove('cv-scroll-lock');
+    document.documentElement.style.removeProperty('--cv-sbw');
     document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
+    document.body.style.touchAction = '';
   } catch (e) {}
 }
 // Safety: page load + har 3s soft check (stuck lock hatao)
