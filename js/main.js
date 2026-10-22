@@ -27,8 +27,18 @@ try{document.body.classList.add('cv-booting');}catch(e){}
 /* === script === */
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true });
+  // CWV: delay GA until idle so LCP / INP improve on mobile
+  function _cvBootGtag(){
+    try {
+      gtag('js', new Date());
+      gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true, transport_type: 'beacon' });
+    } catch (e) {}
+  }
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(_cvBootGtag, { timeout: 4000 });
+  } else {
+    setTimeout(_cvBootGtag, 2500);
+  }
 
 function cvTrackEvent(name, params) {
   try {
@@ -3396,7 +3406,7 @@ function cvMotdRenderMovie(m) {
       (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
       '<div id="cv-motd-overlay"></div>' +
       '<div id="cv-motd-content">' +
-        (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
+        (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="eager" fetchpriority="high" src="' + thumb + '"/>' : '') +
         '<div style="flex:1;min-width:0">' +
           '<div id="cv-motd-badge">★ Featured</div>' +
           '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
@@ -4107,6 +4117,7 @@ function cvGetCatBucket(cat) {
 }
 
 function renderGrid(resetPage, silent) {
+  window._cvCardImgIdx = 0; // CWV: first 6 posters eager+high each full render
   try { if (typeof cvRefreshAdvanceFilterOptions === 'function' && allData && allData.length) cvRefreshAdvanceFilterOptions(); } catch (eAf) {}
 
   try {
@@ -5028,6 +5039,7 @@ function cvFormatCount(n) {
 function makeCard(m) {
   var div = document.createElement('a');
   div.className = 'cv-card';
+  if (typeof window._cvCardImgIdx !== 'number') window._cvCardImgIdx = 0;
   var key = m._key;
   var slug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key);
   div.href = '/movie/' + slug;
@@ -5062,8 +5074,9 @@ function makeCard(m) {
   }
 
   if (thumb) {
+    var _pri = (window._cvCardImgIdx++ < 6);
     inner += '<div class="cv-card-img-wrap">' +
-      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="' + (_pri ? 'eager' : 'lazy') + '" decoding="async"' + (_pri ? ' fetchpriority="high"' : '') + ' width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
       '<div class="cv-card-no-img" style="display:none">🎬</div>' +
       (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') +
       overlays +
