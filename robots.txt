@@ -1,15 +1,23 @@
+# CineNova — crawler policy
+# Real users + Google/Bing OK. AI training + scrapers blocked.
+
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /admin/
 Disallow: /panel
+Disallow: /panel/
 Disallow: /admin-panel
+Disallow: /admin-panel.html
 Disallow: /*?*cat=adult*
 Disallow: /category/adult
 Disallow: /category/philippines
 Disallow: /category/hot-short
 Disallow: /category/vivamax
+Disallow: /api/
+Disallow: /p/admin
 
-# AI / training crawlers — block
+# ── AI / LLM training crawlers (block all) ──
 User-agent: GPTBot
 Disallow: /
 
@@ -20,6 +28,9 @@ User-agent: Google-Extended
 Disallow: /
 
 User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
 Disallow: /
 
 User-agent: anthropic-ai
@@ -50,6 +61,60 @@ User-agent: Omgili
 Disallow: /
 
 User-agent: PetalBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Ai2Bot
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+User-agent: Webzio-Extended
+Disallow: /
+
+User-agent: ICC-Crawler
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: megaIndex
+Disallow: /
+
+User-agent: Seekport
 Disallow: /
 
 Sitemap: https://www.cinenova.site/sitemap.xml
