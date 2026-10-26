@@ -1,3 +1,18 @@
+
+/* CV_ANTI_SCRAPE — deter bulk copy / headless dump (real users OK) */
+(function(){
+  try {
+    document.addEventListener('copy', function(e){
+      try {
+        var sel = (window.getSelection && String(window.getSelection())) || '';
+        if (sel && sel.length > 800) {
+          e.preventDefault();
+        }
+      } catch (err) {}
+    }, true);
+  } catch (e) {}
+})();
+
 /* === script === */
 document.documentElement.style.background='#141414';
 document.documentElement.style.color='#e5e5e5';
