@@ -2275,3 +2275,6 @@ body.cv-ready #cv-grid{
   .cv-seo-pro-text{font-size:.65rem}
   .cv-seo-pro-links{display:flex;margin:8px 0 0;width:100%}
 }
+
+/* COMING_SOON_GONE */
+#cv-upcoming-wrap,#cv-upcoming-hero,#cv-upcoming-track,#cv-upcoming-dots,#cv-ts-wrap,.cv-cs-card,.cv-cs-play,.cv-cs-date{display:none!important;height:0!important;max-height:0!important;overflow:hidden!important;visibility:hidden!important;pointer-events:none!important;margin:0!important;padding:0!important;border:0!important;}
