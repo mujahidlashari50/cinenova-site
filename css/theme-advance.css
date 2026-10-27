@@ -633,3 +633,6 @@ html.cv-scroll-lock body {
 #cv-subcat-drawer:not(.open) {
   pointer-events: none !important;
 }
+
+/* COMING_SOON_GONE */
+#cv-upcoming-wrap,#cv-upcoming-hero,#cv-upcoming-track,#cv-upcoming-dots,#cv-ts-wrap,.cv-cs-card,.cv-cs-play,.cv-cs-date{display:none!important;height:0!important;max-height:0!important;overflow:hidden!important;visibility:hidden!important;pointer-events:none!important;margin:0!important;padding:0!important;border:0!important;}
