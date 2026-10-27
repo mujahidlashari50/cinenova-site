@@ -1,17 +1,70 @@
+try{ if(typeof cvHideComingSoonDom==="function") cvHideComingSoonDom(); }catch(e){}
 
-/* CV_ANTI_SCRAPE — deter bulk copy / headless dump (real users OK) */
-(function(){
+/* PERMANENT: Coming Soon removed from website */
+window.__CV_COMING_SOON_REMOVED = true;
+function cvHideComingSoonDom() {
   try {
-    document.addEventListener('copy', function(e){
-      try {
-        var sel = (window.getSelection && String(window.getSelection())) || '';
-        if (sel && sel.length > 800) {
-          e.preventDefault();
-        }
-      } catch (err) {}
-    }, true);
-  } catch (e) {}
-})();
+    ['cv-upcoming-wrap','cv-upcoming-hero','cv-upcoming-track','cv-upcoming-dots','cv-ts-wrap','cv-uh-prev','cv-uh-next'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) { el.style.display = 'none'; el.innerHTML = ''; el.setAttribute('hidden',''); }
+    });
+    document.querySelectorAll('.cv-cs-card, [data-cs-idx]').forEach(function(el){
+      try { el.remove(); } catch(e) {}
+    });
+  } catch(e) {}
+}
+
+/* ══ CV PROFESSIONAL SEO — one title for panel + site + Google ══ */
+function cvCleanMovieTitle(title) {
+  var t = String(title || '');
+  t = t.replace(/[\(\[]\s*(19|20)\d{2}\s*[\)\]]/g, ' ');
+  t = t.replace(/\b(19|20)\d{2}\b/g, ' ');
+  t = t.replace(/\b(1080p|720p|480p|2160p|4k|web[\s\-]?dl|webrip|bluray|brrip|hdrip|hevc|x264|x265|10bit|dual[\s\-]?audio|hindi[\s\-]?dubbed|full[\s\-]?movie|download|watch[\s\-]?online|unrated|extended|directors?\s+cut)\b/gi, ' ');
+  t = t.replace(/[\[\]\{\}\|]/g, ' ');
+  t = t.replace(/[-_|]+/g, ' ');
+  t = t.replace(/\s+/g, ' ').trim();
+  // Title Case light (keep existing caps if mixed)
+  return t;
+}
+function cvCleanMovieYear(year) {
+  var y = String(year || '').replace(/\D/g, '');
+  if (y.length >= 4) y = y.substring(0, 4);
+  if (!/^(19|20)\d{2}$/.test(y)) return '';
+  return y;
+}
+function cvProfessionalSeo(title, year, description, quality, categoryLabel) {
+  var clean = cvCleanMovieTitle(title);
+  var y = cvCleanMovieYear(year);
+  if (!clean) clean = String(title || 'Movie').trim();
+  // ONE professional title format
+  var seoTitle = clean + (y ? ' (' + y + ')' : '') + ' Full Movie Download | CineNova';
+  if (seoTitle.length > 70) {
+    seoTitle = clean + (y ? ' (' + y + ')' : '') + ' | CineNova';
+  }
+  if (seoTitle.length > 70) {
+    seoTitle = clean.substring(0, 50).replace(/\s+\S*$/, '') + (y ? ' (' + y + ')' : '') + ' | CineNova';
+  }
+  var plot = String(description || '').replace(/\s+/g, ' ').trim();
+  var seoDesc;
+  if (plot) {
+    var head = clean + (y ? ' (' + y + ')' : '') + ' — ';
+    var room = 155 - head.length - 28;
+    if (room < 40) room = 40;
+    var body = plot.length > room ? plot.substring(0, room - 1).replace(/\s+\S*$/, '') + '…' : plot;
+    seoDesc = head + body + ' Download HD on CineNova.';
+  } else {
+    seoDesc = 'Download ' + clean + (y ? ' (' + y + ')' : '') + ' full movie in HD on CineNova. Direct links, no signup.';
+  }
+  if (seoDesc.length > 160) seoDesc = seoDesc.substring(0, 157) + '…';
+  var seoSlug = (clean + (y ? '-' + y : '')).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  seoSlug = seoSlug.replace(/-(19|20)\d{2}(-(19|20)\d{2})+$/g, function(m) {
+    var parts = m.split('-').filter(Boolean);
+    return parts.length ? '-' + parts[parts.length - 1] : '';
+  });
+  var kw = [clean, y, quality, categoryLabel, 'full movie download', 'HD', 'CineNova'].filter(Boolean).join(', ');
+  return { title: seoTitle, desc: seoDesc, slug: seoSlug, keywords: kw, cleanTitle: clean, year: y };
+}
+
 
 /* === script === */
 document.documentElement.style.background='#141414';
@@ -3003,7 +3056,7 @@ var cvTsClones = 0;
 var cvTsTotal = 0;
 var cvTsInterval = null;
 
-function cvComingSoonTrailerUrl(m) {
+function cvComingSoonTrailerUrl(m) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return null; }
   if (!m) return '';
   var u = m.trailerUrl || m.trailer || m.youtube || m.trailerKey || '';
   if (!u) return '';
@@ -3021,7 +3074,7 @@ function cvComingSoonTrailerUrl(m) {
   return u;
 }
 
-function cvPlayComingSoon(m) {
+function cvPlayComingSoon(m) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   if (!m) return;
   try { if (typeof cvTrackEvent === 'function') cvTrackEvent('coming_soon_trailer', { title: m.title || '' }); } catch (e) {}
 
@@ -3160,7 +3213,7 @@ function cvPlayComingSoon(m) {
     });
 }
 
-function buildTsSlider() {
+function buildTsSlider() { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   var wrap = document.getElementById('cv-ts-wrap');
   var track = document.getElementById('cv-ts-track');
   // Sirf Home — Coming Soon
@@ -3176,7 +3229,7 @@ function buildTsSlider() {
     return;
   }
   if (window._cvComingSoonSiteOff === undefined && typeof db !== 'undefined' && db) {
-    db.ref('settings/comingSoonEnabled').once('value').then(function(snap) {
+    db.ref('settings/comingSoonEnabled').once('value').then(function(snap) { if (window.__CV_COMING_SOON_REMOVED) { cvHideComingSoonDom(); return; }
       var v = snap.val();
       window._cvComingSoonSiteOff = (v === false || v === 'false' || v === 0);
       if (window._cvComingSoonSiteOff) {
@@ -3248,7 +3301,7 @@ function buildTsSlider() {
 
   // 1) Panel-selected list from Firebase comingSoon
   if (db) {
-    db.ref('comingSoon').once('value').then(function(snap) {
+    db.ref('comingSoon').once('value').then(function(snap) { if (window.__CV_COMING_SOON_REMOVED) { cvHideComingSoonDom(); return; }
       var items = [];
       if (snap && snap.exists()) {
         snap.forEach(function(ch) {
@@ -3299,7 +3352,7 @@ function buildTsSlider() {
   }
 }
 
-function cvTsSnap(track, cardStep) {
+function cvTsSnap(track, cardStep) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   track.style.transition = 'transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94)';
   track.style.transform = 'translateX(-' + (cvTsIndex * cardStep) + 'px)';
   if (cvTsIndex >= cvTsTotal + cvTsClones) {
@@ -3310,13 +3363,13 @@ function cvTsSnap(track, cardStep) {
   }
 }
 
-function cvTsAutoPlay(track, cardStep) {
+function cvTsAutoPlay(track, cardStep) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   clearInterval(cvTsInterval);
   if (cvTsTotal <= 1) return;
   cvTsInterval = setInterval(function() { if (document.hidden) return; cvTsIndex++; cvTsSnap(track, cardStep); }, 3500);
 }
 
-function cvTsMove(dir) {
+function cvTsMove(dir) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   var track = document.getElementById('cv-ts-track');
   if (!track) return;
   var cardStep = cvTsCardW + 10;
@@ -3325,7 +3378,7 @@ function cvTsMove(dir) {
   cvTsAutoPlay(track, cardStep);
 }
 
-function cvTsSetupDrag(track, cardStep) {
+function cvTsSetupDrag(track, cardStep) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   // ✅ PERF FIX: same listener-accumulation issue as setupTrendingDrag() —
   // guard against re-attaching on every buildTsSlider() re-render.
   track._cvCardStep = cardStep;
@@ -3347,7 +3400,7 @@ function cvTsSetupDrag(track, cardStep) {
 (function() {
   try {
     if (typeof db === 'undefined' || !db) return;
-    db.ref('settings/comingSoonEnabled').on('value', function(snap) {
+    db.ref('settings/comingSoonEnabled').on('value', function(snap) { if (window.__CV_COMING_SOON_REMOVED) { cvHideComingSoonDom(); return; }
       var v = snap.val();
       window._cvComingSoonSiteOff = (v === false || v === 'false' || v === 0);
       var wrap = document.getElementById('cv-ts-wrap');
@@ -7373,7 +7426,7 @@ var cvUhMovies = [];
 var cvUhIndex = 0;
 var cvUhTimer = null;
 
-function cvUhRender(movies) {
+function cvUhRender(movies) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   cvUhMovies = movies;
   var track = document.getElementById('cv-upcoming-track');
   var dotsEl = document.getElementById('cv-upcoming-dots');
@@ -7430,7 +7483,7 @@ function cvUhRender(movies) {
   }, 50);
 }
 
-function cvUhGoTo(idx) {
+function cvUhGoTo(idx) { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   var movies = cvUhMovies;
   if (!movies.length) return;
   cvUhIndex = (idx + movies.length) % movies.length;
@@ -7443,7 +7496,7 @@ function cvUhGoTo(idx) {
   slides.forEach(function(s, i) { s.classList.toggle('active', i === cvUhIndex); });
 }
 
-function cvUhAutoPlay() {
+function cvUhAutoPlay() { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   clearInterval(cvUhTimer);
   cvUhTimer = setInterval(function() {
     if (document.hidden) return; // tab background ho to CPU/battery bachao
@@ -7451,7 +7504,7 @@ function cvUhAutoPlay() {
   }, 5000);
 }
 
-function cvUhLoadData() {
+function cvUhLoadData() { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComingSoonDom();}catch(e){} return; }
   var wrap = document.getElementById('cv-upcoming-wrap');
   if (!wrap) return;
   var today = new Date().toISOString().slice(0, 10);
@@ -8540,10 +8593,9 @@ function cvUpdateSEO(m, slug) {
     var _qmSeo = String(m.quality || '').match(/\d{3,4}\s*p/i);
     if (_qmSeo) _qpSeo = _qmSeo[0].replace(/\s+/g, '').toUpperCase();
   } catch (eQ) {}
-  var richTitle = m.seoTitle || (title + year + (_qpSeo ? ' ' + _qpSeo : '') + ' Full Movie Download | CineNova');
-  if (!m.seoTitle && richTitle.length > 68) {
-    richTitle = title + year + ' Full Movie Download | CineNova';
-  }
+  var _seoP = cvProfessionalSeo(title, m.year || (year||'').replace(/[()]/g,''), m.description || m.seoDesc || '', m.quality || '', catLab);
+  var richTitle = (m.seoTitle && String(m.seoTitle).indexOf('CineNova') >= 0) ? m.seoTitle : _seoP.title;
+  if (richTitle.length > 70) richTitle = _seoP.title;
 
   // ✅ Firebase seoDesc OR intent-rich description
   var desc = m.seoDesc
@@ -9476,7 +9528,7 @@ function boot() {
       ensureNavBtn();
     }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ try{cvHideComingSoonDom();}catch(e){} boot(); });
   else boot();
   setTimeout(boot, 800);
   setTimeout(boot, 2500);
