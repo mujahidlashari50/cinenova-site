@@ -32,39 +32,14 @@ function cvCleanMovieYear(year) {
   if (!/^(19|20)\d{2}$/.test(y)) return '';
   return y;
 }
-
-function cvSeoLangLabel(cat, language, title) {
-  var c = String(cat || '').toLowerCase().replace(/[\s\-]+/g, '_');
-  var lang = String(language || '').toLowerCase();
-  var t = String(title || '').toLowerCase();
-  if (c === 'english_movies' || c === 'english') return 'English';
-  if (c === 'dual_audio') return 'Dual Audio';
-  if (c === 'south_hindi') return 'South Hindi Dubbed';
-  if (c === 'bollywood_hindi') return 'Bollywood Hindi';
-  if (c === 'hindi_dubbed') return 'Hindi Dubbed';
-  if (c === 'webseries_hindi') return 'Hindi Web Series';
-  if (c === 'kdrama_hindi') return 'K-Drama Hindi Dubbed';
-  if (c === 'anime_hindi') return 'Anime Hindi Dubbed';
-  if (c === 'animation_hindi_dubbed') return 'Animation Hindi Dubbed';
-  if (c === 'philippines') return 'Philippines';
-  if (c === 'hot_short_hindi') return 'Hot Short Hindi';
-  if (c === 'adult') return 'Adult';
-  if (/dual\s*audio/i.test(lang + ' ' + t)) return 'Dual Audio';
-  if (/english/i.test(lang) && !/hindi/i.test(lang)) return 'English';
-  if (/hindi/i.test(lang + ' ' + t)) return 'Hindi Dubbed';
-  return '';
-}
-
 function cvProfessionalSeo(title, year, description, quality, categoryLabel) {
   var clean = cvCleanMovieTitle(title);
   var y = cvCleanMovieYear(year);
   if (!clean) clean = String(title || 'Movie').trim();
   // ONE professional title format
-  var langLabel = (typeof cvSeoLangLabel === 'function') ? cvSeoLangLabel(categoryLabel, '', title) : '';
-    var mid = (y ? ' (' + y + ')' : '') + (langLabel ? ' ' + langLabel : '');
-    var seoTitle = clean + mid + ' Watch Online & Download | CineNova';
+  var seoTitle = clean + (y ? ' (' + y + ')' : '') + ' Full Movie Download | CineNova';
   if (seoTitle.length > 70) {
-    seoTitle = clean + mid + ' | CineNova';
+    seoTitle = clean + (y ? ' (' + y + ')' : '') + ' | CineNova';
   }
   if (seoTitle.length > 70) {
     seoTitle = clean.substring(0, 50).replace(/\s+\S*$/, '') + (y ? ' (' + y + ')' : '') + ' | CineNova';
