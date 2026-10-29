@@ -3334,7 +3334,7 @@ function buildTsSlider() { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComi
     function makeTsCard(m, idx) {
       var thumb = m.thumbnail || m.poster || '';
       var imgHtml = thumb
-        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
+        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" data-orig="' + escHtml(thumbOrig || '') + '" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
         : '<div class="cv-card-no-img">🎬</div>';
       var dateBadge = (m.releaseDate || m.year)
         ? '<div class="cv-badge cv-cs-date">' + escHtml(String(m.releaseDate || m.year)) + '</div>'
@@ -5204,6 +5204,7 @@ function makeCard(m) {
   var cat = (m.category || '').toLowerCase();
   var isNew = m.addedAt && (NOW_TS - m.addedAt) < NEW_THRESHOLD;
   var thumb = cvThumb(m.thumbnail || '');
+  var thumbOrig = cvThumbOrig(m.thumbnail || '');
   var inner = '';
 
   // Build overlay badges that live INSIDE poster wrap
@@ -5227,7 +5228,7 @@ function makeCard(m) {
   if (thumb) {
     var _pri = (window._cvCardImgIdx++ < 6);
     inner += '<div class="cv-card-img-wrap">' +
-      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="' + (_pri ? 'eager' : 'lazy') + '" decoding="async"' + (_pri ? ' fetchpriority="high"' : '') + ' width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" data-orig="' + escHtml(thumbOrig || '') + '" src="' + escHtml(thumb) + '" loading="' + (_pri ? 'eager' : 'lazy') + '" decoding="async"' + (_pri ? ' fetchpriority="high"' : '') + ' width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
       '<div class="cv-card-no-img" style="display:none">🎬</div>' +
       (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') +
       overlays +
@@ -5260,6 +5261,12 @@ function showError(msg) {
 // MODAL (UPGRADED)
 // ══════════════════════════════════
 function openModal(key) {
+  // Instant open — user feels fast; content fills next frame
+  try {
+    var _mEl = document.getElementById('cv-modal');
+    if (_mEl) _mEl.classList.add('open');
+    if (typeof cvLockScroll === 'function') cvLockScroll();
+  } catch (_eOpen) {}
   var m = allData.find(function(x) { return x._key === key; });
   if (!m && db && key) {
     // Fast path: single movie fetch (not in memory yet)
@@ -8445,20 +8452,19 @@ document.getElementById('cv-share-sheet').addEventListener('click', function(e) 
 
 function cvThumb(url) {
   if (!url) return '';
-  // wsrv.nl se 300x450 optimized image — faster load
   try {
     if (url.indexOf('wsrv.nl') > -1) return url;
-    // ✅ DOUBLE-ENCODING FIX: agar admin panel se aayi url mein pehle se
-    // encoded characters (jaise %20) maujood hon, to encodeURIComponent()
-    // unhe dobara encode kar deta (%20 → %2520), jis se wsrv.nl 400 deta
-    // tha aur poster/cast image broken dikhti thi. Pehle safely decode
-    // karo (agar already-encoded na ho to decodeURIComponent chup-chap
-    // wahi string wapis kar deta hai), phir ek hi baar encode karo.
     var cleanUrl = url;
     try { cleanUrl = decodeURIComponent(url); } catch(e2) { cleanUrl = url; }
-    return 'https://wsrv.nl/?url=' + encodeURIComponent(cleanUrl) + '&w=300&h=450&fit=cover&output=webp&q=80';
+    // Smaller + lower quality for grid = less blank-while-scroll
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(cleanUrl) + '&w=240&h=360&fit=cover&output=webp&q=65';
   } catch(e) { return url; }
 }
+function cvThumbOrig(url) {
+  if (!url) return '';
+  try { return decodeURIComponent(url); } catch(e) { return url; }
+}
+
 
 function escHtml(s) {
   return String(s)
@@ -9080,11 +9086,17 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 
 /* === cv-perf-scroll === */
 (function(){
-  var t = null;
+  var t = null, on = false;
   window.addEventListener('scroll', function(){
-    document.body.classList.add('cv-scrolling');
+    if (!on) {
+      on = true;
+      document.body.classList.add('cv-scrolling');
+    }
     if (t) clearTimeout(t);
-    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 120);
+    t = setTimeout(function(){
+      on = false;
+      document.body.classList.remove('cv-scrolling');
+    }, 150);
   }, { passive: true });
 })();
 
