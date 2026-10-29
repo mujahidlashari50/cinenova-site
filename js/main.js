@@ -91,7 +91,8 @@ function cvParseRating(m) {
 function cvRatingBadgeHtml(m) {
   var p = cvParseRating(m);
   if (!p) return '';
-  return '<div class="cv-badge cv-rating-badge" title="Rating ' + p.score + '/10"><span class="cv-stars">' + p.stars + '</span> <span class="cv-score">' + p.score + '</span></div>';
+  // Compact pro badge — score only (stars clutter poster)
+  return '<div class="cv-rating-badge" title="Rating ' + p.score + '/10"><span class="cv-rating-star">★</span><span class="cv-score">' + p.score + '</span></div>';
 }
 function cvRatingText(m) {
   var p = cvParseRating(m);
@@ -2756,7 +2757,7 @@ function featuredShowSlide(idx) {
   if (metaEl) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
-    if (m.rating)   metaParts.push({t:'rating',v: (typeof cvRatingText==='function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating)});
+    if (m.rating)   metaParts.push({t:'rating',v: (typeof cvParseRating==='function' && cvParseRating(m)) ? ('★ ' + cvParseRating(m).score) : ('★ ' + m.rating)});
     if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
     if (m.language) metaParts.push({t:'lang',v:m.language});
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
@@ -3792,7 +3793,7 @@ function buildTrending() {
       var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(m._key);
       html += '<a class="cv-slide-card" href="/movie/' + escHtml(slug) + '" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
         imgHtml +
-        (typeof cvParseRating==='function' && cvParseRating(m) ? '<div class="cv-slide-badge cv-rating-badge">' + cvParseRating(m).label + '</div>' : (m.rating ? '<div class="cv-slide-badge">★ ' + m.rating + '</div>' : '')) +
+        (typeof cvParseRating==='function' && cvParseRating(m) ? '<div class="cv-slide-badge cv-rating-badge">★ ' + cvParseRating(m).score + '</div>' : (m.rating ? '<div class="cv-slide-badge">★ ' + m.rating + '</div>' : '')) +
         '<div class="cv-trend-num">' + (i + 1) + '</div>' +
         '<div class="cv-slide-info">' +
           '<div class="cv-slide-title">' + escHtml(m.title || 'Untitled') + '</div>' +
@@ -5065,9 +5066,9 @@ function cvPatchCard(card, m) {
 
     var badgeEl = card.querySelector('.cv-badge');
     if (m.rating && badgeEl) {
-      var _rt = (typeof cvRatingText === 'function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating);
+      var _rt = (typeof cvParseRating === 'function' && cvParseRating(m)) ? ('★ ' + cvParseRating(m).score) : ('★ ' + m.rating);
       if (badgeEl.textContent !== _rt) badgeEl.textContent = _rt;
-      badgeEl.classList.add('cv-rating-badge');
+      badgeEl.className = (badgeEl.className || '') + ' cv-rating-badge';
     }
   } catch (e) {}
 }
@@ -5352,7 +5353,7 @@ function openModal(key) {
   // Badges
   var badges = '';
   if (m.year) badges += '<span class="cv-mbadge">📅 ' + m.year + '</span>';
-  if (typeof cvParseRating === 'function' && cvParseRating(m)) { var _rp = cvParseRating(m); badges += '<span class="cv-mbadge cv-rating-badge" title="Rating ' + _rp.score + '/10">' + _rp.stars + ' ' + _rp.score + '</span>'; } else if (m.rating) badges += '<span class="cv-mbadge">★ ' + m.rating + '</span>';
+  if (typeof cvParseRating === 'function' && cvParseRating(m)) { var _rp = cvParseRating(m); badges += '<span class="cv-mbadge cv-rating-badge" title="Rating ' + _rp.score + '/10">★ ' + _rp.score + '</span>'; } else if (m.rating) badges += '<span class="cv-mbadge">★ ' + m.rating + '</span>';
   if (m.category) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.category||'').toLowerCase(), false) : ('/category/' + String(m.category||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
   if (m.genre) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.genre||'').toLowerCase(), true) : ('/genre/' + String(m.genre||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
