@@ -91,8 +91,7 @@ function cvParseRating(m) {
 function cvRatingBadgeHtml(m) {
   var p = cvParseRating(m);
   if (!p) return '';
-  // Compact pro badge — score only (stars clutter poster)
-  return '<div class="cv-rating-badge" title="Rating ' + p.score + '/10"><span class="cv-rating-star">★</span><span class="cv-score">' + p.score + '</span></div>';
+  return '<div class="cv-badge cv-rating-badge" title="Rating ' + p.score + '/10"><span class="cv-stars">' + p.stars + '</span> <span class="cv-score">' + p.score + '</span></div>';
 }
 function cvRatingText(m) {
   var p = cvParseRating(m);
@@ -2757,7 +2756,7 @@ function featuredShowSlide(idx) {
   if (metaEl) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
-    if (m.rating)   metaParts.push({t:'rating',v: (typeof cvParseRating==='function' && cvParseRating(m)) ? ('★ ' + cvParseRating(m).score) : ('★ ' + m.rating)});
+    if (m.rating)   metaParts.push({t:'rating',v: (typeof cvRatingText==='function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating)});
     if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
     if (m.language) metaParts.push({t:'lang',v:m.language});
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
@@ -3334,7 +3333,7 @@ function buildTsSlider() { if (window.__CV_COMING_SOON_REMOVED) { try{cvHideComi
     function makeTsCard(m, idx) {
       var thumb = m.thumbnail || m.poster || '';
       var imgHtml = thumb
-        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" data-orig="' + escHtml(thumbOrig || '') + '" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
+        ? '<div class="cv-card-img-wrap"><img alt="Movie Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\'"><div class="cv-card-no-img" style="display:none;">🎬</div><div class="cv-cs-play">▶</div></div>'
         : '<div class="cv-card-no-img">🎬</div>';
       var dateBadge = (m.releaseDate || m.year)
         ? '<div class="cv-badge cv-cs-date">' + escHtml(String(m.releaseDate || m.year)) + '</div>'
@@ -3793,7 +3792,7 @@ function buildTrending() {
       var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(m._key);
       html += '<a class="cv-slide-card" href="/movie/' + escHtml(slug) + '" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
         imgHtml +
-        (typeof cvParseRating==='function' && cvParseRating(m) ? '<div class="cv-slide-badge cv-rating-badge">★ ' + cvParseRating(m).score + '</div>' : (m.rating ? '<div class="cv-slide-badge">★ ' + m.rating + '</div>' : '')) +
+        (typeof cvParseRating==='function' && cvParseRating(m) ? '<div class="cv-slide-badge cv-rating-badge">' + cvParseRating(m).label + '</div>' : (m.rating ? '<div class="cv-slide-badge">★ ' + m.rating + '</div>' : '')) +
         '<div class="cv-trend-num">' + (i + 1) + '</div>' +
         '<div class="cv-slide-info">' +
           '<div class="cv-slide-title">' + escHtml(m.title || 'Untitled') + '</div>' +
@@ -5025,7 +5024,6 @@ function cvRenderPage(silent) {
   grid.appendChild(frag);
   grid._cvCardMap = cardMap;
   grid._cvLastKeys = newKeys;
-  try { if (typeof window.cvMarkContentReady === 'function') window.cvMarkContentReady(); } catch (eR) {}
 
   // Page top pe scroll karo (smoothly) — ✅ ANTI-BLINK FIX: sirf tab jab ye
   // asal user pagination click ho (silent !== true). Pehle ye HAR render
@@ -5066,9 +5064,9 @@ function cvPatchCard(card, m) {
 
     var badgeEl = card.querySelector('.cv-badge');
     if (m.rating && badgeEl) {
-      var _rt = (typeof cvParseRating === 'function' && cvParseRating(m)) ? ('★ ' + cvParseRating(m).score) : ('★ ' + m.rating);
+      var _rt = (typeof cvRatingText === 'function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating);
       if (badgeEl.textContent !== _rt) badgeEl.textContent = _rt;
-      badgeEl.className = (badgeEl.className || '') + ' cv-rating-badge';
+      badgeEl.classList.add('cv-rating-badge');
     }
   } catch (e) {}
 }
@@ -5204,7 +5202,6 @@ function makeCard(m) {
   var cat = (m.category || '').toLowerCase();
   var isNew = m.addedAt && (NOW_TS - m.addedAt) < NEW_THRESHOLD;
   var thumb = cvThumb(m.thumbnail || '');
-  var thumbOrig = cvThumbOrig(m.thumbnail || '');
   var inner = '';
 
   // Build overlay badges that live INSIDE poster wrap
@@ -5228,7 +5225,7 @@ function makeCard(m) {
   if (thumb) {
     var _pri = (window._cvCardImgIdx++ < 6);
     inner += '<div class="cv-card-img-wrap">' +
-      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" data-orig="' + escHtml(thumbOrig || '') + '" src="' + escHtml(thumb) + '" loading="' + (_pri ? 'eager' : 'lazy') + '" decoding="async"' + (_pri ? ' fetchpriority="high"' : '') + ' width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="' + (_pri ? 'eager' : 'lazy') + '" decoding="async"' + (_pri ? ' fetchpriority="high"' : '') + ' width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
       '<div class="cv-card-no-img" style="display:none">🎬</div>' +
       (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') +
       overlays +
@@ -5261,12 +5258,6 @@ function showError(msg) {
 // MODAL (UPGRADED)
 // ══════════════════════════════════
 function openModal(key) {
-  // Instant open — user feels fast; content fills next frame
-  try {
-    var _mEl = document.getElementById('cv-modal');
-    if (_mEl) _mEl.classList.add('open');
-    if (typeof cvLockScroll === 'function') cvLockScroll();
-  } catch (_eOpen) {}
   var m = allData.find(function(x) { return x._key === key; });
   if (!m && db && key) {
     // Fast path: single movie fetch (not in memory yet)
@@ -5360,7 +5351,7 @@ function openModal(key) {
   // Badges
   var badges = '';
   if (m.year) badges += '<span class="cv-mbadge">📅 ' + m.year + '</span>';
-  if (typeof cvParseRating === 'function' && cvParseRating(m)) { var _rp = cvParseRating(m); badges += '<span class="cv-mbadge cv-rating-badge" title="Rating ' + _rp.score + '/10">★ ' + _rp.score + '</span>'; } else if (m.rating) badges += '<span class="cv-mbadge">★ ' + m.rating + '</span>';
+  if (typeof cvParseRating === 'function' && cvParseRating(m)) { var _rp = cvParseRating(m); badges += '<span class="cv-mbadge cv-rating-badge" title="Rating ' + _rp.score + '/10">' + _rp.stars + ' ' + _rp.score + '</span>'; } else if (m.rating) badges += '<span class="cv-mbadge">★ ' + m.rating + '</span>';
   if (m.category) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.category||'').toLowerCase(), false) : ('/category/' + String(m.category||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
   if (m.genre) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.genre||'').toLowerCase(), true) : ('/genre/' + String(m.genre||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
@@ -8452,19 +8443,20 @@ document.getElementById('cv-share-sheet').addEventListener('click', function(e) 
 
 function cvThumb(url) {
   if (!url) return '';
+  // wsrv.nl se 300x450 optimized image — faster load
   try {
     if (url.indexOf('wsrv.nl') > -1) return url;
+    // ✅ DOUBLE-ENCODING FIX: agar admin panel se aayi url mein pehle se
+    // encoded characters (jaise %20) maujood hon, to encodeURIComponent()
+    // unhe dobara encode kar deta (%20 → %2520), jis se wsrv.nl 400 deta
+    // tha aur poster/cast image broken dikhti thi. Pehle safely decode
+    // karo (agar already-encoded na ho to decodeURIComponent chup-chap
+    // wahi string wapis kar deta hai), phir ek hi baar encode karo.
     var cleanUrl = url;
     try { cleanUrl = decodeURIComponent(url); } catch(e2) { cleanUrl = url; }
-    // Smaller + lower quality for grid = less blank-while-scroll
-    return 'https://wsrv.nl/?url=' + encodeURIComponent(cleanUrl) + '&w=240&h=360&fit=cover&output=webp&q=65';
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(cleanUrl) + '&w=300&h=450&fit=cover&output=webp&q=80';
   } catch(e) { return url; }
 }
-function cvThumbOrig(url) {
-  if (!url) return '';
-  try { return decodeURIComponent(url); } catch(e) { return url; }
-}
-
 
 function escHtml(s) {
   return String(s)
@@ -9046,57 +9038,24 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 
 /* === cv-boot-ready === */
 (function(){
-  function hasCards(){
-    try {
-      var g = document.getElementById('cv-grid');
-      return !!(g && g.querySelector('.cv-card'));
-    } catch(e) { return false; }
-  }
-  function paintSkelIfEmpty(){
-    try {
-      var g = document.getElementById('cv-grid');
-      if (!g) return;
-      if (g.querySelector('.cv-card')) return;
-      if (g.querySelector('.cv-skel')) return;
-      var sk = "<div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>";
-      g.innerHTML = sk + sk + sk + sk + sk + sk + sk + sk;
-    } catch(e) {}
-  }
-  function ready(force){
+  function ready(){
     try{
-      paintSkelIfEmpty();
-      // Don't drop skeleton until real posters exist (unless forced late)
-      if (!force && !hasCards()) return;
       document.body.classList.remove('cv-booting');
       document.body.classList.add('cv-ready');
     }catch(e){}
   }
-  window.cvMarkContentReady = function(){ ready(true); };
-  // Retry until cards appear (max ~8s), then force ready
-  var n = 0;
-  var iv = setInterval(function(){
-    n++;
-    if (hasCards()) { clearInterval(iv); ready(true); }
-    else if (n >= 40) { clearInterval(iv); ready(true); }
-    else paintSkelIfEmpty();
-  }, 200);
-  if(document.readyState==='complete') paintSkelIfEmpty();
-  else window.addEventListener('load', paintSkelIfEmpty);
+  if(document.readyState==='complete') ready();
+  else window.addEventListener('load', ready);
+  setTimeout(ready, 1200);
 })();
 
 /* === cv-perf-scroll === */
 (function(){
-  var t = null, on = false;
+  var t = null;
   window.addEventListener('scroll', function(){
-    if (!on) {
-      on = true;
-      document.body.classList.add('cv-scrolling');
-    }
+    document.body.classList.add('cv-scrolling');
     if (t) clearTimeout(t);
-    t = setTimeout(function(){
-      on = false;
-      document.body.classList.remove('cv-scrolling');
-    }, 150);
+    t = setTimeout(function(){ document.body.classList.remove('cv-scrolling'); }, 120);
   }, { passive: true });
 })();
 
