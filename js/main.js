@@ -32,14 +32,82 @@ function cvCleanMovieYear(year) {
   if (!/^(19|20)\d{2}$/.test(y)) return '';
   return y;
 }
+
+function cvSeoLangLabel(cat, language, title) {
+  var c = String(cat || '').toLowerCase().replace(/[\s\-]+/g, '_');
+  var lang = String(language || '').toLowerCase();
+  var t = String(title || '').toLowerCase();
+  if (c === 'english_movies' || c === 'english') return 'English';
+  if (c === 'dual_audio') return 'Dual Audio';
+  if (c === 'south_hindi') return 'South Hindi Dubbed';
+  if (c === 'bollywood_hindi') return 'Bollywood Hindi';
+  if (c === 'hindi_dubbed') return 'Hindi Dubbed';
+  if (c === 'webseries_hindi') return 'Hindi Web Series';
+  if (c === 'kdrama_hindi') return 'K-Drama Hindi Dubbed';
+  if (c === 'anime_hindi') return 'Anime Hindi Dubbed';
+  if (c === 'animation_hindi_dubbed') return 'Animation Hindi Dubbed';
+  if (c === 'philippines') return 'Philippines';
+  if (c === 'hot_short_hindi') return 'Hot Short Hindi';
+  if (c === 'adult') return 'Adult';
+  if (/dual\s*audio/i.test(lang + ' ' + t)) return 'Dual Audio';
+  if (/english/i.test(lang) && !/hindi/i.test(lang)) return 'English';
+  if (/hindi/i.test(lang + ' ' + t)) return 'Hindi Dubbed';
+  return '';
+}
+
+
+/** Professional rating for cards/modal — uses movie.rating (0–10 scale). Returns HTML-safe text parts. */
+function cvParseRating(m) {
+  if (!m) return null;
+  var r = m.rating != null ? m.rating : (m.imdbRating != null ? m.imdbRating : m.vote_average);
+  if (r == null || r === '') return null;
+  var n = parseFloat(String(r).replace(/[^0-9.]/g, ''));
+  if (!isFinite(n) || n <= 0) return null;
+  // normalize: if already 0–5 scale, map to 10
+  if (n <= 5 && String(r).indexOf('/') < 0) {
+    // keep as-is if looks like 7.8 style most are 0-10
+  }
+  if (n > 10) n = 10;
+  var outOf10 = n;
+  var outOf5 = Math.round((outOf10 / 2) * 10) / 10;
+  var full = Math.floor(outOf5);
+  var half = (outOf5 - full) >= 0.4 ? 1 : 0;
+  var empty = 5 - full - half;
+  if (empty < 0) empty = 0;
+  var stars = '';
+  for (var i = 0; i < full; i++) stars += '★';
+  if (half) stars += '☆';
+  for (var j = 0; j < empty; j++) stars += '☆';
+  // Prefer solid stars only for cleaner look
+  stars = '';
+  var filled = Math.max(0, Math.min(5, Math.round(outOf5)));
+  for (var k = 0; k < 5; k++) stars += (k < filled ? '★' : '☆');
+  return {
+    score: (Math.round(outOf10 * 10) / 10).toFixed(1).replace(/\.0$/, ''),
+    stars: stars,
+    label: stars + ' ' + (Math.round(outOf10 * 10) / 10).toFixed(1)
+  };
+}
+function cvRatingBadgeHtml(m) {
+  var p = cvParseRating(m);
+  if (!p) return '';
+  return '<div class="cv-badge cv-rating-badge" title="Rating ' + p.score + '/10"><span class="cv-stars">' + p.stars + '</span> <span class="cv-score">' + p.score + '</span></div>';
+}
+function cvRatingText(m) {
+  var p = cvParseRating(m);
+  return p ? p.label : '';
+}
+
 function cvProfessionalSeo(title, year, description, quality, categoryLabel) {
   var clean = cvCleanMovieTitle(title);
   var y = cvCleanMovieYear(year);
   if (!clean) clean = String(title || 'Movie').trim();
   // ONE professional title format
-  var seoTitle = clean + (y ? ' (' + y + ')' : '') + ' Full Movie Download | CineNova';
+  var langLabel = (typeof cvSeoLangLabel === 'function') ? cvSeoLangLabel(categoryLabel, '', title) : '';
+    var mid = (y ? ' (' + y + ')' : '') + (langLabel ? ' ' + langLabel : '');
+    var seoTitle = clean + mid + ' Watch Online & Download | CineNova';
   if (seoTitle.length > 70) {
-    seoTitle = clean + (y ? ' (' + y + ')' : '') + ' | CineNova';
+    seoTitle = clean + mid + ' | CineNova';
   }
   if (seoTitle.length > 70) {
     seoTitle = clean.substring(0, 50).replace(/\s+\S*$/, '') + (y ? ' (' + y + ')' : '') + ' | CineNova';
@@ -2688,7 +2756,7 @@ function featuredShowSlide(idx) {
   if (metaEl) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
-    if (m.rating)   metaParts.push({t:'rating',v:'★ ' + m.rating});
+    if (m.rating)   metaParts.push({t:'rating',v: (typeof cvRatingText==='function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating)});
     if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
     if (m.language) metaParts.push({t:'lang',v:m.language});
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
@@ -3724,7 +3792,7 @@ function buildTrending() {
       var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(m._key);
       html += '<a class="cv-slide-card" href="/movie/' + escHtml(slug) + '" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
         imgHtml +
-        (m.rating ? '<div class="cv-slide-badge">⭐ ' + m.rating + '</div>' : '') +
+        (typeof cvParseRating==='function' && cvParseRating(m) ? '<div class="cv-slide-badge cv-rating-badge">' + cvParseRating(m).label + '</div>' : (m.rating ? '<div class="cv-slide-badge">★ ' + m.rating + '</div>' : '')) +
         '<div class="cv-trend-num">' + (i + 1) + '</div>' +
         '<div class="cv-slide-info">' +
           '<div class="cv-slide-title">' + escHtml(m.title || 'Untitled') + '</div>' +
@@ -4757,7 +4825,7 @@ function cvBuildFilteredList() {
 
 // Home feed MIX — har panel category ka newest pehle, phir round-robin
 // taake Home pe Bollywood / South / Hollywood Hindi / Dual / Series mix dikhe
-// (HDFun-style mixed latest, adult Home pe nahi).
+// (mixed latest feed; adult not on Home).
 function cvInterleaveByCategory(list) {
   if (!list || list.length < 3) return list || [];
   var ADULT = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1,
@@ -4809,7 +4877,7 @@ function cvInterleaveByCategory(list) {
       return String(b._key || '') < String(a._key || '') ? 1 : -1;
     });
   });
-  // Preferred home order (HDFun-like variety on first screen)
+  // Preferred home category mix order
   var prefer = ['hindi_dubbed','bollywood_hindi','south_hindi','dual_audio','english_movies','webseries_hindi','kdrama_hindi','animation','punjabi','other'];
   order.sort(function(a, b) {
     var ia = prefer.indexOf(a); if (ia < 0) ia = 99;
@@ -4956,6 +5024,7 @@ function cvRenderPage(silent) {
   grid.appendChild(frag);
   grid._cvCardMap = cardMap;
   grid._cvLastKeys = newKeys;
+  try { if (typeof window.cvMarkContentReady === 'function') window.cvMarkContentReady(); } catch (eR) {}
 
   // Page top pe scroll karo (smoothly) — ✅ ANTI-BLINK FIX: sirf tab jab ye
   // asal user pagination click ho (silent !== true). Pehle ye HAR render
@@ -4995,8 +5064,10 @@ function cvPatchCard(card, m) {
     }
 
     var badgeEl = card.querySelector('.cv-badge');
-    if (m.rating && badgeEl && badgeEl.textContent !== '⭐ ' + m.rating) {
-      badgeEl.textContent = '⭐ ' + m.rating;
+    if (m.rating && badgeEl) {
+      var _rt = (typeof cvRatingText === 'function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating);
+      if (badgeEl.textContent !== _rt) badgeEl.textContent = _rt;
+      badgeEl.classList.add('cv-rating-badge');
     }
   } catch (e) {}
 }
@@ -5136,7 +5207,7 @@ function makeCard(m) {
 
   // Build overlay badges that live INSIDE poster wrap
   var overlays = '';
-  if (m.rating) overlays += '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>';
+  if (typeof cvRatingBadgeHtml === 'function' && cvParseRating(m)) overlays += cvRatingBadgeHtml(m); else if (m.rating) overlays += '<div class="cv-badge cv-rating-badge">★ ' + escHtml(String(m.rating)) + '</div>';
   if (m.quality) {
     var _qm = String(m.quality).match(/\d{3,4}\s*p/i);
     var _qp = _qm ? _qm[0].replace(/\s+/g, '').toUpperCase() : String(m.quality).split(/[|/·,]/)[0].trim().substring(0, 6);
@@ -5281,7 +5352,7 @@ function openModal(key) {
   // Badges
   var badges = '';
   if (m.year) badges += '<span class="cv-mbadge">📅 ' + m.year + '</span>';
-  if (m.rating) badges += '<span class="cv-mbadge">⭐ ' + m.rating + '</span>';
+  if (typeof cvParseRating === 'function' && cvParseRating(m)) { var _rp = cvParseRating(m); badges += '<span class="cv-mbadge cv-rating-badge" title="Rating ' + _rp.score + '/10">' + _rp.stars + ' ' + _rp.score + '</span>'; } else if (m.rating) badges += '<span class="cv-mbadge">★ ' + m.rating + '</span>';
   if (m.category) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.category||'').toLowerCase(), false) : ('/category/' + String(m.category||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
   if (m.genre) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.genre||'').toLowerCase(), true) : ('/genre/' + String(m.genre||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
@@ -8968,15 +9039,42 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
 
 /* === cv-boot-ready === */
 (function(){
-  function ready(){
+  function hasCards(){
+    try {
+      var g = document.getElementById('cv-grid');
+      return !!(g && g.querySelector('.cv-card'));
+    } catch(e) { return false; }
+  }
+  function paintSkelIfEmpty(){
+    try {
+      var g = document.getElementById('cv-grid');
+      if (!g) return;
+      if (g.querySelector('.cv-card')) return;
+      if (g.querySelector('.cv-skel')) return;
+      var sk = "<div class='cv-skel'><div class='cv-skel-img'></div><div class='cv-skel-bar'></div><div class='cv-skel-bar short'></div></div>";
+      g.innerHTML = sk + sk + sk + sk + sk + sk + sk + sk;
+    } catch(e) {}
+  }
+  function ready(force){
     try{
+      paintSkelIfEmpty();
+      // Don't drop skeleton until real posters exist (unless forced late)
+      if (!force && !hasCards()) return;
       document.body.classList.remove('cv-booting');
       document.body.classList.add('cv-ready');
     }catch(e){}
   }
-  if(document.readyState==='complete') ready();
-  else window.addEventListener('load', ready);
-  setTimeout(ready, 1200);
+  window.cvMarkContentReady = function(){ ready(true); };
+  // Retry until cards appear (max ~8s), then force ready
+  var n = 0;
+  var iv = setInterval(function(){
+    n++;
+    if (hasCards()) { clearInterval(iv); ready(true); }
+    else if (n >= 40) { clearInterval(iv); ready(true); }
+    else paintSkelIfEmpty();
+  }, 200);
+  if(document.readyState==='complete') paintSkelIfEmpty();
+  else window.addEventListener('load', paintSkelIfEmpty);
 })();
 
 /* === cv-perf-scroll === */
