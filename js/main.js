@@ -55,49 +55,6 @@ function cvSeoLangLabel(cat, language, title) {
   return '';
 }
 
-
-/** Professional rating for cards/modal — uses movie.rating (0–10 scale). Returns HTML-safe text parts. */
-function cvParseRating(m) {
-  if (!m) return null;
-  var r = m.rating != null ? m.rating : (m.imdbRating != null ? m.imdbRating : m.vote_average);
-  if (r == null || r === '') return null;
-  var n = parseFloat(String(r).replace(/[^0-9.]/g, ''));
-  if (!isFinite(n) || n <= 0) return null;
-  // normalize: if already 0–5 scale, map to 10
-  if (n <= 5 && String(r).indexOf('/') < 0) {
-    // keep as-is if looks like 7.8 style most are 0-10
-  }
-  if (n > 10) n = 10;
-  var outOf10 = n;
-  var outOf5 = Math.round((outOf10 / 2) * 10) / 10;
-  var full = Math.floor(outOf5);
-  var half = (outOf5 - full) >= 0.4 ? 1 : 0;
-  var empty = 5 - full - half;
-  if (empty < 0) empty = 0;
-  var stars = '';
-  for (var i = 0; i < full; i++) stars += '★';
-  if (half) stars += '☆';
-  for (var j = 0; j < empty; j++) stars += '☆';
-  // Prefer solid stars only for cleaner look
-  stars = '';
-  var filled = Math.max(0, Math.min(5, Math.round(outOf5)));
-  for (var k = 0; k < 5; k++) stars += (k < filled ? '★' : '☆');
-  return {
-    score: (Math.round(outOf10 * 10) / 10).toFixed(1).replace(/\.0$/, ''),
-    stars: stars,
-    label: stars + ' ' + (Math.round(outOf10 * 10) / 10).toFixed(1)
-  };
-}
-function cvRatingBadgeHtml(m) {
-  var p = cvParseRating(m);
-  if (!p) return '';
-  return '<div class="cv-badge cv-rating-badge" title="Rating ' + p.score + '/10"><span class="cv-stars">' + p.stars + '</span> <span class="cv-score">' + p.score + '</span></div>';
-}
-function cvRatingText(m) {
-  var p = cvParseRating(m);
-  return p ? p.label : '';
-}
-
 function cvProfessionalSeo(title, year, description, quality, categoryLabel) {
   var clean = cvCleanMovieTitle(title);
   var y = cvCleanMovieYear(year);
@@ -2756,7 +2713,7 @@ function featuredShowSlide(idx) {
   if (metaEl) {
     var metaParts = [];
     if (m.year)     metaParts.push({t:'year',v:m.year});
-    if (m.rating)   metaParts.push({t:'rating',v: (typeof cvRatingText==='function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating)});
+    if (m.rating)   metaParts.push({t:'rating',v:'★ ' + m.rating});
     if (m.genre)    metaParts.push({t:'genre',v:m.genre.charAt(0).toUpperCase()+m.genre.slice(1)});
     if (m.language) metaParts.push({t:'lang',v:m.language});
     if (m.quality)  metaParts.push({t:'qual',v:m.quality});
@@ -3792,7 +3749,7 @@ function buildTrending() {
       var slug = m.seoSlug || (typeof cvSlug === 'function' ? cvSlug(m.title) : '') || encodeURIComponent(m._key);
       html += '<a class="cv-slide-card" href="/movie/' + escHtml(slug) + '" style="position:relative;width:' + trendingCardW + 'px;flex-shrink:0" onclick="event.preventDefault();openModal(\'' + escJs(m._key) + '\')">' +
         imgHtml +
-        (typeof cvParseRating==='function' && cvParseRating(m) ? '<div class="cv-slide-badge cv-rating-badge">' + cvParseRating(m).label + '</div>' : (m.rating ? '<div class="cv-slide-badge">★ ' + m.rating + '</div>' : '')) +
+        (m.rating ? '<div class="cv-slide-badge">⭐ ' + m.rating + '</div>' : '') +
         '<div class="cv-trend-num">' + (i + 1) + '</div>' +
         '<div class="cv-slide-info">' +
           '<div class="cv-slide-title">' + escHtml(m.title || 'Untitled') + '</div>' +
@@ -4825,7 +4782,7 @@ function cvBuildFilteredList() {
 
 // Home feed MIX — har panel category ka newest pehle, phir round-robin
 // taake Home pe Bollywood / South / Hollywood Hindi / Dual / Series mix dikhe
-// (mixed latest feed; adult not on Home).
+// (HDFun-style mixed latest, adult Home pe nahi).
 function cvInterleaveByCategory(list) {
   if (!list || list.length < 3) return list || [];
   var ADULT = {adult:1, adult_hindi:1, adult_english:1, hot_series:1, vivamax:1,
@@ -4877,7 +4834,7 @@ function cvInterleaveByCategory(list) {
       return String(b._key || '') < String(a._key || '') ? 1 : -1;
     });
   });
-  // Preferred home category mix order
+  // Preferred home order (HDFun-like variety on first screen)
   var prefer = ['hindi_dubbed','bollywood_hindi','south_hindi','dual_audio','english_movies','webseries_hindi','kdrama_hindi','animation','punjabi','other'];
   order.sort(function(a, b) {
     var ia = prefer.indexOf(a); if (ia < 0) ia = 99;
@@ -5063,10 +5020,8 @@ function cvPatchCard(card, m) {
     }
 
     var badgeEl = card.querySelector('.cv-badge');
-    if (m.rating && badgeEl) {
-      var _rt = (typeof cvRatingText === 'function' && cvRatingText(m)) ? cvRatingText(m) : ('★ ' + m.rating);
-      if (badgeEl.textContent !== _rt) badgeEl.textContent = _rt;
-      badgeEl.classList.add('cv-rating-badge');
+    if (m.rating && badgeEl && badgeEl.textContent !== '⭐ ' + m.rating) {
+      badgeEl.textContent = '⭐ ' + m.rating;
     }
   } catch (e) {}
 }
@@ -5206,7 +5161,7 @@ function makeCard(m) {
 
   // Build overlay badges that live INSIDE poster wrap
   var overlays = '';
-  if (typeof cvRatingBadgeHtml === 'function' && cvParseRating(m)) overlays += cvRatingBadgeHtml(m); else if (m.rating) overlays += '<div class="cv-badge cv-rating-badge">★ ' + escHtml(String(m.rating)) + '</div>';
+  if (m.rating) overlays += '<div class="cv-badge">⭐ ' + escHtml(String(m.rating)) + '</div>';
   if (m.quality) {
     var _qm = String(m.quality).match(/\d{3,4}\s*p/i);
     var _qp = _qm ? _qm[0].replace(/\s+/g, '').toUpperCase() : String(m.quality).split(/[|/·,]/)[0].trim().substring(0, 6);
@@ -5351,7 +5306,7 @@ function openModal(key) {
   // Badges
   var badges = '';
   if (m.year) badges += '<span class="cv-mbadge">📅 ' + m.year + '</span>';
-  if (typeof cvParseRating === 'function' && cvParseRating(m)) { var _rp = cvParseRating(m); badges += '<span class="cv-mbadge cv-rating-badge" title="Rating ' + _rp.score + '/10">' + _rp.stars + ' ' + _rp.score + '</span>'; } else if (m.rating) badges += '<span class="cv-mbadge">★ ' + m.rating + '</span>';
+  if (m.rating) badges += '<span class="cv-mbadge">⭐ ' + m.rating + '</span>';
   if (m.category) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.category||'').toLowerCase(), false) : ('/category/' + String(m.category||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.category||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎬 ' + m.category + '</a>';
   if (m.genre) badges += '<a class="cv-mbadge" href="' + ((typeof cvBuildFilterUrl === 'function') ? cvBuildFilterUrl((m.genre||'').toLowerCase(), true) : ('/genre/' + String(m.genre||'').toLowerCase().replace(/_/g,'-'))) + '" onclick="event.preventDefault();cvGoBack();setTimeout(function(){var p=document.querySelector(\'.cv-pill[data-cat=\\"' + escJs((m.genre||'').toLowerCase()) + '\\"]\');if(p)p.click();},300)" style="cursor:pointer;text-decoration:none">🎭 ' + m.genre + '</a>';
   if (m.language) badges += '<span class="cv-mbadge">🌐 ' + m.language + '</span>';
