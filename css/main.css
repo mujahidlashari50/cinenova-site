@@ -2348,3 +2348,7 @@ footer, .cv-footer, #cv-footer, .cvf-wrap{
   border:1px solid rgba(255,255,255,0.08);
   box-shadow:0 24px 64px rgba(0,0,0,.65);
 }
+
+/* keep skeleton until cards */
+body.cv-ready #cv-grid:not(:has(.cv-card)) .cv-skel{display:flex!important;}
+body.cv-ready #cv-grid:has(.cv-card) .cv-skel{display:none!important;}
