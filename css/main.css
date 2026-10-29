@@ -780,11 +780,11 @@ html.cv-maint-lock,body.cv-maint-lock{overflow:hidden!important}
 /* === cv-perf-fix === */
 /* Cards: browser skip offscreen layout */
 #cv-grid .cv-card{
-  content-visibility: auto;
+  /* content-visibility off — blank poster fix */
   contain-intrinsic-size: 150px 280px;
 }
 #cv-grid{
-  content-visibility: auto;
+  /* content-visibility off — blank poster fix */
 }
 /* Scroll jank kam: heavy blur kam */
 @media (max-width: 900px){
@@ -828,7 +828,7 @@ body.cv-scrolling #cv-nav{ transition: none !important; }
 #cv-grid > .cv-card,
 .cv-card{
   contain: layout style;
-  content-visibility: auto;
+  /* content-visibility off — blank poster fix */
   contain-intrinsic-size: auto 220px;
   height: auto !important;
   align-self: start !important;
@@ -2411,3 +2411,39 @@ footer, .cv-footer, #cv-footer, .cvf-wrap{
 /* keep skeleton until cards */
 body.cv-ready #cv-grid:not(:has(.cv-card)) .cv-skel{display:flex!important;}
 body.cv-ready #cv-grid:has(.cv-card) .cv-skel{display:none!important;}
+
+/* CV_SCROLL_FAST — scroll / open feel */
+@media (hover: none), (max-width: 900px) {
+  .cv-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .cv-card {
+    transition: none !important;
+  }
+}
+#cv-grid .cv-card,
+.cv-card {
+  content-visibility: visible !important;
+  contain: layout style !important;
+  transform: translateZ(0);
+}
+#cv-grid .cv-card-img,
+.cv-card-img {
+  background-color: #1a1a1a;
+  content-visibility: visible !important;
+}
+body.cv-scrolling .cv-card:hover {
+  transform: none !important;
+}
+body.cv-scrolling #cv-modal,
+body.cv-scrolling .cv-card {
+  pointer-events: none;
+}
+/* Faster modal paint */
+#cv-modal.open {
+  will-change: opacity;
+}
+#cv-modal-box {
+  -webkit-overflow-scrolling: touch;
+}
