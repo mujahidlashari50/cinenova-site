@@ -2279,18 +2279,77 @@ body.cv-ready #cv-grid{
 /* COMING_SOON_GONE */
 #cv-upcoming-wrap,#cv-upcoming-hero,#cv-upcoming-track,#cv-upcoming-dots,#cv-ts-wrap,.cv-cs-card,.cv-cs-play,.cv-cs-date{display:none!important;height:0!important;max-height:0!important;overflow:hidden!important;visibility:hidden!important;pointer-events:none!important;margin:0!important;padding:0!important;border:0!important;}
 
-/* Professional star ratings */
-.cv-rating-badge,.cv-badge.cv-rating-badge{
-  background:rgba(0,0,0,.72)!important;
-  color:#fbbf24!important;
-  font-weight:700;
-  letter-spacing:.02em;
-  border:1px solid rgba(251,191,36,.35);
-  backdrop-filter:blur(4px);
+/* Professional rating — compact top-right */
+.cv-card-img-wrap{ position:relative; }
+.cv-rating-badge{
+  position:absolute !important;
+  top:6px !important;
+  right:6px !important;
+  left:auto !important;
+  z-index:3;
+  display:inline-flex !important;
+  align-items:center;
+  gap:2px;
+  padding:3px 7px !important;
+  border-radius:6px !important;
+  background:rgba(0,0,0,.78) !important;
+  border:1px solid rgba(251,191,36,.45) !important;
+  color:#fbbf24 !important;
+  font-size:0.68rem !important;
+  font-weight:800 !important;
+  line-height:1.2 !important;
+  letter-spacing:0.02em;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+  pointer-events:none;
+  max-width:none !important;
+  white-space:nowrap;
 }
-.cv-rating-badge .cv-stars,.cv-mbadge.cv-rating-badge{color:#fbbf24;}
-.cv-rating-badge .cv-score{color:#fff;font-weight:800;margin-left:2px;}
-.cv-slide-badge.cv-rating-badge{background:rgba(0,0,0,.65);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
+.cv-rating-badge .cv-rating-star{
+  color:#f5c518;
+  font-size:0.62rem;
+  line-height:1;
+}
+.cv-rating-badge .cv-score{
+  color:#fff !important;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  font-size:0.68rem;
+}
+/* Quality pill stays top-left, never overlap rating */
+.cv-q-pill{
+  position:absolute !important;
+  top:6px !important;
+  left:6px !important;
+  right:auto !important;
+  z-index:3;
+}
+.cv-mbadge.cv-rating-badge{
+  position:static !important;
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:4px 10px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(251,191,36,.35);
+  color:#fbbf24;
+  font-size:0.78rem;
+  font-weight:700;
+}
+.cv-slide-badge.cv-rating-badge{
+  position:absolute;
+  top:8px;
+  right:8px;
+  left:auto;
+  padding:4px 8px;
+  border-radius:6px;
+  background:rgba(0,0,0,.75);
+  color:#fbbf24;
+  font-size:0.72rem;
+  font-weight:800;
+}
 
 /* CV_PRO_POLISH — less "local/amateur" feel */
 html{ -webkit-text-size-adjust:100%; }
