@@ -277,3 +277,7 @@ body.cv-cat-view #tmdb-slider-wrap {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
+
+/* full width sync */
+#cv-grid { width:100% !important; content-visibility:visible !important; }
+#cv-grid .cv-card { content-visibility:visible !important; contain:none !important; }
