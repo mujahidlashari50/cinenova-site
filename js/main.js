@@ -27,8 +27,18 @@ try{document.body.classList.add('cv-booting');}catch(e){}
 /* === script === */
 window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true });
+  // CWV: delay GA until idle so LCP / INP improve on mobile
+  function _cvBootGtag(){
+    try {
+      gtag('js', new Date());
+      gtag('config', 'G-N67Y5B8T2Z', { send_page_view: true, transport_type: 'beacon' });
+    } catch (e) {}
+  }
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(_cvBootGtag, { timeout: 4000 });
+  } else {
+    setTimeout(_cvBootGtag, 2500);
+  }
 
 function cvTrackEvent(name, params) {
   try {
@@ -415,8 +425,15 @@ var allData = [];
 // ══ Mobile scroll lock helpers (modal/player only) ══
 function cvScrollLock() {
   try {
+    if (document.documentElement.classList.contains('cv-scroll-lock')) return;
+    var sb = window.innerWidth - document.documentElement.clientWidth;
+    if (sb < 0) sb = 0;
     document.documentElement.classList.add('cv-scroll-lock');
+    document.documentElement.style.setProperty('--cv-sbw', sb + 'px');
     document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = sb ? (sb + 'px') : '';
+    // prevent iOS/Android body bounce shift
+    document.body.style.touchAction = 'none';
   } catch (e) {}
 }
 function cvScrollUnlock() {
@@ -432,10 +449,13 @@ function cvScrollUnlock() {
       (search && search.classList.contains('open') && getComputedStyle(search).display !== 'none');
     if (still) return;
     document.documentElement.classList.remove('cv-scroll-lock');
+    document.documentElement.style.removeProperty('--cv-sbw');
     document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
+    document.body.style.touchAction = '';
   } catch (e) {}
 }
 // Safety: page load + har 3s soft check (stuck lock hatao)
@@ -2185,6 +2205,7 @@ function setupInfiniteScroll() {
     isStaticPage = true;
     pageContent = '<div class="page-hero" style="text-align:center;padding:50px 20px 40px;position:relative;overflow:hidden"><div style="content:\'\';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(229,9,20,0.12) 0%,transparent 70%);pointer-events:none"></div><span style="font-size:3.5rem;margin-bottom:16px;display:block">🎬</span><h1 style="font-size:2rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:10px">About <span style="color:var(--red)">CineNova</span></h1><p style="font-size:0.95rem;color:var(--grey);line-height:1.7;max-width:520px;margin:0 auto">Your ultimate destination for movies, web series, and entertainment — free, fast, and always updated.</p></div>'
     + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:18px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--red);margin-bottom:4px">5K+</div><div style="font-size:0.72rem;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Movies</div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:18px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--red);margin-bottom:4px">500+</div><div style="font-size:0.72rem;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Web Series</div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:12px;padding:18px 12px;text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--red);margin-bottom:4px">Daily</div><div style="font-size:0.72rem;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Updates</div></div></div>'
+    + + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:22px;margin-bottom:14px"><h2 style="font-size:1rem;font-weight:800;margin-bottom:10px">▶ How to Watch</h2><p style="font-size:0.88rem;color:#bbb;line-height:1.7">1) Open any movie poster.<br>2) Tap <b style="color:#fff">Watch Now</b>.<br>3) Play full screen on-site — no extra apps.</p></div>'+ '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:22px;margin-bottom:14px"><h2 style="font-size:1rem;font-weight:800;margin-bottom:10px">⬇ Fast Download (1080p)</h2><p style="font-size:0.88rem;color:#bbb;line-height:1.7">Every title has a direct <b style="color:#fff">1080p Fast Download</b> link — secure, no fake buttons, no redirect spam.</p></div>'+ '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:22px;margin-bottom:14px"><h2 style="font-size:1rem;font-weight:800;margin-bottom:10px">📬 Request a Movie</h2><p style="font-size:0.88rem;color:#bbb;line-height:1.7">Title missing? Request from home or Contact page — we upload regularly based on user requests.</p></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🎯</div><h2 style="font-size:1rem;font-weight:800">Who We Are</h2></div><p style="font-size:0.88rem;color:#bbb;line-height:1.8;margin-bottom:10px">CineNova is a free entertainment platform dedicated to bringing you the latest and greatest in movies, web series, and digital content. We are passionate cinephiles who believe great entertainment should be accessible to everyone.</p><p style="font-size:0.88rem;color:#bbb;line-height:1.8;margin-bottom:10px">Our team works around the clock to curate, organize, and update our library with fresh content — from Hollywood blockbusters and Bollywood hits to Korean dramas and animated gems.</p><div style="display:inline-flex;align-items:center;gap:8px;background:rgba(229,9,20,0.1);border:1px solid rgba(229,9,20,0.25);border-radius:20px;padding:8px 16px;font-size:0.82rem;font-weight:700;color:#ff6b6b;margin-top:10px">❤️ Built with passion by the CineNova Team</div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">⚡</div><h2 style="font-size:1rem;font-weight:800">What Makes Us Different</h2></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🌟</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">HD Quality</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">480p, 720p & 1080p</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🔄</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">Daily Updates</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">New content every day</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">📱</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">Mobile Friendly</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">All devices supported</p></div></div><div style="background:var(--card2);border:1px solid #1e1e1e;border-radius:10px;padding:14px;display:flex;align-items:flex-start;gap:10px"><span style="font-size:1.2rem;flex-shrink:0">🆓</span><div><h4 style="font-size:0.82rem;font-weight:700;margin-bottom:3px">100% Free</h4><p style="font-size:0.76rem;color:var(--grey);line-height:1.5;margin:0">No subscriptions, always free</p></div></div></div></div>'
     + '<div style="background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="width:42px;height:42px;border-radius:12px;background:rgba(229,9,20,0.12);border:1px solid rgba(229,9,20,0.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🚀</div><h2 style="font-size:1rem;font-weight:800">Our Mission</h2></div><p style="font-size:0.88rem;color:#bbb;line-height:1.8;margin-bottom:10px">Our mission is simple — to be the most comprehensive, user-friendly, and up-to-date entertainment hub on the internet. We believe that language, geography, or budget should never be a barrier to enjoying great cinema.</p><p style="font-size:0.88rem;color:#bbb;line-height:1.8">We are constantly improving our platform, adding new features, and listening to our community\'s feedback to deliver the best possible experience.</p></div>'
@@ -3396,7 +3417,7 @@ function cvMotdRenderMovie(m) {
       (thumb ? '<div id="cv-motd-bg" style="background-image:url(\'' + thumb + '\')"></div>' : '') +
       '<div id="cv-motd-overlay"></div>' +
       '<div id="cv-motd-content">' +
-        (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="lazy" src="' + thumb + '"/>' : '') +
+        (thumb ? '<img id="cv-motd-poster" alt="' + escHtml(m.title || '') + '" loading="eager" fetchpriority="high" src="' + thumb + '"/>' : '') +
         '<div style="flex:1;min-width:0">' +
           '<div id="cv-motd-badge">★ Featured</div>' +
           '<div id="cv-motd-title">' + escHtml(m.title || '') + '</div>' +
@@ -4107,6 +4128,7 @@ function cvGetCatBucket(cat) {
 }
 
 function renderGrid(resetPage, silent) {
+  window._cvCardImgIdx = 0; // CWV: first 6 posters eager+high each full render
   try { if (typeof cvRefreshAdvanceFilterOptions === 'function' && allData && allData.length) cvRefreshAdvanceFilterOptions(); } catch (eAf) {}
 
   try {
@@ -5028,6 +5050,7 @@ function cvFormatCount(n) {
 function makeCard(m) {
   var div = document.createElement('a');
   div.className = 'cv-card';
+  if (typeof window._cvCardImgIdx !== 'number') window._cvCardImgIdx = 0;
   var key = m._key;
   var slug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key);
   div.href = '/movie/' + slug;
@@ -5062,8 +5085,9 @@ function makeCard(m) {
   }
 
   if (thumb) {
+    var _pri = (window._cvCardImgIdx++ < 6);
     inner += '<div class="cv-card-img-wrap">' +
-      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="lazy" decoding="async" width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
+      '<img alt="' + escHtml((m.title || 'Movie')) + ' Poster" class="cv-card-img" src="' + escHtml(thumb) + '" loading="' + (_pri ? 'eager' : 'lazy') + '" decoding="async"' + (_pri ? ' fetchpriority="high"' : '') + ' width="150" height="225" onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'flex\')">' +
       '<div class="cv-card-no-img" style="display:none">🎬</div>' +
       (cvHasNewEpisode(m) ? '<div class="cv-ep-alert-badge">🔔 NEW EP</div>' : '') +
       overlays +
@@ -5138,6 +5162,29 @@ function openModal(key) {
   window._cvCurrentKey   = key;
   window._cvCurrentTitle = m.title || '';
   window._cvCurrentThumb = m.thumbnail || '';
+
+  // Ambient glow from poster (cinematic modal)
+  try {
+    var boxAmb = document.getElementById('cv-modal-box');
+    var amb = document.getElementById('cv-modal-ambient');
+    if (boxAmb && !amb) {
+      amb = document.createElement('div');
+      amb.id = 'cv-modal-ambient';
+      amb.setAttribute('aria-hidden', 'true');
+      boxAmb.insertBefore(amb, boxAmb.firstChild);
+    }
+    if (boxAmb) boxAmb.classList.add('cv-has-ambient');
+    if (amb) {
+      var srcAmb = m.thumbnail || m.poster || '';
+      if (srcAmb) {
+        try { srcAmb = decodeURIComponent(srcAmb); } catch (eA) {}
+        amb.style.backgroundImage = 'url("' + String(srcAmb).replace(/\\/g, '').replace(/"/g, '') + '")';
+      } else {
+        amb.style.backgroundImage = 'none';
+      }
+    }
+  } catch (eAmb) {}
+
 
   var bkBtn = document.getElementById('cv-modal-bookmark');
   if (bkBtn) bkBtn.classList.toggle('cv-bookmarked', cvIsInWatchlist(key));
@@ -5396,6 +5443,18 @@ function openModal(key) {
   }
 
   document.getElementById('cv-modal').classList.add('open');
+  try {
+    var _mb = document.getElementById('cv-modal-box');
+    if (_mb) {
+      _mb.style.maxWidth = '100%';
+      _mb.style.width = '100%';
+      _mb.style.height = '100%';
+      _mb.style.maxHeight = '100dvh';
+      _mb.style.borderRadius = '0';
+      _mb.style.margin = '0';
+    }
+  } catch (eF) {}
+
   try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
   try { document.getElementById('cv-modal-box').scrollTop = 0; } catch (eScr) {}
   if (!isRerender) { var _mSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key); cvPushMovieState(_mSlug); cvUpdateSEO(m, _mSlug); }
@@ -5871,6 +5930,8 @@ var _cvSubSettings = null;
 var _cvSubCache = null; // { uid, sub, checkedAt }
 var _cvSubSettingsAt = 0;
 
+
+
 function cvLoadSubSettings(cb) {
   if (_cvSubSettings && (Date.now() - _cvSubSettingsAt) < 60000) {
     if (cb) cb(_cvSubSettings);
@@ -6048,26 +6109,43 @@ function cvShowSubModal(cfg, user, mode) {
   var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
   var jcName = (cfg && cfg.jazzcashName) ? cfg.jazzcashName : 'MUJAHID';
   var jcNum = (cfg && cfg.jazzcashNumber) ? cfg.jazzcashNumber : '03353613905';
+  var bankName = (cfg && cfg.bankName) ? cfg.bankName : 'Raqami Islamic Digital Bank';
+  var bankTitle = (cfg && cfg.bankTitle) ? cfg.bankTitle : 'Mujahid';
+  var bankAcc = (cfg && cfg.bankAccount) ? cfg.bankAccount : '020857992780';
+  var bankIban = (cfg && cfg.bankIban) ? cfg.bankIban : 'PK36RQMI0000020857992780';
   var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : '';
   var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
   var payCards = ''
-    + '<div style="display:grid;gap:10px;margin-bottom:12px;">'
-    + '<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);border:1px solid #334155;border-radius:12px;padding:12px 14px;">'
-    + '<div style="font-size:0.72rem;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">EasyPaisa</div>'
-    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(epName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.05rem;font-weight:900;color:#4ade80;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
+    + '<div class="cv-sub-pay-grid">'
+    + '<div class="cv-sub-pay-tile ep">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+    + '<span style="font-size:0.7rem;font-weight:800;color:#4ade80;letter-spacing:0.04em;">EASYPAISA</span>'
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(epNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
+    + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(epName).replace(/</g,'') + '</div>'
+    + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
     + '</div>'
-    + '<div style="background:linear-gradient(135deg,#1a0a0a,#2a1010);border:1px solid #5c1a1a;border-radius:12px;padding:12px 14px;">'
-    + '<div style="font-size:0.72rem;color:#fca5a5;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">JazzCash</div>'
-    + '<div style="font-weight:800;color:#fff;font-size:0.95rem;">' + String(jcName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.05rem;font-weight:900;color:#fbbf24;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
+    + '<div class="cv-sub-pay-tile jc">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+    + '<span style="font-size:0.7rem;font-weight:800;color:#c4b5fd;letter-spacing:0.04em;">JAZZCASH</span>'
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(jcNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
+    + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(jcName).replace(/</g,'') + '</div>'
+    + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
+    + '</div>'
+    + '<div class="cv-sub-pay-tile" style="grid-column:1/-1;background:linear-gradient(145deg,#0c1220,#152238);border:1px solid rgba(59,130,246,.35);border-radius:12px;padding:12px;">'
+    + '<div style="font-size:0.7rem;font-weight:800;color:#93c5fd;letter-spacing:0.04em;margin-bottom:6px;">BANK TRANSFER</div>'
+    + '<div style="font-size:0.78rem;color:#aaa;">Bank: <b style="color:#fff;">' + String(bankName).replace(/</g,'') + '</b></div>'
+    + '<div style="font-size:0.78rem;color:#aaa;">Title: <b style="color:#fff;">' + String(bankTitle).replace(/</g,'') + '</b></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">'
+    + '<span style="font-size:0.95rem;font-weight:900;color:#fff;">' + String(bankAcc).replace(/</g,'') + '</span>'
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(bankAcc).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
+    + (bankIban ? '<div style="font-size:0.72rem;color:#93c5fd;margin-top:6px;word-break:break-all;">IBAN: ' + String(bankIban).replace(/</g,'') + ' <button type="button" class="cv-sub-copy" data-copy="' + String(bankIban).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>' : '')
     + '</div></div>'
     + (note ? '<div style="font-size:0.78rem;color:#aaa;margin-bottom:10px;line-height:1.45;">' + note + '</div>' : '')
     + (support ? '<div style="margin-bottom:10px;">' + support + '</div>' : '');
   var modal = document.createElement('div');
   modal.id = 'cv-sub-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
-  modal.innerHTML = '<div style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;padding:20px;">'
+  modal.style.cssText = 'position:fixed;inset:0;z-index:100050;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;justify-content:center;padding:0;';
+  modal.innerHTML = '<div class="cv-sub-sheet" style="background:#121212;border:1px solid #2a2a2a;border-radius:20px 20px 0 0;max-width:440px;width:100%;max-height:92vh;overflow-y:auto;padding:18px 16px 28px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
     + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
     + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
@@ -6078,7 +6156,7 @@ function cvShowSubModal(cfg, user, mode) {
       + payCards
       + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Payment method</label>'
       + '<select id="cv-sub-method" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;">'
-      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option></select></div>'
+      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option><option value="bank">Bank Transfer</option></select></div>'
       + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Transaction ID / TID</label>'
       + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Enter Transaction ID from your payment" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
       + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">Enter 10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
@@ -6089,15 +6167,31 @@ function cvShowSubModal(cfg, user, mode) {
     + '</div>';
   document.body.appendChild(modal);
   document.getElementById('cv-sub-close').onclick = function(){ modal.remove(); };
+  modal.querySelectorAll('.cv-sub-copy').forEach(function(btn){
+    btn.onclick = function(){
+      var t = btn.getAttribute('data-copy') || '';
+      if (!t) return;
+      var done = function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1200); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(function(){});
+      else { try { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch(e){} }
+    };
+  });
+
   modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
   var selectedPlan = 'monthly';
   modal.querySelectorAll('.cv-sub-plan').forEach(function(btn) {
     btn.onclick = function() {
       selectedPlan = btn.getAttribute('data-plan') || 'monthly';
-      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){ b.style.borderColor = '#333'; });
-      btn.style.borderColor = '#a78bfa';
+      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){
+        b.style.borderColor = '#333';
+        b.classList.remove('selected');
+      });
+      btn.style.borderColor = '#e50914';
+      btn.classList.add('selected');
     };
   });
+  var firstPlan = modal.querySelector('.cv-sub-plan');
+  if (firstPlan) { firstPlan.click(); }
   var loginBtn = document.getElementById('cv-sub-login');
   if (loginBtn) {
     loginBtn.onclick = function() {
@@ -9008,7 +9102,11 @@ document.getElementById('cvf-year').textContent=new Date().getFullYear();
               + '<div style="display:grid;gap:6px;">'
               + '<div>Plan: <b>' + (sub.planLabel || sub.plan || '—') + '</b>' + (planDays ? ' <span style="color:#888;">(' + planDays + ' days)</span>' : '') + '</div>'
               + '<div>Activated: <b>' + fmtDate(sub.activatedAt || sub.startedAt || sub.updatedAt) + '</b></div>'
-              + '<div>Expires: <b style="color:#fbbf24;">' + fmtDate(sub.expiresAt) + '</b></div>'
+              + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">'
+              + '<div style="background:#0f0f0f;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:#4ade80;">' + left + '</div><div style="font-size:0.68rem;color:#888;">Days left</div></div>'
+              + '<div style="background:#0f0f0f;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:0.85rem;font-weight:800;color:#fbbf24;">' + fmtDate(sub.expiresAt) + '</div><div style="font-size:0.68rem;color:#888;">Expires</div></div></div>'
+              + '<div style="margin-top:8px;font-size:0.75rem;color:#9ca3af;">Plan: <b style="color:#fff;">' + (sub.plan || '—') + '</b>'
+              + (sub.activatedAt ? ' · Active since ' + fmtDate(sub.activatedAt) : '') + '</div>'
               + '<div>Days left: <b>' + left + '</b></div>'
               + '</div>';
             plansBtn.style.display = 'block';
@@ -9055,11 +9153,179 @@ function cvIsIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent || '')
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
+
+// ══════════════════════════════════
+// PWA PUSH NOTIFICATIONS
+// ══════════════════════════════════
+var CV_VAPID_PUBLIC = 'BCiDd5W1rb4clSzLDfizpj1GLfzdlKFVPFiraGRS5LAE0_6JmtUitgySwkkCtD46UhuA7mpDttOu694p43Drwuc';
+var _cvPushReady = false;
+var _cvLastPushTs = 0;
+
+function cvUrlBase64ToUint8Array(base64String) {
+  var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(base64);
+  var arr = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function cvPushSupported() {
+  return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+}
+
+function cvPushPermission() {
+  try { return Notification.permission; } catch (e) { return 'denied'; }
+}
+
+function cvSavePushSub(sub) {
+  if (!db || !sub) return;
+  try {
+    var json = sub.toJSON ? sub.toJSON() : { endpoint: sub.endpoint };
+    var key = btoa(json.endpoint || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 40);
+    if (!key) key = String(Date.now());
+    db.ref('pushSubs/' + key).set({
+      endpoint: json.endpoint || '',
+      keys: json.keys || {},
+      expirationTime: json.expirationTime || null,
+      ua: (navigator.userAgent || '').substring(0, 200),
+      ts: Date.now()
+    }).catch(function() {});
+    try { localStorage.setItem('cv_push_on', '1'); } catch (e) {}
+  } catch (e2) {}
+}
+
+function cvSubscribePush() {
+  if (!cvPushSupported()) return Promise.reject(new Error('unsupported'));
+  return navigator.serviceWorker.ready.then(function(reg) {
+    return reg.pushManager.getSubscription().then(function(existing) {
+      if (existing) {
+        cvSavePushSub(existing);
+        return existing;
+      }
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: cvUrlBase64ToUint8Array(CV_VAPID_PUBLIC)
+      }).then(function(sub) {
+        cvSavePushSub(sub);
+        return sub;
+      });
+    });
+  });
+}
+
+function cvRequestPushPermission(fromUser) {
+  if (!cvPushSupported()) {
+    if (fromUser) try { alert('Push is not supported on this browser'); } catch (e) {}
+    return Promise.resolve(false);
+  }
+  var p = cvPushPermission();
+  if (p === 'denied') {
+    if (fromUser) try { alert('Notifications blocked — browser settings se Allow karo'); } catch (e) {}
+    return Promise.resolve(false);
+  }
+  var ask = (p === 'granted') ? Promise.resolve('granted') : Notification.requestPermission();
+  return ask.then(function(perm) {
+    if (perm !== 'granted') return false;
+    return cvSubscribePush().then(function() {
+      _cvPushReady = true;
+      cvHidePushBanner();
+      cvListenPushBroadcast();
+      return true;
+    }).catch(function() { return false; });
+  });
+}
+
+function cvShowPushBanner() {
+  if (!cvPushSupported()) return;
+  if (cvPushPermission() === 'granted') return;
+  if (cvPushPermission() === 'denied') return;
+  try { if (localStorage.getItem('cv_push_banner_dismiss') === '1') return; } catch (e) {}
+  if (document.getElementById('cv-push-banner')) return;
+  var el = document.createElement('div');
+  el.id = 'cv-push-banner';
+  el.innerHTML = '<div class="cv-push-inner">'
+    + '<div class="cv-push-txt"><b>🔔 New movie alerts</b><span>Allow notifications — nayi movies turant pata chalain</span></div>'
+    + '<button type="button" class="cv-push-yes" id="cv-push-yes">Allow</button>'
+    + '<button type="button" class="cv-push-no" id="cv-push-no" aria-label="Close">✕</button>'
+    + '</div>';
+  document.body.appendChild(el);
+  document.getElementById('cv-push-yes').onclick = function() {
+    cvRequestPushPermission(true);
+  };
+  document.getElementById('cv-push-no').onclick = function() {
+    try { localStorage.setItem('cv_push_banner_dismiss', '1'); } catch (e) {}
+    cvHidePushBanner();
+  };
+}
+
+function cvHidePushBanner() {
+  var el = document.getElementById('cv-push-banner');
+  if (el) el.remove();
+}
+
+function cvShowLocalNotification(payload) {
+  if (cvPushPermission() !== 'granted') return;
+  var p = payload || {};
+  navigator.serviceWorker.ready.then(function(reg) {
+    if (reg.active) {
+      reg.active.postMessage({ type: 'SHOW_NOTIFICATION', payload: p });
+    } else {
+      reg.showNotification(p.title || 'CineNova', {
+        body: p.body || '',
+        icon: p.icon || 'https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png',
+        data: { url: p.url || 'https://www.cinenova.site/' },
+        tag: p.tag || 'cinenova-local'
+      });
+    }
+  }).catch(function() {});
+}
+
+function cvListenPushBroadcast() {
+  if (!db || window._cvPushListen) return;
+  window._cvPushListen = true;
+  try { _cvLastPushTs = parseInt(localStorage.getItem('cv_last_push_ts') || '0', 10) || 0; } catch (e) {}
+  db.ref('pushBroadcast').limitToLast(3).on('child_added', function(snap) {
+    var v = snap.val() || {};
+    var ts = v.ts || 0;
+    if (ts && ts <= _cvLastPushTs) return;
+    if (ts) {
+      _cvLastPushTs = ts;
+      try { localStorage.setItem('cv_last_push_ts', String(ts)); } catch (e2) {}
+    }
+    if (cvPushPermission() !== 'granted') return;
+    // Skip very old (page load history)
+    if (ts && (Date.now() - ts > 120000) && !v.force) return;
+    cvShowLocalNotification({
+      title: v.title || 'CineNova',
+      body: v.body || 'New update on CineNova',
+      url: v.url || 'https://www.cinenova.site/',
+      icon: v.icon || 'https://i.ibb.co/2Y8SwSfn/cinenova-icon-192.png',
+      tag: v.tag || ('cv-' + (snap.key || ts))
+    });
+  });
+}
+
+function cvInitPush() {
+  if (!cvPushSupported()) return;
+  if (cvPushPermission() === 'granted') {
+    cvSubscribePush().then(function() {
+      _cvPushReady = true;
+      cvListenPushBroadcast();
+    }).catch(function() {});
+  } else {
+    // Soft banner after short delay (not aggressive)
+    setTimeout(function() { try { cvShowPushBanner(); } catch (e) {} }, 12000);
+  }
+}
+
+
 function cvRegisterPWA() {
   try {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
       try { if (reg && reg.update) reg.update(); } catch (eU) {}
+      try { setTimeout(cvInitPush, 1500); } catch (eP) {}
     }).catch(function() {});
   } catch (eSw) {}
 }
@@ -9200,3 +9466,6 @@ function boot() {
   setTimeout(boot, 800);
   setTimeout(boot, 2500);
 })();
+
+
+
