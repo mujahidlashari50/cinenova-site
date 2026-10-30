@@ -1,3 +1,4 @@
+html{scroll-behavior:auto!important}
 /* === cv-critical-boot + CWV mobile fix === */
 html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:0;}
 #cv-cats,.cv-pill,#cv-years,.cv-year-pill,#cv-nav{
