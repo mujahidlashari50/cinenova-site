@@ -1,3 +1,4 @@
+html{scroll-behavior:auto!important}
 /* === cv-critical-boot + CWV mobile fix === */
 html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:0;}
 #cv-cats,.cv-pill,#cv-years,.cv-year-pill,#cv-nav{
@@ -53,4 +54,11 @@ html,body{background:#141414!important;color:#e5e5e5!important;margin:0;padding:
 
 /* font swap already on google fonts link */
 body.cv-booting #cv-grid .cv-skel{opacity:1}
-body.cv-ready .cv-skel{display:none}
+body.cv-ready #cv-grid:has(.cv-card) .cv-skel{display:none}
+body.cv-ready #cv-grid:not(:has(.cv-card)) .cv-skel{display:flex}
+
+#cv-grid{min-height:min(70vh,560px)}
+body.cv-ready #cv-grid:has(.cv-card){min-height:0}
+body.cv-ready #cv-grid:not(:has(.cv-card)){min-height:min(70vh,560px)}
+
+#cv-home-cta-wrap{padding:12px 14px}
