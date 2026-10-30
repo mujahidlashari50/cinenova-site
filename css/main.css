@@ -1944,3 +1944,306 @@ body.cv-adult-off .cv-subcat-group {
 }
 
 
+
+
+/* Push notification soft banner */
+#cv-push-banner{
+  position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  z-index:99990;pointer-events:none;
+}
+#cv-push-banner .cv-push-inner{
+  pointer-events:auto;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,#1a1a1a,#0d0d0d);border:1px solid rgba(229,9,20,0.35);
+  border-radius:14px;padding:12px 14px;box-shadow:0 12px 40px rgba(0,0,0,0.55);
+  max-width:520px;margin:0 auto;
+}
+#cv-push-banner .cv-push-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#cv-push-banner .cv-push-txt b{font-size:0.88rem;color:#fff}
+#cv-push-banner .cv-push-txt span{font-size:0.72rem;color:#999;line-height:1.3}
+#cv-push-banner .cv-push-yes{
+  background:#e50914;color:#fff;border:none;border-radius:10px;padding:10px 14px;
+  font-weight:800;font-size:0.8rem;cursor:pointer;flex-shrink:0;
+}
+#cv-push-banner .cv-push-no{
+  background:transparent;border:none;color:#777;font-size:1rem;cursor:pointer;padding:6px;flex-shrink:0;
+}
+
+
+/* Modal ambient glow */
+#cv-modal-ambient{
+  position:absolute;top:0;left:0;right:0;height:min(62vh,520px);
+  background-size:cover;background-position:center top;background-repeat:no-repeat;
+  filter:blur(36px) saturate(1.45) brightness(.5);
+  transform:scale(1.18);transform-origin:center top;
+  opacity:0;pointer-events:none;z-index:0;
+  transition:opacity .45s ease;
+  -webkit-mask-image:linear-gradient(to bottom,#000 20%,transparent 95%);
+  mask-image:linear-gradient(to bottom,#000 20%,transparent 95%);
+}
+#cv-modal.open #cv-modal-ambient{opacity:.72}
+#cv-modal-box{position:relative;isolation:isolate}
+#cv-modal-box>*:not(#cv-modal-ambient){position:relative;z-index:1}
+#cv-modal-box.cv-has-ambient::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:min(55vh,480px);
+  background:linear-gradient(to bottom,rgba(20,20,20,.12) 0%,rgba(20,20,20,.5) 42%,rgba(20,20,20,.9) 78%,#141414 100%);
+  pointer-events:none;z-index:0;
+}
+
+/* Grid skeleton shimmer boost */
+.cv-skel-img{
+  background:linear-gradient(90deg,#1a1a1a 0%,#262626 40%,#333 50%,#262626 60%,#1a1a1a 100%)!important;
+  background-size:200% 100%!important;
+  animation:shimmer 1.4s ease-in-out infinite!important;
+}
+.cv-skel-bar{
+  background:linear-gradient(90deg,#1a1a1a 0%,#2a2a2a 50%,#1a1a1a 100%)!important;
+  background-size:200% 100%!important;
+  animation:shimmer 1.4s ease-in-out infinite!important;
+  border-radius:4px;
+}
+
+/* Desktop hover polish */
+@media (hover:hover) and (min-width:900px){
+  #cv-grid .cv-card{
+    transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s ease;
+  }
+  #cv-grid .cv-card:hover{
+    transform:translateY(-6px) scale(1.04);
+    box-shadow:0 18px 42px rgba(0,0,0,.55),0 0 0 1px rgba(229,9,20,.28),0 10px 30px rgba(229,9,20,.16);
+    z-index:3;
+  }
+}
+
+
+/* === CWV Mobile Fix Oct 2026 === */
+.cv-card-img-wrap,.cv-card-img{
+  aspect-ratio:2/3;
+  width:100%;
+  height:auto;
+  object-fit:cover;
+  background:#1a1a1a;
+  display:block;
+}
+/* Below-fold cards: less layout/paint work */
+#cv-grid .cv-card:nth-child(n+9){
+  content-visibility:auto;
+  contain-intrinsic-size:auto 280px;
+}
+@media(min-width:700px){
+  #cv-grid .cv-card:nth-child(n+16){
+    content-visibility:auto;
+    contain-intrinsic-size:auto 320px;
+  }
+}
+/* CLS: fixed nav */
+#cv-nav{min-height:56px}
+#cv-bottom-nav{contain:layout style}
+/* Install / ann banners — no big jump when closed */
+#cv-iab-banner:not(.show),[hidden]#cv-iab-banner{display:none!important}
+#cv-push-banner,[id*="install"]:not(.show){max-height:none}
+img.cv-card-img,img.cv-slide-img,img.cv-tw-poster,img.cv-mb-poster{
+  content-visibility:auto;
+}
+/* Reduce heavy paint on mobile */
+@media(max-width:480px){
+  #cv-grid .cv-card{will-change:auto}
+  .cv-card:hover{transform:none!important}
+}
+
+
+/* === Modal stable + SEO boot fix Oct22 === */
+html{scrollbar-gutter:stable}
+html.cv-scroll-lock,html.cv-scroll-lock body{overflow:hidden!important}
+html.cv-scroll-lock body{padding-right:var(--cv-sbw,0px)!important}
+html.cv-scroll-lock #cv-nav,
+html.cv-scroll-lock #cv-bottom-nav{padding-right:var(--cv-sbw,0px)}
+
+/* Modal: no horizontal shake */
+#cv-modal{
+  left:0!important;right:0!important;width:100%!important;
+  max-width:100vw!important;
+  overflow-x:hidden!important;
+}
+#cv-modal-box{
+  left:0!important;right:0!important;
+  margin:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:100%!important;
+  max-height:100dvh!important;
+  border-radius:0!important;
+  transform:translate3d(0,0,0)!important;
+  -webkit-transform:translate3d(0,0,0)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+#cv-modal.open #cv-modal-box{
+  animation:cvModalUp .28s cubic-bezier(.22,1,.36,1)!important;
+}
+@keyframes cvModalUp{
+  from{transform:translate3d(0,24px,0);opacity:.96}
+  to{transform:translate3d(0,0,0);opacity:1}
+}
+
+/* Top actions: fixed corner, not float (stops left-right jump) */
+#cv-modal-top-actions{
+  position:absolute!important;
+  top:12px!important;
+  right:12px!important;
+  left:auto!important;
+  float:none!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:8px!important;
+  z-index:30!important;
+  pointer-events:auto!important;
+}
+#cv-modal-bookmark,#cv-modal-close{
+  width:40px!important;
+  height:40px!important;
+  border-radius:50%!important;
+  background:rgba(0,0,0,.65)!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  color:#fff!important;
+  font-size:1.05rem!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+  box-shadow:0 2px 12px rgba(0,0,0,.4)!important;
+}
+#cv-modal-close:hover{background:var(--red)!important;border-color:var(--red)!important}
+#cv-modal-bookmark.cv-bookmarked{background:#facc15!important;color:#111!important;border-color:#facc15!important}
+
+/* SEO block: only after movies ready — home pe pehle posters */
+#cv-seo-wrap{
+  opacity:0;
+  pointer-events:none;
+  max-height:0;
+  overflow:hidden;
+  transition:opacity .3s ease;
+}
+body.cv-ready #cv-seo-wrap{
+  opacity:1;
+  pointer-events:auto;
+  max-height:none;
+  overflow:visible;
+}
+/* Grid skeleton height so SEO neeche rahe load tak */
+#cv-grid{
+  min-height:min(70vh,560px)!important;
+}
+body.cv-ready #cv-grid{
+  min-height:0!important;
+}
+
+
+/* === Home CTA (SEO box removed) === */
+#cv-home-cta-wrap{padding:16px 14px 8px;margin:8px 0 4px}
+.cv-home-cta{
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(135deg,rgba(229,9,20,.12),rgba(20,20,20,.9));
+  border:1px solid rgba(229,9,20,.28);
+  border-radius:16px;padding:14px 14px;
+}
+.cv-home-cta-icon{font-size:1.6rem;flex-shrink:0}
+.cv-home-cta-body{flex:1;min-width:0}
+.cv-home-cta-title{font-weight:800;font-size:.95rem;color:#fff}
+.cv-home-cta-sub{font-size:.72rem;color:#aaa;margin-top:2px;line-height:1.35}
+.cv-home-cta-btn{
+  flex-shrink:0;background:var(--red);color:#fff;border:none;
+  border-radius:999px;padding:10px 16px;font-weight:700;font-size:.8rem;cursor:pointer;
+}
+.cv-home-cta-btn:active{transform:scale(.97)}
+.cv-home-cta-links{
+  display:flex;justify-content:center;gap:8px;margin-top:10px;
+  font-size:.72rem;color:#666;
+}
+.cv-home-cta-links a{color:#888;text-decoration:none}
+.cv-home-cta-links a:hover{color:var(--red)}
+#cv-seo-wrap.cv-seo-minimal{
+  opacity:1!important;max-height:none!important;overflow:visible!important;
+  pointer-events:auto!important;padding:4px 16px 20px;text-align:center;
+}
+.cv-seo-mini{font-size:.68rem;color:#555;line-height:1.5;margin:0}
+.cv-seo-mini a{color:#777}
+/* hide old big seo cards if any left */
+#cv-seo-wrap .cv-seo-card{display:none!important}
+
+
+
+
+
+
+/* Movie modal full screen all devices */
+#cv-modal{
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  padding:0!important;
+  background:#141414!important;
+}
+#cv-modal.open #cv-modal-box,
+#cv-modal-box{
+  width:100%!important;
+  max-width:100%!important;
+  height:100%!important;
+  max-height:100dvh!important;
+  border-radius:0!important;
+  margin:0!important;
+}
+#cv-modal-handle{display:none!important}
+.cv-pay-raqami-logo{
+  height:28px;width:auto;max-width:140px;object-fit:contain;display:block;
+  filter:brightness(1.05);
+}
+@media(max-width:720px){
+  .cv-pay-raqami-logo{height:22px;max-width:110px}
+}
+
+/* === Pay logo buckets only === */
+#cv-pay-bucket{display:none;padding:10px 14px 16px}
+#cv-pay-bucket.show{display:block!important}
+.cv-pay-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  align-items:stretch;
+}
+@media(max-width:640px){
+  .cv-pay-row{grid-template-columns:1fr;max-width:280px;margin:0 auto;gap:10px}
+}
+.cv-pay-card{
+  border-radius:14px;
+  padding:18px 16px;
+  border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  min-height:72px;
+}
+.cv-pay-ep{
+  background:linear-gradient(160deg,#0a1a10 0%,#0f2a18 100%);
+  border-color:rgba(0,166,81,.4);
+}
+.cv-pay-jc{
+  background:linear-gradient(160deg,#140c18 0%,#1e1228 100%);
+  border-color:rgba(255,198,10,.35);
+}
+.cv-pay-bank{
+  background:linear-gradient(160deg,#0a1018 0%,#121c2c 100%);
+  border-color:rgba(59,130,246,.35);
+  display:flex!important;
+}
+.cv-pay-logo-full{width:100%;max-width:180px;height:36px}
+.cv-pay-logo-img-full{
+  max-width:170px;max-height:44px;width:auto;height:auto;
+  object-fit:contain;display:block;
+  /* white bg logos read better on dark */
+  background:#fff;border-radius:8px;padding:6px 10px;
+}
+@media(max-width:640px){
+  .cv-pay-card{min-height:64px;padding:14px}
+  .cv-pay-logo-full{height:32px;max-width:160px}
+  .cv-pay-logo-img-full{max-height:40px;max-width:150px}
+}
+/* no QR / scan / numbers on public */
+.cv-pay-qr,.cv-pay-scan,.cv-pay-meta,.cv-pay-name,.cv-pay-num,.cv-pay-copy{display:none!important}
+
