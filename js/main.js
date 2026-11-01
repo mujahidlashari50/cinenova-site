@@ -6066,44 +6066,65 @@ function cvEnsureFirebaseAuth(cb) {
 }
 
 
-/** EasyPaisa / JazzCash TID format check */
+/** EasyPaisa / JazzCash / Bank TID — strict format (not proof of payment) */
 function cvValidateTxnId(tid, method) {
   var raw = String(tid || '').trim();
   if (!raw) return { ok: false, reason: 'Transaction ID is required' };
   var clean = raw.replace(/[\s\-]/g, '');
-  if (/^(.)\1{7,}$/.test(clean)) return { ok: false, reason: 'Invalid or fake-looking TID' };
-  if (/^(123456|000000|111111|999999)/.test(clean)) return { ok: false, reason: 'Invalid or fake-looking TID' };
+  if (clean.length < 10) return { ok: false, reason: 'TID too short (min 10 characters)' };
+  if (clean.length > 24) return { ok: false, reason: 'TID too long' };
   if (!/^[A-Za-z0-9]+$/.test(clean)) return { ok: false, reason: 'Only letters and numbers allowed' };
-  var digits = clean.replace(/\D/g, '');
+  if (/^(.)\1{6,}$/.test(clean)) return { ok: false, reason: 'Invalid TID (repeated digits)' };
+  if (/^(0123456789|1234567890|9876543210|0000000000|1111111111)/.test(clean)) {
+    return { ok: false, reason: 'Invalid or fake-looking TID' };
+  }
+  // sequential run check
+  var dig = clean.replace(/\D/g, '');
+  if (dig.length >= 8) {
+    var seq = 0;
+    for (var i = 1; i < dig.length; i++) {
+      if (parseInt(dig[i],10) === (parseInt(dig[i-1],10) + 1) % 10) seq++;
+      else seq = 0;
+      if (seq >= 6) return { ok: false, reason: 'Invalid or fake-looking TID' };
+    }
+  }
   var m = (method || '').toLowerCase();
   if (m === 'jazzcash') {
-    if (digits.length >= 10 && digits.length <= 14 && digits.length === clean.length) {
-      return { ok: true, reason: 'JazzCash format looks OK' };
-    }
-    if (/^JC/i.test(clean) && digits.length >= 8) return { ok: true, reason: 'JazzCash format looks OK' };
-    return { ok: false, reason: 'JazzCash TID is usually 10–14 digits' };
+    if (dig.length >= 11 && dig.length <= 14 && dig.length === clean.length)
+      return { ok: true, reason: 'Format OK — admin will verify payment' };
+    if (/^JC/i.test(clean) && dig.length >= 10)
+      return { ok: true, reason: 'Format OK — admin will verify payment' };
+    return { ok: false, reason: 'JazzCash TID usually 11–14 digits' };
   }
   if (m === 'easypaisa') {
-    if (digits.length >= 10 && digits.length <= 14) return { ok: true, reason: 'EasyPaisa format looks OK' };
-    if (/^(EP|TID)/i.test(clean) && digits.length >= 8) return { ok: true, reason: 'EasyPaisa format looks OK' };
-    return { ok: false, reason: 'EasyPaisa TID is usually 10–14 digits' };
+    if (dig.length >= 11 && dig.length <= 14)
+      return { ok: true, reason: 'Format OK — admin will verify payment' };
+    if (/^(EP|TID)/i.test(clean) && dig.length >= 10)
+      return { ok: true, reason: 'Format OK — admin will verify payment' };
+    return { ok: false, reason: 'EasyPaisa TID usually 11–14 digits' };
   }
-  if (digits.length >= 10 && digits.length <= 14) return { ok: true, reason: 'Format looks OK' };
-  return { ok: false, reason: 'TID should be 10–14 digits' };
+  // bank
+  if (dig.length >= 10 && dig.length <= 20)
+    return { ok: true, reason: 'Format OK — admin will verify payment' };
+  return { ok: false, reason: 'Enter full bank transaction / reference ID' };
 }
 
 function cvShowSubModal(cfg, user, mode) {
   var old = document.getElementById('cv-sub-modal');
   if (old) old.remove();
   var plans = (cfg && cfg.plans) || {};
+  var planOrder = ['weekly', 'monthly', 'yearly'];
   var planHtml = '';
-  ['weekly','monthly','yearly'].forEach(function(k) {
+  planOrder.forEach(function(k, idx) {
     var p = plans[k];
     if (!p) return;
-    planHtml += '<button type="button" class="cv-sub-plan" data-plan="'+k+'" style="display:block;width:100%;text-align:left;padding:12px 14px;margin:0 0 8px;background:#1a1a1a;border:1px solid #333;border-radius:10px;color:#fff;cursor:pointer;">'
-      + '<b style="font-size:1rem;">' + (p.label||k) + '</b>'
-      + '<span style="float:right;color:#fbbf24;font-weight:800;">Rs ' + (p.price||0) + '</span>'
-      + '<div style="font-size:0.75rem;color:#888;margin-top:4px;">' + (p.days||0) + ' days access</div></button>';
+    var popular = (k === 'monthly');
+    planHtml += '<button type="button" class="cv-nf-plan' + (popular ? ' popular' : '') + '" data-plan="' + k + '">'
+      + (popular ? '<span class="cv-nf-badge">Most popular</span>' : '')
+      + '<div class="cv-nf-plan-top"><span class="cv-nf-plan-name">' + (p.label || k) + '</span>'
+      + '<span class="cv-nf-plan-price">Rs ' + (p.price || 0) + '</span></div>'
+      + '<div class="cv-nf-plan-days">' + (p.days || 0) + ' days · Unlimited watch & download</div>'
+      + '<div class="cv-nf-check">✓</div></button>';
   });
   var epName = (cfg && cfg.easypaisaName) ? cfg.easypaisaName : 'MUJAHID';
   var epNum = (cfg && cfg.easypaisaNumber) ? cfg.easypaisaNumber : '03353613905';
@@ -6113,85 +6134,112 @@ function cvShowSubModal(cfg, user, mode) {
   var bankTitle = (cfg && cfg.bankTitle) ? cfg.bankTitle : 'Mujahid';
   var bankAcc = (cfg && cfg.bankAccount) ? cfg.bankAccount : '020857992780';
   var bankIban = (cfg && cfg.bankIban) ? cfg.bankIban : 'PK36RQMI0000020857992780';
-  var note = (cfg && cfg.paymentNote) ? String(cfg.paymentNote).replace(/\n/g,'<br>') : '';
-  var support = (cfg && cfg.supportLink) ? '<a href="'+cfg.supportLink+'" target="_blank" rel="noopener" style="color:#38bdf8;">Support / WhatsApp</a>' : '';
-  var payCards = ''
-    + '<div class="cv-sub-pay-grid">'
-    + '<div class="cv-sub-pay-tile ep">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
-    + '<span style="font-size:0.7rem;font-weight:800;color:#4ade80;letter-spacing:0.04em;">EASYPAISA</span>'
-    + '<button type="button" class="cv-sub-copy" data-copy="' + String(epNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
-    + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(epName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(epNum).replace(/</g,'') + '</div>'
-    + '</div>'
-    + '<div class="cv-sub-pay-tile jc">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
-    + '<span style="font-size:0.7rem;font-weight:800;color:#c4b5fd;letter-spacing:0.04em;">JAZZCASH</span>'
-    + '<button type="button" class="cv-sub-copy" data-copy="' + String(jcNum).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
-    + '<div style="font-weight:700;color:#ccc;font-size:0.8rem;">' + String(jcName).replace(/</g,'') + '</div>'
-    + '<div style="font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0.03em;margin-top:2px;">' + String(jcNum).replace(/</g,'') + '</div>'
-    + '</div>'
-    + '<div class="cv-sub-pay-tile" style="grid-column:1/-1;background:linear-gradient(145deg,#0c1220,#152238);border:1px solid rgba(59,130,246,.35);border-radius:12px;padding:12px;">'
-    + '<div style="font-size:0.7rem;font-weight:800;color:#93c5fd;letter-spacing:0.04em;margin-bottom:6px;">BANK TRANSFER</div>'
-    + '<div style="font-size:0.78rem;color:#aaa;">Bank: <b style="color:#fff;">' + String(bankName).replace(/</g,'') + '</b></div>'
-    + '<div style="font-size:0.78rem;color:#aaa;">Title: <b style="color:#fff;">' + String(bankTitle).replace(/</g,'') + '</b></div>'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">'
-    + '<span style="font-size:0.95rem;font-weight:900;color:#fff;">' + String(bankAcc).replace(/</g,'') + '</span>'
-    + '<button type="button" class="cv-sub-copy" data-copy="' + String(bankAcc).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>'
-    + (bankIban ? '<div style="font-size:0.72rem;color:#93c5fd;margin-top:6px;word-break:break-all;">IBAN: ' + String(bankIban).replace(/</g,'') + ' <button type="button" class="cv-sub-copy" data-copy="' + String(bankIban).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div>' : '')
-    + '</div></div>'
-    + (note ? '<div style="font-size:0.78rem;color:#aaa;margin-bottom:10px;line-height:1.45;">' + note + '</div>' : '')
-    + (support ? '<div style="margin-bottom:10px;">' + support + '</div>' : '');
+  var supportUrl = (cfg && cfg.supportLink) ? String(cfg.supportLink) : 'https://wa.me/923312101812';
+  if (supportUrl.indexOf('http') !== 0 && supportUrl.indexOf('wa.me') >= 0) supportUrl = 'https://' + supportUrl.replace(/^.*wa\.me/, 'wa.me');
+  if (supportUrl.indexOf('Message') === 0) supportUrl = 'https://wa.me/923312101812';
+
+  var css = '<style id="cv-nf-sub-css">'
+    + '#cv-sub-modal{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}'
+    + '#cv-sub-modal .cv-nf-box{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:#141414;border:1px solid #333;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.65);color:#fff;font-family:inherit;}'
+    + '#cv-sub-modal .cv-nf-head{padding:20px 20px 12px;border-bottom:1px solid #222;position:sticky;top:0;background:#141414;z-index:2;}'
+    + '#cv-sub-modal .cv-nf-head h2{margin:0;font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;}'
+    + '#cv-sub-modal .cv-nf-head p{margin:6px 0 0;font-size:0.82rem;color:#999;line-height:1.4;}'
+    + '#cv-sub-modal .cv-nf-x{position:absolute;right:14px;top:14px;background:rgba(255,255,255,.08);border:0;color:#ccc;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;}'
+    + '#cv-sub-modal .cv-nf-body{padding:16px 20px 22px;}'
+    + '#cv-sub-modal .cv-nf-plan{position:relative;display:block;width:100%;text-align:left;padding:14px 16px;margin:0 0 10px;background:#1a1a1a;border:2px solid #333;border-radius:12px;color:#fff;cursor:pointer;transition:border-color .15s,background .15s;}'
+    + '#cv-sub-modal .cv-nf-plan.selected{border-color:#e50914;background:rgba(229,9,20,.12);}'
+    + '#cv-sub-modal .cv-nf-plan.popular{border-color:#444;}'
+    + '#cv-sub-modal .cv-nf-badge{position:absolute;top:-9px;left:14px;background:#e50914;color:#fff;font-size:0.62rem;font-weight:800;padding:2px 8px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;}'
+    + '#cv-sub-modal .cv-nf-plan-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}'
+    + '#cv-sub-modal .cv-nf-plan-name{font-size:1.05rem;font-weight:800;}'
+    + '#cv-sub-modal .cv-nf-plan-price{font-size:1.1rem;font-weight:900;color:#fbbf24;}'
+    + '#cv-sub-modal .cv-nf-plan-days{font-size:0.75rem;color:#888;margin-top:4px;}'
+    + '#cv-sub-modal .cv-nf-check{display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:#e50914;color:#fff;font-size:0.75rem;align-items:center;justify-content:center;}'
+    + '#cv-sub-modal .cv-nf-plan.selected .cv-nf-check{display:flex;}'
+    + '#cv-sub-modal .cv-nf-sec{font-size:0.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px;}'
+    + '#cv-sub-modal .cv-nf-pay{display:grid;gap:8px;}'
+    + '#cv-sub-modal .cv-nf-tile{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;}'
+    + '#cv-sub-modal .cv-nf-tile .lbl{font-size:0.68rem;font-weight:800;letter-spacing:.05em;margin-bottom:4px;}'
+    + '#cv-sub-modal .cv-nf-tile .num{font-size:1.05rem;font-weight:900;letter-spacing:.02em;}'
+    + '#cv-sub-modal .cv-nf-copy{float:right;font-size:0.65rem;background:rgba(255,255,255,.08);border:1px solid #444;color:#ddd;padding:3px 10px;border-radius:6px;cursor:pointer;}'
+    + '#cv-sub-modal label{display:block;font-size:0.75rem;color:#aaa;margin-bottom:4px;}'
+    + '#cv-sub-modal select,#cv-sub-modal input{width:100%;box-sizing:border-box;background:#0f0f0f;border:1px solid #333;border-radius:10px;color:#eee;padding:12px;font-size:0.9rem;margin-bottom:12px;}'
+    + '#cv-sub-modal #cv-sub-request{width:100%;padding:14px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:800;font-size:0.95rem;cursor:pointer;}'
+    + '#cv-sub-modal #cv-sub-request:disabled{opacity:.5;cursor:not-allowed;}'
+    + '#cv-sub-modal #cv-sub-login{width:100%;padding:14px;background:#fff;color:#000;border:0;border-radius:10px;font-weight:800;cursor:pointer;}'
+    + '@media(min-width:700px){#cv-sub-modal .cv-nf-box{max-width:520px;}}'
+    + '</style>';
+
+  var payHtml = ''
+    + '<div class="cv-nf-tile"><span class="lbl" style="color:#4ade80;">EASYPAISA</span>'
+    + '<button type="button" class="cv-nf-copy cv-sub-copy" data-copy="' + String(epNum).replace(/"/g,'') + '">Copy</button>'
+    + '<div style="color:#aaa;font-size:0.8rem;">' + String(epName).replace(/</g,'') + '</div>'
+    + '<div class="num">' + String(epNum).replace(/</g,'') + '</div></div>'
+    + '<div class="cv-nf-tile"><span class="lbl" style="color:#f472b6;">JAZZCASH</span>'
+    + '<button type="button" class="cv-nf-copy cv-sub-copy" data-copy="' + String(jcNum).replace(/"/g,'') + '">Copy</button>'
+    + '<div style="color:#aaa;font-size:0.8rem;">' + String(jcName).replace(/</g,'') + '</div>'
+    + '<div class="num">' + String(jcNum).replace(/</g,'') + '</div></div>'
+    + '<div class="cv-nf-tile"><span class="lbl" style="color:#93c5fd;">BANK TRANSFER</span>'
+    + '<button type="button" class="cv-nf-copy cv-sub-copy" data-copy="' + String(bankAcc).replace(/"/g,'') + '">Copy Acc</button>'
+    + '<div style="color:#aaa;font-size:0.78rem;margin-top:4px;">' + String(bankName).replace(/</g,'') + '</div>'
+    + '<div style="color:#ccc;font-size:0.8rem;">Title: ' + String(bankTitle).replace(/</g,'') + '</div>'
+    + '<div class="num" style="font-size:0.95rem;">' + String(bankAcc).replace(/</g,'') + '</div>'
+    + '<div style="font-size:0.72rem;color:#888;margin-top:4px;word-break:break-all;">IBAN: ' + String(bankIban).replace(/</g,'') + ' '
+    + '<button type="button" class="cv-sub-copy" data-copy="' + String(bankIban).replace(/"/g,'') + '" style="font-size:0.65rem;background:rgba(255,255,255,.08);border:1px solid #444;color:#ddd;padding:2px 8px;border-radius:6px;cursor:pointer;">Copy</button></div></div>';
+
+  var bodyForm = '';
+  if (mode === 'login' || !user) {
+    bodyForm = '<p style="color:#bbb;font-size:0.88rem;line-height:1.45;margin:0 0 14px;">Sign in to choose a plan and submit your payment for activation.</p>'
+      + '<button type="button" id="cv-sub-login">Continue with Google</button>';
+  } else {
+    bodyForm = '<div class="cv-nf-sec">1 · Choose plan</div>' + planHtml
+      + '<div class="cv-nf-sec">2 · Pay to</div><div class="cv-nf-pay">' + payHtml + '</div>'
+      + '<div class="cv-nf-sec">3 · Submit request</div>'
+      + '<label>Payment method</label>'
+      + '<select id="cv-sub-method"><option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option><option value="bank">Bank Transfer</option></select>'
+      + '<label>Transaction ID / TID</label>'
+      + '<input id="cv-sub-txn" type="text" inputmode="numeric" autocomplete="off" placeholder="Exact TID from payment SMS / app"/>'
+      + '<div id="cv-sub-txn-hint" style="font-size:0.75rem;color:#888;margin:-6px 0 10px;"></div>'
+      + '<label>Note (optional)</label>'
+      + '<input id="cv-sub-note" type="text" placeholder="Optional"/>'
+      + '<button type="button" id="cv-sub-request">Submit for activation</button>'
+      + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:10px;line-height:1.4;"></div>'
+      + '<a href="' + supportUrl.replace(/"/g,'') + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:12px;color:#38bdf8;font-size:0.82rem;">WhatsApp support</a>';
+  }
+
   var modal = document.createElement('div');
   modal.id = 'cv-sub-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:100050;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;justify-content:center;padding:0;';
-  modal.innerHTML = '<div class="cv-sub-sheet" style="background:#121212;border:1px solid #2a2a2a;border-radius:20px 20px 0 0;max-width:440px;width:100%;max-height:92vh;overflow-y:auto;padding:18px 16px 28px;">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
-    + '<h2 style="margin:0;font-size:1.15rem;color:#fff;">💎 Premium Access</h2>'
-    + '<button type="button" id="cv-sub-close" style="background:transparent;border:0;color:#888;font-size:1.4rem;cursor:pointer;">✕</button></div>'
-    + '<p style="font-size:0.85rem;color:#aaa;line-height:1.5;margin:0 0 14px;">An active subscription is required to watch or download movies.</p>'
-    + (user ? '<div style="font-size:0.78rem;color:#4ade80;margin-bottom:10px;">Logged in: '+ (user.email||user.uid) +'</div>'
-            : '<div style="margin-bottom:12px;"><button type="button" id="cv-sub-login" style="width:100%;padding:12px;background:#e50914;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">🔐 Continue with Google</button></div>')
-    + (user ? ('<div style="margin-bottom:12px;">' + planHtml + '</div>'
-      + payCards
-      + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Payment method</label>'
-      + '<select id="cv-sub-method" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;">'
-      + '<option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option><option value="bank">Bank Transfer</option></select></div>'
-      + '<div style="margin-bottom:8px;"><label style="font-size:0.75rem;color:#888;">Transaction ID / TID</label>'
-      + '<input id="cv-sub-txn" type="text" inputmode="numeric" placeholder="Enter Transaction ID from your payment" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:10px;font-size:0.85rem;margin-top:4px;"/>'
-      + '<div id="cv-sub-txn-hint" style="font-size:0.72rem;margin-top:4px;color:#666;">Enter 10–14 digit TID (JazzCash / EasyPaisa)</div></div>'
-      + '<textarea id="cv-sub-note" rows="2" placeholder="Optional note (optional)" style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#eee;padding:8px;font-size:0.8rem;margin-bottom:8px;"></textarea>'
-      + '<button type="button" id="cv-sub-request" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:0;border-radius:10px;font-weight:700;cursor:pointer;">📩 Submit Payment Request</button>'
-      + '<div id="cv-sub-msg" style="font-size:0.78rem;color:#888;margin-top:8px;"></div>')
-      : '')
-    + '</div>';
+  modal.innerHTML = css
+    + '<div class="cv-nf-box" role="dialog" aria-modal="true">'
+    + '<div class="cv-nf-head"><button type="button" class="cv-nf-x" id="cv-sub-close" aria-label="Close">×</button>'
+    + '<h2>Choose your plan</h2>'
+    + '<p>Unlimited movies · Watch online & download · Cancel anytime after expiry</p></div>'
+    + '<div class="cv-nf-body">' + bodyForm + '</div></div>';
   document.body.appendChild(modal);
   document.getElementById('cv-sub-close').onclick = function(){ modal.remove(); };
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+
   modal.querySelectorAll('.cv-sub-copy').forEach(function(btn){
     btn.onclick = function(){
       var t = btn.getAttribute('data-copy') || '';
       if (!t) return;
-      var done = function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1200); };
+      var done = function(){ var o=btn.textContent; btn.textContent='Copied'; setTimeout(function(){ btn.textContent=o; }, 1200); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(function(){});
       else { try { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch(e){} }
     };
   });
 
-  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
   var selectedPlan = 'monthly';
-  modal.querySelectorAll('.cv-sub-plan').forEach(function(btn) {
+  modal.querySelectorAll('.cv-nf-plan').forEach(function(btn) {
     btn.onclick = function() {
       selectedPlan = btn.getAttribute('data-plan') || 'monthly';
-      modal.querySelectorAll('.cv-sub-plan').forEach(function(b){
-        b.style.borderColor = '#333';
-        b.classList.remove('selected');
-      });
-      btn.style.borderColor = '#e50914';
+      modal.querySelectorAll('.cv-nf-plan').forEach(function(b){ b.classList.remove('selected'); });
       btn.classList.add('selected');
     };
   });
-  var firstPlan = modal.querySelector('.cv-sub-plan');
-  if (firstPlan) { firstPlan.click(); }
+  var pref = modal.querySelector('.cv-nf-plan[data-plan="monthly"]') || modal.querySelector('.cv-nf-plan');
+  if (pref) pref.click();
+
   var loginBtn = document.getElementById('cv-sub-login');
   if (loginBtn) {
     loginBtn.onclick = function() {
@@ -6217,37 +6265,25 @@ function cvShowSubModal(cfg, user, mode) {
       });
     };
   }
+
   var reqBtn = document.getElementById('cv-sub-request');
   var txnInput = document.getElementById('cv-sub-txn');
   var methodSel = document.getElementById('cv-sub-method');
-  var txnHint = document.getElementById('cv-sub-txn-hint');
+  var hint = document.getElementById('cv-sub-txn-hint');
   function refreshTxnHint() {
-    if (!txnInput || !txnHint) return;
+    if (!txnInput || !hint) return;
     var method = methodSel ? methodSel.value : 'easypaisa';
-    var v = cvValidateTxnId(txnInput.value, method);
-    if (!String(txnInput.value || '').trim()) {
-      txnHint.style.color = '#666';
-      txnHint.textContent = 'Enter 10–14 digit TID (JazzCash / EasyPaisa)';
-      txnInput.style.borderColor = '#333';
-      return;
-    }
-    if (v.ok) {
-      txnHint.style.color = '#4ade80';
-      txnHint.textContent = '✓ ' + v.reason;
-      txnInput.style.borderColor = '#16a34a';
-    } else {
-      txnHint.style.color = '#f87171';
-      txnHint.textContent = '✗ ' + v.reason + ' — enter a valid TID';
-      txnInput.style.borderColor = '#dc2626';
-    }
+    var check = cvValidateTxnId(txnInput.value, method);
+    if (!String(txnInput.value || '').trim()) { hint.textContent = ''; return; }
+    hint.style.color = check.ok ? '#fbbf24' : '#f87171';
+    hint.textContent = check.ok ? ('⚠ ' + check.reason) : ('❌ ' + check.reason);
   }
   if (txnInput) txnInput.addEventListener('input', refreshTxnHint);
   if (methodSel) methodSel.addEventListener('change', refreshTxnHint);
   if (reqBtn && user) {
     reqBtn.onclick = function() {
-      var noteEl = document.getElementById('cv-sub-note');
       var msg = document.getElementById('cv-sub-msg');
-      if (!db) { if (msg) msg.textContent = 'Database not ready. Please refresh and try again.'; return; }
+      var noteEl = document.getElementById('cv-sub-note');
       var method = methodSel ? methodSel.value : 'easypaisa';
       var txnId = txnInput ? String(txnInput.value || '').trim() : '';
       var check = cvValidateTxnId(txnId, method);
@@ -6256,6 +6292,8 @@ function cvShowSubModal(cfg, user, mode) {
         if (msg) { msg.style.color = '#f87171'; msg.textContent = '❌ ' + check.reason + ' — request not sent.'; }
         return;
       }
+      if (!db) { if (msg) msg.textContent = 'Network error'; return; }
+      reqBtn.disabled = true;
       var payload = {
         uid: user.uid,
         email: user.email || '',
@@ -6268,15 +6306,14 @@ function cvShowSubModal(cfg, user, mode) {
         createdAt: Date.now()
       };
       db.ref('subRequests').push(payload).then(function() {
-        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request submitted. Your plan will activate after payment verification.'; }
-        reqBtn.disabled = true;
+        if (msg) { msg.style.color = '#4ade80'; msg.textContent = '✅ Request submitted. Plan activates after admin verifies payment.'; }
       }).catch(function(e) {
+        reqBtn.disabled = false;
         if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Error: ' + e.message; }
       });
     };
   }
 }
-
 
 // Download — ab Cloudflare Worker timer page pe navigate karta hai
 function dlLink(url, quality) {
