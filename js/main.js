@@ -432,45 +432,10 @@ function cvScrollLock() {
     document.documentElement.style.setProperty('--cv-sbw', sb + 'px');
     document.body.style.overflow = 'hidden';
     document.body.style.paddingRight = sb ? (sb + 'px') : '';
-    // Mobile only: stop body bounce. TV/desktop keep pan so modal can scroll.
-    var isTouchMobile = (window.matchMedia && window.matchMedia('(hover: none) and (max-width: 1024px)').matches);
-    if (isTouchMobile) {
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.touchAction = '';
-    }
+    // prevent iOS/Android body bounce shift
+    document.body.style.touchAction = 'none';
   } catch (e) {}
 }
-
-// LED TV / big screen: arrow keys scroll modal content
-(function cvModalTvScroll(){
-  if (window._cvModalTvScroll) return;
-  window._cvModalTvScroll = true;
-  document.addEventListener('keydown', function(e) {
-    var modal = document.getElementById('cv-modal');
-    if (!modal || !modal.classList.contains('open')) return;
-    var box = document.getElementById('cv-modal-box');
-    if (!box) return;
-    var step = Math.max(120, Math.floor(window.innerHeight * 0.25));
-    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'Down') {
-      e.preventDefault();
-      box.scrollTop += (e.key === 'PageDown' ? step * 2 : step);
-    } else if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'Up') {
-      e.preventDefault();
-      box.scrollTop -= (e.key === 'PageUp' ? step * 2 : step);
-    }
-  }, { passive: false });
-  // Wheel over modal should scroll box (some TV browsers)
-  document.addEventListener('wheel', function(e) {
-    var modal = document.getElementById('cv-modal');
-    if (!modal || !modal.classList.contains('open')) return;
-    var box = document.getElementById('cv-modal-box');
-    if (!box) return;
-    // if target is already inside box and can scroll, leave it
-    box.scrollTop += e.deltaY;
-  }, { passive: true });
-})();
-
 function cvScrollUnlock() {
   try {
     var modal = document.getElementById('cv-modal');
@@ -2402,6 +2367,8 @@ function buildFeatured() {
 
   var html = ''
     + '<div class="cv-tw-viewport">'
+    +   '<button type="button" class="cv-tw-edge cv-tw-edge-l" id="cv-tw-prev" aria-label="Prev">‹</button>'
+    +   '<button type="button" class="cv-tw-edge cv-tw-edge-r" id="cv-tw-next" aria-label="Next">›</button>'
     +   '<div class="cv-tw-track" id="cv-tw-track">';
 
   for (var j = 0; j < pool.length; j++) {
@@ -5489,17 +5456,7 @@ function openModal(key) {
   } catch (eF) {}
 
   try{cvScrollLock();}catch(e){document.body.style.overflow='hidden';}
-  try {
-    var _mb = document.getElementById('cv-modal-box');
-    if (_mb) {
-      _mb.scrollTop = 0;
-      _mb.style.overflowY = 'auto';
-      _mb.style.webkitOverflowScrolling = 'touch';
-      _mb.style.touchAction = 'pan-y';
-      // TV / remote / wheel: keep focus on scrollable panel
-      try { _mb.setAttribute('tabindex', '-1'); _mb.focus({ preventScroll: true }); } catch (eF) {}
-    }
-  } catch (eScr) {}
+  try { document.getElementById('cv-modal-box').scrollTop = 0; } catch (eScr) {}
   if (!isRerender) { var _mSlug = m.seoSlug || cvSlug(m.title) || encodeURIComponent(key); cvPushMovieState(_mSlug); cvUpdateSEO(m, _mSlug); }
 
   // ── REALTIME: Admin edit → auto update (sirf fresh open pe listener lagao) ──
