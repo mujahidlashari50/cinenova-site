@@ -2367,8 +2367,6 @@ function buildFeatured() {
 
   var html = ''
     + '<div class="cv-tw-viewport">'
-    +   '<button type="button" class="cv-tw-edge cv-tw-edge-l" id="cv-tw-prev" aria-label="Prev">‹</button>'
-    +   '<button type="button" class="cv-tw-edge cv-tw-edge-r" id="cv-tw-next" aria-label="Next">›</button>'
     +   '<div class="cv-tw-track" id="cv-tw-track">';
 
   for (var j = 0; j < pool.length; j++) {
