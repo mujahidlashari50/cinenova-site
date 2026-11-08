@@ -2482,3 +2482,18 @@ body.cv-scrolling img {
     background: #0a0a0a !important;
   }
 }
+
+
+/* PERMANENT: hide This Week slider center/side arrows */
+.cv-tw-edge,
+.cv-tw-edge-l,
+.cv-tw-edge-r,
+#cv-tw-prev,
+#cv-tw-next {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
