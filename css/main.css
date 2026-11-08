@@ -2497,3 +2497,29 @@ body.cv-scrolling img {
   width: 0 !important;
   height: 0 !important;
 }
+
+
+/* LED TV / large screen modal scroll fix */
+.cv-modal-tv-scroll-fix {}
+html.cv-scroll-lock,
+html.cv-scroll-lock body {
+  overflow: hidden !important;
+}
+#cv-modal.open {
+  overflow: hidden !important;
+}
+#cv-modal.open #cv-modal-box {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: contain !important;
+  height: 100% !important;
+  max-height: 100dvh !important;
+  max-height: 100vh !important;
+}
+@media (min-width: 900px) {
+  #cv-modal.open #cv-modal-box {
+    overflow-y: scroll !important;
+  }
+}
